@@ -647,21 +647,29 @@ function delEvento(idx){
 }
 
 // ═══ AUTH ═══
+function showLoginErr(msg){
+  const el=document.getElementById('l-err');
+  el.textContent=msg||'Error al iniciar sesión';
+  el.style.display='block';
+}
 async function doLogin(){
   const u=document.getElementById('l-user').value.trim().toUpperCase();
   const p=document.getElementById('l-pass').value.trim();
-  if(!u||!p){document.getElementById('l-err').style.display='block';return;}
+  document.getElementById('l-err').style.display='none';
+  if(!u||!p){showLoginErr('Completá usuario y contraseña.');return;}
   const btn=document.querySelector('.lbtn');
   btn.textContent='Ingresando...';btn.disabled=true;
   try{
+    if(typeof firebase==='undefined'||!firebase.auth){showLoginErr('Firebase no cargó. Recargá la página.');btn.textContent='Ingresar';btn.disabled=false;return;}
     await firebase.auth().signInWithEmailAndPassword(u.toLowerCase()+'@boom.app',p);
-    // onAuthStateChanged maneja el resto
   }catch(e){
-    document.getElementById('l-err').style.display='block';
+    console.error('Auth error:',e.code,e.message);
+    const msgs={'auth/user-not-found':'Usuario no encontrado.','auth/wrong-password':'Contraseña incorrecta.','auth/invalid-email':'Email inválido.','auth/invalid-credential':'Usuario o contraseña incorrectos.','auth/too-many-requests':'Demasiados intentos. Esperá un momento.'};
+    showLoginErr(msgs[e.code]||('Error: '+e.code));
     btn.textContent='Ingresar';btn.disabled=false;
   }
 }
-function doLogout(){firebase.auth().signOut();}
+function doLogout(){if(typeof firebase!=='undefined'&&firebase.auth)firebase.auth().signOut();}
 
 // ═══ SIDEBAR ═══
 function buildMobileNav(){
@@ -1589,25 +1597,41 @@ try {
 
   // ═══ SESIÓN PERSISTENTE ═══
   _auth.onAuthStateChanged(async function(fbUser){
-    if(fbUser){
-      const username=fbUser.email.replace('@boom.app','').toUpperCase();
-      // Cargar usuarios desde Firestore para obtener roles y módulos
-      const usersData=await fbGet('config','users');
-      if(usersData?.items)USERS=usersData.items;
-      const f=USERS.find(x=>x.user===username);
-      if(!f){await _auth.signOut();return;}
-      CU=f;
-      document.getElementById('login').style.display='none';
-      document.getElementById('app').style.display='flex';
-      document.getElementById('t-role').textContent=f.role;
-      updateTopbarAvatar();
-      syncTopbarEventos();buildSidebar();buildMobileNav();
-      await window.fbLoad();
-      navigate(CU.pages[0]);
-    }else{
-      CU=null;
-      document.getElementById('login').style.display='flex';
-      document.getElementById('app').style.display='none';
+    try{
+      if(fbUser){
+        const username=fbUser.email.replace('@boom.app','').toUpperCase();
+        // Primero intentar cargar usuarios desde Firestore
+        const usersData=await fbGet('config','users');
+        if(usersData?.items)USERS=usersData.items;
+        // Si no hay usuarios en Firestore, usar el array local (primera vez)
+        const f=USERS.find(x=>x.user===username);
+        if(!f){
+          console.warn('Usuario autenticado en Firebase pero no encontrado en Firestore:',username);
+          // Si no está en Firestore todavía, igual lo dejamos entrar como ADMIN si es admin@boom.app
+          if(username==='ADMIN'){
+            CU=USERS.find(x=>x.user==='ADMIN');
+          }
+          if(!CU){await _auth.signOut();return;}
+        } else {
+          CU=f;
+        }
+        document.getElementById('login').style.display='none';
+        document.getElementById('app').style.display='flex';
+        document.getElementById('t-role').textContent=CU.role;
+        updateTopbarAvatar();
+        syncTopbarEventos();buildSidebar();buildMobileNav();
+        await window.fbLoad();
+        navigate(CU.pages[0]);
+      }else{
+        CU=null;
+        document.getElementById('login').style.display='flex';
+        document.getElementById('app').style.display='none';
+        const btn=document.querySelector('.lbtn');
+        if(btn){btn.textContent='Ingresar';btn.disabled=false;}
+      }
+    }catch(err){
+      console.error('Error en onAuthStateChanged:',err);
+      if(typeof showLoginErr==='function')showLoginErr('Error interno: '+err.message);
       const btn=document.querySelector('.lbtn');
       if(btn){btn.textContent='Ingresar';btn.disabled=false;}
     }
