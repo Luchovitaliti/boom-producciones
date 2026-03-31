@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BOOM Producciones</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
+:root{--bg:#0a0a0a;--bg2:#111;--bg3:#1a1a1a;--border:#2a2a2a;--border2:#333;--text:#f0f0f0;--text2:#888;--text3:#555;--accent:#e8d5a3;--accent2:#c4a96b;--green:#4ade80;--red:#f87171;--yellow:#fbbf24;--blue:#60a5fa;--purple:#a78bfa;--r:10px;--rs:6px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;}
+::-webkit-scrollbar{width:4px;height:4px;}::-webkit-scrollbar-track{background:var(--bg2);}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+/* LOGIN */
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;}
+.lbox{width:340px;padding:2rem;}
+.lbrand{font-size:28px;font-weight:600;color:var(--accent);margin-bottom:4px;}
+.lsub{font-size:13px;color:var(--text3);margin-bottom:2rem;}
+.llabel{font-size:11px;color:var(--text2);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.06em;}
+.linput{width:100%;padding:10px 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;margin-bottom:12px;}
+.linput:focus{outline:none;border-color:var(--accent);}
+.lbtn{width:100%;padding:11px;background:var(--accent);color:var(--bg);border:none;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.lbtn:hover{background:var(--accent2);}
+.lerr{font-size:12px;color:var(--red);margin-top:8px;display:none;}
+/* PROFILE AVATAR */
+.prof-av{width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);}
+.prof-av-sm{width:32px;height:32px;border-radius:50%;object-fit:cover;border:1.5px solid var(--border2);}
+.prof-av-xs{width:28px;height:28px;border-radius:50%;object-fit:cover;}
+.av-placeholder{display:flex;align-items:center;justify-content:center;font-weight:600;flex-shrink:0;}
+.upload-av{display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;}
+.upload-av-label{font-size:11px;color:var(--accent);cursor:pointer;text-decoration:underline;}
+/* PROFILE PAGE */
+.profile-header{display:flex;align-items:flex-start;gap:1.5rem;margin-bottom:1.5rem;flex-wrap:wrap;}
+.profile-info{flex:1;min-width:200px;}
+.profile-name{font-size:22px;font-weight:600;margin-bottom:4px;}
+.profile-role{font-size:13px;color:var(--text2);margin-bottom:.75rem;}
+.profile-bio{font-size:13px;color:var(--text2);line-height:1.6;}
+/* TOPBAR AVATAR */
+.tav{width:28px;height:28px;border-radius:50%;cursor:pointer;overflow:hidden;flex-shrink:0;}
+.tav:hover{opacity:.85;}
+
+/* LAYOUT */
+#app{display:none;min-height:100vh;flex-direction:column;}
+.topbar{height:52px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 1.5rem;gap:1rem;position:sticky;top:0;z-index:100;}
+.tbrand{font-size:16px;font-weight:600;color:var(--accent);}
+.tsep{width:1px;height:20px;background:var(--border);}
+.tev{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);}
+.tev select{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:var(--rs);font-size:12px;font-family:'DM Sans',sans-serif;}
+.tright{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.rpill{padding:3px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:99px;font-size:11px;color:var(--accent);}
+.logout{font-size:12px;cursor:pointer;padding:4px 8px;border-radius:var(--rs);border:1px solid var(--border);background:transparent;color:var(--text2);}
+.layout{display:flex;flex:1;}
+.sidebar{width:200px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);padding:1rem 0;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;}
+.ss{font-size:10px;color:var(--text3);padding:8px 16px 4px;text-transform:uppercase;letter-spacing:.07em;font-weight:500;}
+.si{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:13px;color:var(--text2);cursor:pointer;border-left:2px solid transparent;transition:all .12s;}
+.si:hover{color:var(--text);background:var(--bg3);}
+.si.active{color:var(--accent);border-left-color:var(--accent);background:var(--bg3);}
+.main{flex:1;overflow-y:auto;padding:1.5rem;}
+
+/* COMPONENTS */
+.ptitle{font-size:20px;font-weight:600;margin-bottom:.25rem;}
+.psub{font-size:13px;color:var(--text3);margin-bottom:1.5rem;}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;margin-bottom:1rem;}
+.ctitle{font-size:11px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem;}
+.mg{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:1rem;}
+.met{background:var(--bg3);border-radius:var(--rs);padding:.75rem 1rem;border:1px solid var(--border);}
+.ml{font-size:11px;color:var(--text3);margin-bottom:3px;}
+.mv{font-size:20px;font-weight:500;}
+.ms{font-size:11px;color:var(--text3);margin-top:2px;}
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:500;}
+.bok{background:rgba(74,222,128,.15);color:var(--green);}
+.bwarn{background:rgba(251,191,36,.15);color:var(--yellow);}
+.bdanger{background:rgba(248,113,113,.15);color:var(--red);}
+.binfo{background:rgba(96,165,250,.15);color:var(--blue);}
+.bgray{background:var(--bg3);color:var(--text2);}
+.bgold{background:rgba(232,213,163,.15);color:var(--accent);}
+.bvip{background:rgba(167,139,250,.15);color:var(--purple);}
+.btn{padding:7px 14px;border-radius:var(--rs);border:1px solid var(--border2);background:transparent;color:var(--text);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .12s;}
+.btn:hover{background:var(--bg3);}
+.btnp{background:var(--accent);color:var(--bg);border-color:transparent;}
+.btnp:hover{background:var(--accent2);}
+.btnsm{padding:3px 9px;font-size:11px;}
+.btnd{color:var(--red);border-color:rgba(248,113,113,.3);}
+.tnav{display:flex;gap:4px;margin-bottom:1.25rem;flex-wrap:wrap;border-bottom:1px solid var(--border);padding-bottom:.75rem;}
+.tbtn{padding:5px 12px;border-radius:var(--rs);border:none;background:transparent;color:var(--text2);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .12s;}
+.tbtn:hover{color:var(--text);background:var(--bg3);}
+.tbtn.active{background:var(--accent);color:var(--bg);font-weight:500;}
+.tsec{display:none;}.tsec.active{display:block;}
+input,select,textarea{padding:7px 11px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);}
+textarea{resize:vertical;min-height:60px;width:100%;}
+select option{background:var(--bg3);}
+.fr{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px;}
+.fc{display:flex;flex-direction:column;gap:4px;}
+.fl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{text-align:left;color:var(--text3);font-weight:500;padding:6px 8px;border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:.04em;}
+td{padding:8px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--bg3);}
+.trow-total td{font-weight:500;background:var(--bg3);}
+.pos{color:var(--green);font-weight:500;} .neg{color:var(--red);}
+.av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0;}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.bar-lbl{font-size:12px;color:var(--text2);width:130px;flex-shrink:0;text-align:right;}
+.bar-bg{flex:1;height:20px;background:var(--bg3);border-radius:3px;overflow:hidden;border:1px solid var(--border);}
+.bar-fill{height:100%;border-radius:3px;display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:500;color:var(--bg);}
+.ai{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);}
+.ai:last-child{border-bottom:none;}
+.pcard{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:.9rem 1rem;margin-bottom:.75rem;}
+.abox{border-radius:var(--rs);padding:.7rem 1rem;margin-bottom:.6rem;display:flex;align-items:flex-start;gap:10px;border:1px solid;}
+.ared{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.3);}
+.ayellow{background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.3);}
+.agreen{background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.3);}
+.sem{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.semr{background:var(--red);}.semy{background:var(--yellow);}.semg{background:var(--green);}
+.progbg{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;}
+.progfill{height:100%;border-radius:3px;}
+.rkcard{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+.rkcard:last-child{border-bottom:none;}
+.zona-a{border-left:2px solid var(--green);}.zona-m{border-left:2px solid var(--yellow);}.zona-d{border-left:2px solid var(--red);}
+.chkbtn{width:22px;height:22px;border-radius:4px;border:1px solid var(--border2);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:11px;background:transparent;color:var(--text);}
+.chkbtn.on{background:var(--accent);color:var(--bg);border-color:transparent;}
+.empty{text-align:center;padding:2rem;color:var(--text3);font-size:13px;}
+.tag{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);}
+
+/* CALENDAR */
+.calhdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;}
+.calnav{padding:5px 12px;border-radius:var(--rs);border:1px solid var(--border);background:transparent;color:var(--text);font-size:14px;cursor:pointer;}
+.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.caldhdr{text-align:center;font-size:11px;color:var(--text3);padding:4px 0;font-weight:500;}
+.calday{min-height:70px;border-radius:var(--rs);border:1px solid var(--border);padding:5px;font-size:11px;cursor:pointer;transition:background .1s;}
+.calday:hover{background:var(--bg3);}
+.calday.today{border-color:var(--accent);background:rgba(232,213,163,.06);}
+.calday.evday{border-color:var(--red);background:rgba(248,113,113,.06);}
+.calday.otherm{opacity:.3;}
+.caldayn{font-weight:500;margin-bottom:2px;}
+.calevt{font-size:10px;padding:1px 4px;border-radius:3px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ce-ig{background:rgba(167,139,250,.2);color:var(--purple);}
+.ce-story{background:rgba(232,213,163,.2);color:var(--accent);}
+.ce-reel{background:rgba(248,113,113,.2);color:var(--red);}
+.ce-tiktok{background:rgba(74,222,128,.2);color:var(--green);}
+.ce-evento{background:var(--red);color:#fff;}
+.ce-task{background:rgba(251,191,36,.2);color:var(--yellow);}
+.cdbox{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.25rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.cdval{font-size:26px;font-weight:600;color:var(--accent);}
+
+/* CHAT */
+.chat-wrap{display:flex;height:520px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--bg2);}
+.chat-sb{width:170px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;}
+.chat-sec{font-size:10px;color:var(--text3);padding:10px 12px 4px;text-transform:uppercase;letter-spacing:.06em;}
+.chat-ch{padding:7px 12px;font-size:13px;cursor:pointer;color:var(--text2);border-left:2px solid transparent;transition:all .1s;}
+.chat-ch:hover{background:var(--bg3);color:var(--text);}
+.chat-ch.active{background:var(--bg3);color:var(--accent);border-left-color:var(--accent);}
+.chat-main{flex:1;display:flex;flex-direction:column;}
+.chat-hdr{padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px;font-weight:500;}
+.chat-msgs{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:10px;}
+.msg{display:flex;align-items:flex-start;gap:8px;}
+.msg.mine{flex-direction:row-reverse;}
+.msg-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;}
+.msg-bub{max-width:72%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;font-size:13px;line-height:1.5;}
+.msg.mine .msg-bub{background:var(--accent);color:var(--bg);border-color:transparent;}
+.msg-meta{font-size:10px;color:var(--text3);margin-top:3px;}
+.msg.mine .msg-meta{text-align:right;}
+.chat-inp-row{padding:10px 16px;border-top:1px solid var(--border);display:flex;gap:8px;}
+.chat-inp{flex:1;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;}
+.chat-send{padding:8px 16px;background:var(--accent);color:var(--bg);border:none;border-radius:var(--rs);font-size:13px;cursor:pointer;font-weight:500;}
+.chat-whobox{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:8px 14px;margin-bottom:.75rem;font-size:12px;color:var(--text2);display:flex;align-items:center;gap:8px;}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:500;backdrop-filter:blur(4px);}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:1.5rem;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;}
+.mtitle{font-size:15px;font-weight:600;margin-bottom:1rem;}
+.mrow{display:flex;gap:8px;margin-top:1rem;}
+
+/* USUARIOS */
+.user-card{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+.user-card:last-child{border-bottom:none;}
+.mod-tag{display:inline-block;padding:2px 7px;background:rgba(232,213,163,.1);color:var(--accent);border-radius:99px;font-size:10px;margin:1px;cursor:pointer;border:1px solid rgba(232,213,163,.2);}
+.mod-tag.off{background:var(--bg3);color:var(--text3);border-color:var(--border);}
+
+/* ══ BOOM BRAND ══ */
+:root{
+  --bg:#0c0e0c;--bg2:#111411;--bg3:#181c18;
+  --border:#1e251e;--border2:#252d25;
+  --text:#e8f0e8;--text2:#7a917a;--text3:#4a5a4a;
+  --accent:#5ab033;--accent2:#3d8522;--accent3:#72cc44;
+  --violet:#7c3aed;--violet3:#9d5ff5;
+  --green:#5ab033;--red:#f87171;--yellow:#f5c542;
+  --blue:#60a5fa;--purple:#9d5ff5;
+  --r:12px;--rs:8px;
+}
+#login{background:radial-gradient(ellipse at 25% 75%,rgba(90,176,51,.12) 0%,transparent 50%),radial-gradient(ellipse at 75% 25%,rgba(124,58,237,.08) 0%,transparent 50%),#0c0e0c;}
+.lbox{background:rgba(14,18,14,.95);border:1px solid rgba(90,176,51,.18);border-radius:16px;padding:2.5rem;max-width:380px;width:calc(100% - 2rem);box-shadow:0 0 60px rgba(90,176,51,.05),0 24px 64px rgba(0,0,0,.6);}
+.lbrand{display:flex;flex-direction:column;align-items:center;margin-bottom:1.5rem;}
+.logo-login-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center;padding:1rem;}
+.logo-login-wrap::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 65%,rgba(90,176,51,.22) 0%,transparent 68%);border-radius:50%;pointer-events:none;z-index:0;}
+.logo-login-wrap img{position:relative;z-index:1;width:150px;height:auto;display:block;filter:drop-shadow(0 0 14px rgba(90,176,51,.3));}
+.lsub{font-size:13px;color:var(--text3);margin-bottom:1.5rem;text-align:center;}
+.lbtn{background:linear-gradient(135deg,#5ab033,#3d8522);border:none;letter-spacing:.02em;}
+.lbtn:hover{background:linear-gradient(135deg,#72cc44,#5ab033);}
+.linput{background:rgba(24,28,24,.8);border-color:var(--border2);}
+.linput:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(90,176,51,.1);}
+.topbar{background:rgba(12,14,12,.96);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border2);}
+.tbrand{display:flex;align-items:center;gap:8px;}
+.tbrand-logo{height:28px;width:auto;display:block;filter:drop-shadow(0 0 6px rgba(90,176,51,.3));}
+.tbrand-text{font-size:15px;font-weight:700;color:var(--accent);letter-spacing:.03em;}
+.rpill{background:rgba(90,176,51,.1);border-color:rgba(90,176,51,.25);color:var(--accent3);}
+.sidebar{background:var(--bg2);}
+.ss{color:var(--violet3);letter-spacing:.1em;font-size:9px;}
+.si.active{color:var(--accent);border-left-color:var(--accent);background:rgba(90,176,51,.05);}
+.si:hover{background:rgba(90,176,51,.03);}
+.card{background:var(--bg2);border-color:var(--border2);}
+.met{background:var(--bg3);border-color:var(--border);}
+.pos{color:var(--accent);}
+.bok{background:rgba(90,176,51,.1);color:var(--accent);}
+.bvip{background:rgba(124,58,237,.1);color:var(--violet3);}
+.binfo{background:rgba(124,58,237,.08);color:var(--violet3);}
+.btnp{background:linear-gradient(135deg,#5ab033,#3d8522);color:#0c0e0c;border:none;}
+.btnp:hover{background:linear-gradient(135deg,#72cc44,#5ab033);}
+.tbtn.active{background:linear-gradient(135deg,#5ab033,#3d8522);color:#0c0e0c;}
+.chkbtn.on{background:linear-gradient(135deg,#5ab033,#3d8522);color:#0c0e0c;border:none;}
+.mod-tag{background:rgba(90,176,51,.07);color:var(--accent);border-color:rgba(90,176,51,.15);}
+.zona-a{border-left-color:var(--accent);}
+.semg{background:var(--accent);}
+.agreen{background:rgba(90,176,51,.06);border-color:rgba(90,176,51,.25);}
+.cdval{color:var(--accent);}
+.calday.today{border-color:var(--accent);background:rgba(90,176,51,.05);}
+.chat-send{background:linear-gradient(135deg,#5ab033,#3d8522);color:#0c0e0c;}
+.msg.mine .msg-bub{background:linear-gradient(135deg,#5ab033,#3d8522);color:#0c0e0c;border:none;}
+.upload-av-label{color:var(--accent);}
+/* RESPONSIVE */
+@media(max-width:768px){
+  .layout{flex-direction:column;}
+  .sidebar{width:100%;height:auto;position:relative;top:0;display:flex;flex-wrap:nowrap;overflow-x:auto;padding:.5rem 0;border-right:none;border-bottom:1px solid var(--border2);scrollbar-width:none;}
+  .sidebar::-webkit-scrollbar{display:none;}
+  .ss{display:none;}
+  .si{flex-direction:column;gap:2px;padding:8px 14px;min-width:72px;text-align:center;font-size:10px;border-left:none;border-bottom:2px solid transparent;white-space:nowrap;flex-shrink:0;}
+  .si span{font-size:20px;}
+  .si.active{border-left:none;border-bottom-color:var(--accent);background:rgba(90,176,51,.05);}
+  .main{padding:1rem;padding-bottom:80px;}
+  .topbar{padding:0 1rem;gap:.75rem;height:48px;}
+  .tbrand-logo{height:24px;}
+  .tbrand-text{font-size:13px;}
+  .tev span{display:none;}
+  .tev select{max-width:120px;font-size:11px;}
+  .mg{grid-template-columns:repeat(2,1fr);gap:6px;}
+  .card{padding:1rem;}
+  .chat-wrap{height:calc(100vh - 200px);flex-direction:column;}
+  .chat-sb{width:100%;height:auto;display:flex;flex-wrap:nowrap;overflow-x:auto;border-right:none;border-bottom:1px solid var(--border2);scrollbar-width:none;}
+  .chat-sb::-webkit-scrollbar{display:none;}
+  .chat-sec{display:none;}
+  .chat-ch{flex-shrink:0;white-space:nowrap;border-left:none;border-bottom:2px solid transparent;padding:8px 12px;font-size:12px;}
+  .chat-ch.active{border-bottom-color:var(--accent);}
+  .tnav{gap:3px;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;padding-bottom:.5rem;}
+  .tnav::-webkit-scrollbar{display:none;}
+  .tbtn{padding:5px 10px;font-size:11px;white-space:nowrap;}
+  .profile-header{flex-direction:column;align-items:center;text-align:center;}
+  .fr{flex-direction:column;}
+  .fc input,.fc select,.fc textarea{width:100%!important;}
+  .modal{max-width:calc(100vw - 2rem);}
+  .calday{min-height:52px;}
+  .caldayn{font-size:11px;}
+  .calevt{font-size:9px;}
+  .lbox{padding:2rem 1.5rem;}
+  .logo-login-wrap img{width:130px;}
+  table{font-size:12px;}th,td{padding:5px 4px;}
+}
+@media(max-width:480px){.ptitle{font-size:17px;}.mg{grid-template-columns:1fr 1fr;}}
+@media(min-width:769px) and (max-width:1024px){.sidebar{width:185px;}.main{padding:1.25rem;}}
+#mobile-bottom-nav{display:none;}
+@media(max-width:768px){
+  #mobile-bottom-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:rgba(12,14,12,.97);border-top:1px solid var(--border2);z-index:200;padding:6px 0 env(safe-area-inset-bottom,6px);backdrop-filter:blur(16px);}
+  .mbn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px;cursor:pointer;color:var(--text3);font-size:10px;}
+  .mbn-item .ico{font-size:22px;line-height:1;}
+  .mbn-item.active{color:var(--accent);}
+}
+
+</style>
+
+<!-- MODALS -->
+<div id="m-cat" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal"><div class="mtitle" id="mc-ttl">Agregar opción</div>
+  <input type="text" id="mc-inp" style="width:100%" placeholder="Nueva opción...">
+  <div class="mrow"><button class="btn btnp" style="flex:1" onclick="confirmCat()">Agregar</button><button class="btn" style="flex:1" onclick="document.getElementById('m-cat').style.display='none'">Cancelar</button></div></div>
+</div>
+
+<div id="m-pub" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal"><div class="mtitle" id="m-pub-ttl">Registrar publicación</div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Tipo</span><select id="m-pub-tipo" style="width:100%"><option>Story de Instagram</option><option>Reel/video</option><option>TikTok</option></select></div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Descripción</span><input type="text" id="m-pub-desc" style="width:100%" placeholder="Ej: Story cuenta regresiva"></div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Entradas vendidas</span><input type="number" id="m-pub-ent" style="width:90px" placeholder="0"></div>
+  <div class="mrow"><button class="btn btnp" style="flex:1" onclick="confirmPub()">Registrar</button><button class="btn" style="flex:1" onclick="document.getElementById('m-pub').style.display='none'">Cancelar</button></div></div>
+</div>
+
+<div id="m-post" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal"><div class="mtitle">Nueva publicación CM</div>
+  <div class="fr"><div class="fc" style="flex:1"><span class="fl">Fecha</span><input type="date" id="mpost-f" style="width:100%"></div><div class="fc"><span class="fl">Hora</span><input type="time" id="mpost-h" style="width:100px" value="10:00"></div></div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Red social</span>
+    <select id="mpost-red" style="width:100%"><option value="ig_feed">Instagram feed</option><option value="ig_story">Instagram story</option><option value="reel">Reel</option><option value="tiktok">TikTok</option><option value="facebook">Facebook</option></select></div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Tipo de contenido</span>
+    <select id="mpost-tipo" style="width:100%"><option>Lanzamiento del evento</option><option>Cuenta regresiva</option><option>Recordatorio de tickets</option><option>Anuncio venta de entradas</option><option>Contenido dinámico</option><option>Post día del evento</option><option>Post post-evento</option><option>Fotos del evento</option><option>Video del evento</option><option>Otro</option></select></div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Copy / descripción</span><textarea id="mpost-desc" placeholder="Descripción del contenido..."></textarea></div>
+  <div class="mrow"><button class="btn btnp" style="flex:1" onclick="savePost()">Guardar</button><button class="btn" style="flex:1" onclick="document.getElementById('m-post').style.display='none'">Cancelar</button></div></div>
+</div>
+
+<div id="m-task" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal"><div class="mtitle">Nueva tarea</div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Título</span><input type="text" id="mt-titulo" style="width:100%" placeholder="Ej: Diseñar flyer lanzamiento"></div>
+  <div class="fr"><div class="fc" style="flex:1"><span class="fl">Fecha límite</span><input type="date" id="mt-fecha" style="width:100%"></div><div class="fc"><span class="fl">Hora</span><input type="time" id="mt-hora" style="width:100px" value="09:00"></div></div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Avisar con</span>
+    <select id="mt-aviso" style="width:100%"><option value="120">2 horas antes</option><option value="720">12 horas antes</option><option value="1440" selected>1 día antes</option><option value="2880">2 días antes</option></select></div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Área responsable</span>
+    <select id="mt-area" style="width:100%"><option>CM</option><option>Diseño</option><option>Barra</option><option>Públicas</option><option>Habilitaciones</option><option>Producción</option><option>Todos</option></select></div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Visibilidad</span>
+    <select id="mt-vis" style="width:100%"><option value="todos">Todos</option><option value="cm">Solo CM</option></select></div>
+  <div class="mrow"><button class="btn btnp" style="flex:1" onclick="saveTask()">Guardar</button><button class="btn" style="flex:1" onclick="document.getElementById('m-task').style.display='none'">Cancelar</button></div></div>
+</div>
+
+<div id="m-idea" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal"><div class="mtitle">Nueva idea</div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Idea</span><textarea id="mi-txt" placeholder="Describí tu idea..."></textarea></div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Categoría</span><select id="mi-cat" style="width:100%"><option>Contenido</option><option>Evento</option><option>Barra</option><option>Públicas</option><option>Marketing</option><option>Experiencia</option><option>Otro</option></select></div>
+  <div class="mrow"><button class="btn btnp" style="flex:1" onclick="saveIdea()">Publicar</button><button class="btn" style="flex:1" onclick="document.getElementById('m-idea').style.display='none'">Cancelar</button></div></div>
+</div>
+
+<div id="m-prov" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal"><div class="mtitle" id="m-prov-ttl">Proveedor</div>
+  <div class="fr"><div class="fc" style="flex:2;min-width:130px"><span class="fl">Nombre / Empresa</span><input type="text" id="pv-n" style="width:100%"></div>
+  <div class="fc"><span class="fl">Categoría</span><select id="pv-cat" style="width:130px"><option>Sonido</option><option>Iluminación</option><option>DJ / Artista</option><option>Seguridad</option><option>Imprenta</option><option>Diseño</option><option>Fotografía</option><option>Catering</option><option>Venue</option><option>Otro</option></select></div></div>
+  <div class="fr"><div class="fc"><span class="fl">Contacto</span><input type="text" id="pv-cont" style="width:130px"></div><div class="fc"><span class="fl">Teléfono</span><input type="text" id="pv-tel" style="width:130px"></div></div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Calificación</span><select id="pv-cal" style="width:120px"><option value="5">★★★★★</option><option value="4">★★★★</option><option value="3">★★★</option><option value="2">★★</option><option value="1">★</option></select></div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Observaciones</span><textarea id="pv-obs" style="min-height:50px" placeholder="Notas..."></textarea></div>
+  <div class="mrow"><button class="btn btnp" style="flex:1" onclick="saveProv()">Guardar</button><button class="btn" style="flex:1" onclick="document.getElementById('m-prov').style.display='none'">Cancelar</button></div></div>
+</div>
+
+<div id="m-act" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal"><div class="mtitle" id="m-act-ttl">Cargar actividad</div>
+  <div class="fr"><div class="fc"><span class="fl">Stories</span><input type="number" id="ma-st" min="0" style="width:75px" placeholder="0"></div>
+  <div class="fc"><span class="fl">Reels</span><input type="number" id="ma-re" min="0" style="width:75px" placeholder="0"></div>
+  <div class="fc"><span class="fl">TikToks</span><input type="number" id="ma-tt" min="0" style="width:75px" placeholder="0"></div></div>
+  <div class="fr"><div class="fc"><span class="fl">Invitados</span><input type="number" id="ma-inv" min="0" style="width:75px" placeholder="0"></div>
+  <div class="fc"><span class="fl">Ingresaron</span><input type="number" id="ma-ing" min="0" style="width:75px" placeholder="0"></div>
+  <div class="fc"><span class="fl">Actitud</span><select id="ma-act" style="width:100px"><option value="alta">Alta 🔥</option><option value="media">Media ⚡</option><option value="baja">Baja 🟡</option></select></div></div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Observaciones</span><textarea id="ma-obs" style="min-height:50px" placeholder="Notas..."></textarea></div>
+  <div class="mrow"><button class="btn btnp" style="flex:1" onclick="saveAct()">Guardar</button><button class="btn" style="flex:1" onclick="document.getElementById('m-act').style.display='none'">Cancelar</button></div></div>
+</div>
+
+<div id="m-usr" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal"><div class="mtitle" id="m-usr-ttl">Gestionar módulos</div>
+  <div id="m-usr-body"></div>
+  <div class="mrow"><button class="btn btnp" style="flex:1" onclick="saveUserMods()">Guardar</button><button class="btn" style="flex:1" onclick="document.getElementById('m-usr').style.display='none'">Cancelar</button></div></div>
+</div>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="lbox">
+    <div class="lbrand"><div class="logo-login-wrap"><img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iQ2FwYV8yIiBkYXRhLW5hbWU9IkNhcGEgMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2aWV3Qm94PSIwIDAgNzg5LjEyIDEwMzcuNTMiPgogIDxkZWZzPgogICAgPHN0eWxlPgogICAgICAuY2xzLTEgewogICAgICAgIGZpbGw6ICNmZmZmZmY7CiAgICAgIH0KCiAgICAgIC5jbHMtMiB7CiAgICAgICAgZmlsbDogIzk1YzExZjsKICAgICAgfQoKICAgICAgLmNscy0zIHsKICAgICAgICBmaWxsOiAjM2FhYTM1OwogICAgICB9CiAgICA8L3N0eWxlPgogIDwvZGVmcz4KICA8ZyBpZD0iQ2FwYV8xLTIiIGRhdGEtbmFtZT0iQ2FwYSAxIj4KICAgIDxnPgogICAgICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0zOTQuNTYsMTAzNy41M2MtNTMuMjUsMC0xMDQuOTMtMTAuNDQtMTUzLjU5LTMxLjAyLTQ2Ljk5LTE5Ljg3LTg5LjE4LTQ4LjMyLTEyNS40MS04NC41NS0zNi4yMy0zNi4yMy02NC42Ny03OC40Mi04NC41NS0xMjUuNDFDMTAuNDQsNzQ3Ljg5LDAsNjk2LjIyLDAsNjQyLjk3YzAtOTMuMzMsMzMuMTktMTgzLjg4LDkzLjQ0LTI1NC45Nyw1OS41NS03MC4yNiwxNDIuMDQtMTE3LjcsMjMyLjI2LTEzMy41OCw0NS4wMy03Ljk0LDkyLjMyLTcuOTcsMTM3LjMzLS4wNiw5MC4zLDE1LjgsMTcyLjg5LDYzLjIxLDIzMi41MiwxMzMuNSw2MC4zNCw3MS4xMiw5My41NywxNjEuNzIsOTMuNTcsMjU1LjEyLDAsNTMuMjUtMTAuNDQsMTA0LjkzLTMxLjAyLDE1My41OS0xOS44Nyw0Ni45OS00OC4zMiw4OS4xOC04NC41NSwxMjUuNDEtMzYuMjMsMzYuMjMtNzguNDIsNjQuNjctMTI1LjQxLDg0LjU1LTQ4LjY2LDIwLjU4LTEwMC4zNCwzMS4wMi0xNTMuNTksMzEuMDJaTTM5NC41NiwzMDAuNjhjLTIwLjA4LDAtNDAuMTksMS43NS01OS43OCw1LjIxLTE2My43LDI4LjgxLTI4Mi41LDE3MC41Ny0yODIuNSwzMzcuMDgsMCwxODguNzQsMTUzLjU1LDM0Mi4zLDM0Mi4yOSwzNDIuM3MzNDIuMy0xNTMuNTUsMzQyLjMtMzQyLjNjMC0xNjYuNjgtMTE4Ljk1LTMwOC40Ni0yODIuODUtMzM3LjEzLTE5LjQ4LTMuNDItMzkuNDgtNS4xNS01OS40NS01LjE1WiIvPgogICAgICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0zMzAuMjMsMzA2LjI4Yy01LjgsMC0xMS40OS0xLjkzLTE2LjEyLTUuNTYtNS44NC00LjU4LTkuNDYtMTEuNDItOS45Ni0xOC44M2wtNS42NC04NC40Yy0uNDgtNy4yMiwyLjA1LTE0LjMxLDYuOTktMTkuNTksNC45NC01LjI4LDExLjg1LTguMjgsMTkuMDktOC4yOGgxMzkuNTVjNy4yMywwLDE0LjE0LDMsMTkuMDksOC4yOCw0Ljk0LDUuMjgsNy40NywxMi4zOCw2Ljk5LDE5LjZsLTUuNjQsODQuMzRjLS41LDcuNC00LjExLDE0LjI0LTkuOTUsMTguODItNS44NCw0LjU4LTEzLjM0LDYuNDYtMjAuNjUsNS4xOC0zOS4wNC02Ljg1LTgwLjE0LTYuODQtMTE5LjIyLjA2LTEuNTEuMjctMy4wMy40LTQuNTQuNFpNMzUyLjUzLDIyMS44OGwxLjkxLDI4LjU1YzI2LjQ5LTIuNjgsNTMuMzgtMi42OSw3OS44Ni0uMDRsMS45MS0yOC41MWgtODMuNjhaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTM4MC4yOCwxODkuMTVjLTEuNDYtNzAuOTcsMTIuMDctMTEyLjY0LDQxLjM2LTEyNy4zOSwxMC4yNS01LjE2LDIwLjQ0LTYuMDEsMjkuNDMtNi43NSwxMC40OC0uODcsMTYuNjItMS41OSwyMS4wNS02LjM1LDYuMDctNi41Miw3LjQ0LTE4LjksNC4wOS0zNi4xMS0xLjItNi4xNCw2LjI3LTEwLjMxLDEyLjMtMTEuOTZoMGM2Ljc3LTEuODUsOS45Ni42NSwxMS4yNyw3LjU0LDQuODUsMjUuMzYsMS40Nyw0NC40Ny0xMC4xLDU2Ljg5LTEwLjk3LDExLjc5LTI0LjYxLDEyLjkyLTM2LjYzLDEzLjkxLTcuNDguNjItMTQuNTQsMS4yMS0yMC42Miw0LjI3LTE5LjY0LDkuODktMjkuMzcsNDYuMzUtMjguMTUsMTA1LjQ2bC0yNCwuNDlaIi8+CiAgICAgIDxnPgogICAgICAgIDxwYXRoIGNsYXNzPSJjbHMtMyIgZD0iTTY5MS40LDU2NS4yMmMxNS41NCw4OS4xOS05NS40MywyNjQuNDgtMjMzLjA4LDY4LjYyLTM5LjU4LTU2LjMyLTExOC4zMS02OC41MS0xNjYuOC0zOS42MS05My4zMyw1NS42Mi0xNTkuMjMsNDMuNjItMTk2LjY2LTE1LjMyLS4xMi0uMDgtLjIzLS4xNi0uMzUtLjI0LTQuNTIsMjAuOTUtNi45Miw0Mi43LTYuOTIsNjUsMCwxNjkuNTQsMTM3LjQ0LDMwNi45NywzMDYuOTcsMzA2Ljk3czMwNi45Ny0xMzcuNDQsMzA2Ljk3LTMwNi45N2MwLTI3LjEyLTMuNTMtNTMuNDEtMTAuMTMtNzguNDVaIi8+CiAgICAgICAgPHBhdGggY2xhc3M9ImNscy0yIiBkPSJNNTYwLjc5LDUyNS4zOGMtMzQuMzksNjAuMDUtNzUuMzQsNzIuNzEtMTI5LjIzLDMwLjAyLTQ3LjQ5LTM3LjYyLTEwMi4wNi0xOS45OC0xNDEuNzMtLjM4LTY0LjY5LDMxLjk2LTEwNy4zOSw4NC4wOS0xOTUuMzMsMjMuNjQsMzcuNDQsNTguOTUsMTAzLjY4LDcxLjE4LDE5Ny4wMSwxNS41Niw0OC40OS0yOC45LDEyNy4yMi0xNi43MSwxNjYuOCwzOS42MSwxMzcuNjUsMTk1Ljg2LDI0OC42MywyMC41NywyMzMuMDgtNjguNjItNS41NC0yMS4wMy0xMy4yNi00MS4xOC0yMi45LTYwLjItMjAuNDctMzYuNTYtNTUuNjMtNjQuMjctMTA3LjcxLDIwLjM2WiIvPgogICAgICAgIDxjaXJjbGUgY2xhc3M9ImNscy0zIiBjeD0iMTcwLjIyIiBjeT0iNTA5IiByPSIxNS44MiIvPgogICAgICAgIDxjaXJjbGUgY2xhc3M9ImNscy0yIiBjeD0iMjcyLjM2IiBjeT0iNDI5Ljg4IiByPSIyNy4zMyIvPgogICAgICAgIDxjaXJjbGUgY2xhc3M9ImNscy0yIiBjeD0iMzQxLjQxIiBjeT0iNDkwLjMiIHI9IjEyLjk1Ii8+CiAgICAgICAgPGNpcmNsZSBjbGFzcz0iY2xzLTIiIGN4PSI0NjAuODEiIGN5PSIzOTguMjMiIHI9IjExLjUxIi8+CiAgICAgIDwvZz4KICAgIDwvZz4KICA8L2c+Cjwvc3ZnPg==" alt="BOOM"></div></div>
+    <div class="lsub">Valle de Uco, Mendoza</div>
+    <label class="llabel">Usuario</label>
+    <input class="linput" type="text" id="l-user" placeholder="Tu usuario" onkeydown="if(event.key==='Enter')doLogin()">
+    <label class="llabel">Contraseña</label>
+    <input class="linput" type="password" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="lbtn" onclick="doLogin()">Ingresar</button>
+    <div class="lerr" id="l-err">Usuario o contraseña incorrectos</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;flex-direction:column;">
+  <div class="topbar">
+    <div class="tbrand"><img class="tbrand-logo" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iQ2FwYV8yIiBkYXRhLW5hbWU9IkNhcGEgMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2aWV3Qm94PSIwIDAgNzg5LjEyIDEwMzcuNTMiPgogIDxkZWZzPgogICAgPHN0eWxlPgogICAgICAuY2xzLTEgewogICAgICAgIGZpbGw6ICNmZmZmZmY7CiAgICAgIH0KCiAgICAgIC5jbHMtMiB7CiAgICAgICAgZmlsbDogIzk1YzExZjsKICAgICAgfQoKICAgICAgLmNscy0zIHsKICAgICAgICBmaWxsOiAjM2FhYTM1OwogICAgICB9CiAgICA8L3N0eWxlPgogIDwvZGVmcz4KICA8ZyBpZD0iQ2FwYV8xLTIiIGRhdGEtbmFtZT0iQ2FwYSAxIj4KICAgIDxnPgogICAgICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0zOTQuNTYsMTAzNy41M2MtNTMuMjUsMC0xMDQuOTMtMTAuNDQtMTUzLjU5LTMxLjAyLTQ2Ljk5LTE5Ljg3LTg5LjE4LTQ4LjMyLTEyNS40MS04NC41NS0zNi4yMy0zNi4yMy02NC42Ny03OC40Mi04NC41NS0xMjUuNDFDMTAuNDQsNzQ3Ljg5LDAsNjk2LjIyLDAsNjQyLjk3YzAtOTMuMzMsMzMuMTktMTgzLjg4LDkzLjQ0LTI1NC45Nyw1OS41NS03MC4yNiwxNDIuMDQtMTE3LjcsMjMyLjI2LTEzMy41OCw0NS4wMy03Ljk0LDkyLjMyLTcuOTcsMTM3LjMzLS4wNiw5MC4zLDE1LjgsMTcyLjg5LDYzLjIxLDIzMi41MiwxMzMuNSw2MC4zNCw3MS4xMiw5My41NywxNjEuNzIsOTMuNTcsMjU1LjEyLDAsNTMuMjUtMTAuNDQsMTA0LjkzLTMxLjAyLDE1My41OS0xOS44Nyw0Ni45OS00OC4zMiw4OS4xOC04NC41NSwxMjUuNDEtMzYuMjMsMzYuMjMtNzguNDIsNjQuNjctMTI1LjQxLDg0LjU1LTQ4LjY2LDIwLjU4LTEwMC4zNCwzMS4wMi0xNTMuNTksMzEuMDJaTTM5NC41NiwzMDAuNjhjLTIwLjA4LDAtNDAuMTksMS43NS01OS43OCw1LjIxLTE2My43LDI4LjgxLTI4Mi41LDE3MC41Ny0yODIuNSwzMzcuMDgsMCwxODguNzQsMTUzLjU1LDM0Mi4zLDM0Mi4yOSwzNDIuM3MzNDIuMy0xNTMuNTUsMzQyLjMtMzQyLjNjMC0xNjYuNjgtMTE4Ljk1LTMwOC40Ni0yODIuODUtMzM3LjEzLTE5LjQ4LTMuNDItMzkuNDgtNS4xNS01OS40NS01LjE1WiIvPgogICAgICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0zMzAuMjMsMzA2LjI4Yy01LjgsMC0xMS40OS0xLjkzLTE2LjEyLTUuNTYtNS44NC00LjU4LTkuNDYtMTEuNDItOS45Ni0xOC44M2wtNS42NC04NC40Yy0uNDgtNy4yMiwyLjA1LTE0LjMxLDYuOTktMTkuNTksNC45NC01LjI4LDExLjg1LTguMjgsMTkuMDktOC4yOGgxMzkuNTVjNy4yMywwLDE0LjE0LDMsMTkuMDksOC4yOCw0Ljk0LDUuMjgsNy40NywxMi4zOCw2Ljk5LDE5LjZsLTUuNjQsODQuMzRjLS41LDcuNC00LjExLDE0LjI0LTkuOTUsMTguODItNS44NCw0LjU4LTEzLjM0LDYuNDYtMjAuNjUsNS4xOC0zOS4wNC02Ljg1LTgwLjE0LTYuODQtMTE5LjIyLjA2LTEuNTEuMjctMy4wMy40LTQuNTQuNFpNMzUyLjUzLDIyMS44OGwxLjkxLDI4LjU1YzI2LjQ5LTIuNjgsNTMuMzgtMi42OSw3OS44Ni0uMDRsMS45MS0yOC41MWgtODMuNjhaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTM4MC4yOCwxODkuMTVjLTEuNDYtNzAuOTcsMTIuMDctMTEyLjY0LDQxLjM2LTEyNy4zOSwxMC4yNS01LjE2LDIwLjQ0LTYuMDEsMjkuNDMtNi43NSwxMC40OC0uODcsMTYuNjItMS41OSwyMS4wNS02LjM1LDYuMDctNi41Miw3LjQ0LTE4LjksNC4wOS0zNi4xMS0xLjItNi4xNCw2LjI3LTEwLjMxLDEyLjMtMTEuOTZoMGM2Ljc3LTEuODUsOS45Ni42NSwxMS4yNyw3LjU0LDQuODUsMjUuMzYsMS40Nyw0NC40Ny0xMC4xLDU2Ljg5LTEwLjk3LDExLjc5LTI0LjYxLDEyLjkyLTM2LjYzLDEzLjkxLTcuNDguNjItMTQuNTQsMS4yMS0yMC42Miw0LjI3LTE5LjY0LDkuODktMjkuMzcsNDYuMzUtMjguMTUsMTA1LjQ2bC0yNCwuNDlaIi8+CiAgICAgIDxnPgogICAgICAgIDxwYXRoIGNsYXNzPSJjbHMtMyIgZD0iTTY5MS40LDU2NS4yMmMxNS41NCw4OS4xOS05NS40MywyNjQuNDgtMjMzLjA4LDY4LjYyLTM5LjU4LTU2LjMyLTExOC4zMS02OC41MS0xNjYuOC0zOS42MS05My4zMyw1NS42Mi0xNTkuMjMsNDMuNjItMTk2LjY2LTE1LjMyLS4xMi0uMDgtLjIzLS4xNi0uMzUtLjI0LTQuNTIsMjAuOTUtNi45Miw0Mi43LTYuOTIsNjUsMCwxNjkuNTQsMTM3LjQ0LDMwNi45NywzMDYuOTcsMzA2Ljk3czMwNi45Ny0xMzcuNDQsMzA2Ljk3LTMwNi45N2MwLTI3LjEyLTMuNTMtNTMuNDEtMTAuMTMtNzguNDVaIi8+CiAgICAgICAgPHBhdGggY2xhc3M9ImNscy0yIiBkPSJNNTYwLjc5LDUyNS4zOGMtMzQuMzksNjAuMDUtNzUuMzQsNzIuNzEtMTI5LjIzLDMwLjAyLTQ3LjQ5LTM3LjYyLTEwMi4wNi0xOS45OC0xNDEuNzMtLjM4LTY0LjY5LDMxLjk2LTEwNy4zOSw4NC4wOS0xOTUuMzMsMjMuNjQsMzcuNDQsNTguOTUsMTAzLjY4LDcxLjE4LDE5Ny4wMSwxNS41Niw0OC40OS0yOC45LDEyNy4yMi0xNi43MSwxNjYuOCwzOS42MSwxMzcuNjUsMTk1Ljg2LDI0OC42MywyMC41NywyMzMuMDgtNjguNjItNS41NC0yMS4wMy0xMy4yNi00MS4xOC0yMi45LTYwLjItMjAuNDctMzYuNTYtNTUuNjMtNjQuMjctMTA3LjcxLDIwLjM2WiIvPgogICAgICAgIDxjaXJjbGUgY2xhc3M9ImNscy0zIiBjeD0iMTcwLjIyIiBjeT0iNTA5IiByPSIxNS44MiIvPgogICAgICAgIDxjaXJjbGUgY2xhc3M9ImNscy0yIiBjeD0iMjcyLjM2IiBjeT0iNDI5Ljg4IiByPSIyNy4zMyIvPgogICAgICAgIDxjaXJjbGUgY2xhc3M9ImNscy0yIiBjeD0iMzQxLjQxIiBjeT0iNDkwLjMiIHI9IjEyLjk1Ii8+CiAgICAgICAgPGNpcmNsZSBjbGFzcz0iY2xzLTIiIGN4PSI0NjAuODEiIGN5PSIzOTguMjMiIHI9IjExLjUxIi8+CiAgICAgIDwvZz4KICAgIDwvZz4KICA8L2c+Cjwvc3ZnPg==" alt="BOOM"><span class="tbrand-text">BOOM</span></div>
+    <div class="tsep"></div>
+    <div class="tev"><span>Evento:</span>
+      <select id="g-ev" onchange="onEvChange()">
+        <option value="0">Sunset Sáb 15 Mar</option>
+        <option value="1">Sunset Sáb 22 Mar</option>
+        <option value="2">Fiesta Sáb 5 Abr</option>
+      </select>
+    </div>
+    <div class="tright">
+      <span class="rpill" id="t-role">ADMIN</span>
+      <div class="tav" id="tav-btn" onclick="navigate('perfil')" title="Mi perfil"></div>
+      <button class="logout" onclick="doLogout()">Salir</button>
+    </div>
+  </div>
+  <div class="layout">
+    <div class="sidebar" id="sb"></div>
+    <div class="main" id="mc"></div>
+  </div>
+</div>
+<div id="mobile-bottom-nav"></div>
+
+<script>
+// ═══ DATA ═══
+let USERS=[
+  {user:'ADMIN',pass:'Lucho1',role:'Admin Console',chatName:'Lu (CEO)',photo:'',bio:'CEO y fundador de BOOM Producciones.',instagram:'',telefono:'',pages:['dashboard','barra','adminfin','liderpub','publicas','cm','boom','chat','proveedores','kpi','usuarios','perfil']},
+  {user:'BARRA',pass:'boombarra1',role:'Barra',chatName:'Líder de Barra',photo:'',bio:'',instagram:'',telefono:'',pages:['barra','chat','perfil']},
+  {user:'PUBLICA',pass:'boomlider1',role:'Públicas',chatName:'Líder de Públicas',photo:'',bio:'',instagram:'',telefono:'',pages:['liderpub','publicas','boom','chat','perfil']},
+  {user:'CM',pass:'boomcm1',role:'CM',chatName:'Community Manager',photo:'',bio:'',instagram:'',telefono:'',pages:['cm','boom','chat','perfil']},
+  {user:'ADMINFIN',pass:'boomadmin1',role:'Administración',chatName:'Administración',photo:'',bio:'',instagram:'',telefono:'',pages:['adminfin','proveedores','chat','perfil']},
+];
+const ALL_PAGES=['dashboard','barra','adminfin','liderpub','publicas','cm','boom','chat','proveedores','kpi','usuarios','perfil'];
+const PAGE_LABELS={dashboard:'Dashboard',barra:'Barra',adminfin:'Administración',liderpub:'Líder Públicas',publicas:'Públicas',cm:'CM',boom:'BOOM General',chat:'Chat interno',proveedores:'Proveedores',kpi:'Reportes y KPIs',usuarios:'Usuarios',perfil:'Mi perfil'};
+const PAGE_ICONS={dashboard:'📊',barra:'🍺',adminfin:'📋',liderpub:'⭐',publicas:'📸',cm:'📅',boom:'🏠',chat:'💬',proveedores:'🤝',kpi:'📈',usuarios:'👥',perfil:'👤'};
+const PAGE_SECTIONS={dashboard:'Admin',barra:'Módulos',adminfin:'Módulos',liderpub:'Módulos',publicas:'Módulos',cm:'Comunicación',boom:'Comunicación',chat:'Comunicación',proveedores:'Admin',kpi:'Admin',usuarios:'Admin',perfil:'Mi cuenta'};
+
+const EVENTOS=[{nombre:'Sunset Sáb 15 Mar',minPubs:8},{nombre:'Sunset Sáb 22 Mar',minPubs:8},{nombre:'Fiesta Sáb 5 Abr',minPubs:20}];
+const EV_DATES=['2025-03-15','2025-03-22','2025-04-05'];
+const EV_FIN=[
+  {tickets:{eb:180,ae:95,am:130,taq:75,precio:3500},barra:{g:312000,c:148000}},
+  {tickets:{eb:150,ae:80,am:110,taq:60,precio:3500},barra:{g:285000,c:132000}},
+  {tickets:{eb:60,ae:30,am:45,taq:0,precio:3500},barra:{g:0,c:0}},
+];
+const PRODS=[
+  {n:'Cerveza Quilmes 1L',cat:'Cervezas',uxc:12,pv:1500,pc:800},
+  {n:'Cerveza Corona 355ml',cat:'Cervezas',uxc:24,pv:1200,pc:600},
+  {n:'Fernet Branca 750ml',cat:'Fernet/Espirituosas',uxc:6,pv:2500,pc:1200},
+  {n:'Coca-Cola 500ml',cat:'Gaseosas/Aguas',uxc:24,pv:800,pc:300},
+  {n:'Agua sin gas 500ml',cat:'Gaseosas/Aguas',uxc:24,pv:600,pc:200},
+  {n:'Sprite 500ml',cat:'Gaseosas/Aguas',uxc:24,pv:800,pc:300},
+  {n:'Champagne Chandon 750ml',cat:'Vinos/Champagne',uxc:6,pv:3500,pc:1800},
+  {n:'Vino tinto Malbec 750ml',cat:'Vinos/Champagne',uxc:12,pv:2000,pc:900},
+];
+let STOCK_INI=[[48,36,18,60,48,36,12,18],[48,36,18,60,48,36,12,18],[0,0,0,0,0,0,0,0]];
+let STOCK_CIE=[[8,6,2,12,10,8,3,4],[6,4,1,8,9,7,2,3],[null,null,null,null,null,null,null,null]];
+let STAFF_EV=[
+  [{n:'Lucía Gómez',rol:'Cajero/a',ent:'20:00',sal:'03:00',monto:8000,met:'Efectivo',pag:true},{n:'Matías Ríos',rol:'Bartender',ent:'20:00',sal:'03:00',monto:9000,met:'Efectivo',pag:true},{n:'Sol Pereyra',rol:'Barback',ent:'19:30',sal:'03:00',monto:7000,met:'Efectivo',pag:true},{n:'Diego Herrera',rol:'Encargado de barra',ent:'18:00',sal:'04:00',monto:15000,met:'Transferencia',pag:false}],
+  [{n:'Lucía Gómez',rol:'Cajero/a',ent:'20:00',sal:'03:00',monto:8000,met:'Efectivo',pag:true},{n:'Matías Ríos',rol:'Bartender',ent:'20:00',sal:'03:00',monto:9000,met:'Efectivo',pag:true},{n:'Diego Herrera',rol:'Encargado de barra',ent:'18:00',sal:'04:00',monto:15000,met:'Transferencia',pag:false}],
+  [],
+];
+let CAJAS_EV=[
+  [{fE:45000,fM:82000,rE:44500,rM:82000},{fE:38000,fM:65000,rE:38000,rM:65000},{fE:31000,fM:55000,rE:30500,rM:55000}],
+  [{fE:42000,fM:78000,rE:42000,rM:78000},{fE:35000,fM:60000,rE:35000,rM:60000},{fE:28000,fM:50000,rE:27800,rM:50000}],
+  [{fE:0,fM:0,rE:0,rM:0},{fE:0,fM:0,rE:0,rM:0},{fE:0,fM:0,rE:0,rM:0}],
+];
+let GASTOS_EV=[
+  [{d:'Flyer redes',r:'Flyer/diseño',m:15000,e:'pagado',a:'flyer.jpg'},{d:'Meta Ads',r:'Publicidad en redes',m:45000,e:'pagado',a:''},{d:'Caché DJ Hernán',r:'Cachets artistas/DJ',m:120000,e:'pagado',a:'recibo.pdf'},{d:'Alquiler La Parrilla',r:'Alquiler lugar/equipos',m:80000,e:'pagado',a:'fact.pdf'},{d:'Personal seguridad',r:'Staff',m:55000,e:'pendiente',a:''},{d:'Habilitación municipal',r:'Habilitaciones',m:18000,e:'pagado',a:''}],
+  [{d:'Flyer evento',r:'Flyer/diseño',m:12000,e:'pagado',a:''},{d:'Meta Ads',r:'Publicidad en redes',m:38000,e:'pagado',a:''},{d:'Caché DJ invitado',r:'Cachets artistas/DJ',m:110000,e:'aprobacion',a:''},{d:'Alquiler lugar',r:'Alquiler lugar/equipos',m:80000,e:'pagado',a:''}],
+  [{d:'Diseño flyer',r:'Flyer/diseño',m:15000,e:'aprobacion',a:''},{d:'Pauta digital',r:'Publicidad en redes',m:30000,e:'pendiente',a:''}],
+];
+let PUBLICAS=[
+  {id:1,n:'Valentina Ríos',ig:'@valen_rios',tel:'+54 9 261 555-0101',tipo:'vip',com:500,activo:true,obs:'Muy activa, buena llegada.',camps:3},
+  {id:2,n:'Mateo Díaz',ig:'@mateo.d',tel:'+54 9 261 555-0102',tipo:'vip',com:500,activo:true,obs:'Buen alcance en TikTok.',camps:3},
+  {id:3,n:'Lucía Fernández',ig:'@luci.f',tel:'+54 9 261 555-0103',tipo:'comun',com:0,activo:true,obs:'Buena actitud, pocos invitados.',camps:2},
+  {id:4,n:'Tomás Soria',ig:'@tomi_s',tel:'+54 9 261 555-0104',tipo:'comun',com:0,activo:true,obs:'Irregular.',camps:2},
+  {id:5,n:'Sofía Herrera',ig:'@sofi.h',tel:'+54 9 261 555-0105',tipo:'comun',com:0,activo:true,obs:'Nueva. Primer evento.',camps:1},
+  {id:6,n:'Nicolás Castro',ig:'@nico_c',tel:'+54 9 261 555-0106',tipo:'vip',com:500,activo:true,obs:'Top performer siempre.',camps:4},
+  {id:7,n:'Camila Torres',ig:'@cami.t',tel:'+54 9 261 555-0107',tipo:'comun',com:0,activo:true,obs:'Invitados fieles.',camps:2},
+  {id:8,n:'Agustín Mora',ig:'@agus.m',tel:'+54 9 261 555-0108',tipo:'comun',com:0,activo:true,obs:'Bajo rendimiento.',camps:1},
+];
+let ACT_EV=[
+  {1:{stories:9,reels:2,tiktok:1,inv:18,ing:15,actitud:'alta',obs:'Excelente'},2:{stories:7,reels:1,tiktok:2,inv:12,ing:10,actitud:'alta',obs:''},3:{stories:6,reels:1,tiktok:0,inv:4,ing:3,actitud:'media',obs:''},4:{stories:4,reels:0,tiktok:0,inv:2,ing:1,actitud:'baja',obs:''},5:{stories:5,reels:0,tiktok:1,inv:3,ing:2,actitud:'media',obs:''},6:{stories:11,reels:3,tiktok:2,inv:22,ing:20,actitud:'alta',obs:'TOP'},7:{stories:8,reels:1,tiktok:0,inv:8,ing:7,actitud:'media',obs:''},8:{stories:2,reels:0,tiktok:0,inv:1,ing:0,actitud:'baja',obs:''}},
+  {1:{stories:8,reels:1,tiktok:1,inv:14,ing:12,actitud:'alta',obs:''},2:{stories:6,reels:2,tiktok:1,inv:9,ing:8,actitud:'alta',obs:''},3:{stories:5,reels:0,tiktok:0,inv:3,ing:2,actitud:'media',obs:''},4:{stories:3,reels:0,tiktok:0,inv:1,ing:0,actitud:'baja',obs:''},5:{stories:4,reels:1,tiktok:0,inv:2,ing:2,actitud:'media',obs:''},6:{stories:12,reels:2,tiktok:3,inv:25,ing:22,actitud:'alta',obs:''},7:{stories:7,reels:1,tiktok:0,inv:6,ing:5,actitud:'media',obs:''},8:{stories:1,reels:0,tiktok:0,inv:0,ing:0,actitud:'baja',obs:''}},
+  {},
+];
+let BENEF_EV=[
+  {1:{ent:true,con:true,ex:'Lista VIP + cortesía'},2:{ent:true,con:true,ex:'Lista VIP'},3:{ent:true,con:false,ex:''},4:{ent:false,con:false,ex:'No cumplió'},5:{ent:true,con:false,ex:''},6:{ent:true,con:true,ex:'Premio top'},7:{ent:true,con:false,ex:''},8:{ent:false,con:false,ex:''}},
+  {},{},
+];
+let PUB_LOGS=[[
+  {pid:1,tipo:'Story de Instagram',desc:'Cuenta regresiva',ent:3,ts:'20:00'},{pid:1,tipo:'Reel/video',desc:'Teaser',ent:5,ts:'21:00'},
+  {pid:2,tipo:'Story de Instagram',desc:'Flyer',ent:4,ts:'19:30'},{pid:3,tipo:'TikTok',desc:'Video promo',ent:1,ts:'21:30'},
+  {pid:6,tipo:'Reel/video',desc:'Reel lugar',ent:6,ts:'18:00'},{pid:6,tipo:'Story de Instagram',desc:'Cuenta regresiva',ent:3,ts:'20:00'},
+  {pid:4,tipo:'Story de Instagram',desc:'Story',ent:0,ts:'20:00'},{pid:5,tipo:'Story de Instagram',desc:'Story',ent:0,ts:'20:00'},
+  {pid:7,tipo:'Story de Instagram',desc:'Flyer',ent:0,ts:'19:00'},{pid:8,tipo:'Story de Instagram',desc:'Story',ent:0,ts:'20:00'},
+],[
+  {pid:1,tipo:'Story de Instagram',desc:'Promo',ent:2,ts:'19:00'},{pid:2,tipo:'Reel/video',desc:'Reel',ent:7,ts:'20:00'},
+  {pid:6,tipo:'TikTok',desc:'TT viral',ent:8,ts:'21:00'},{pid:3,tipo:'Story de Instagram',desc:'Story',ent:0,ts:'20:00'},
+],[],];
+let POSTS=[
+  {id:1,fecha:'2025-03-10',hora:'10:00',red:'ig_feed',tipo:'Lanzamiento del evento',desc:'Flyer oficial lanzamiento Sunset Mar 15'},
+  {id:2,fecha:'2025-03-12',hora:'18:00',red:'ig_story',tipo:'Anuncio venta de entradas',desc:'Stories con link Eventbrite'},
+  {id:3,fecha:'2025-03-13',hora:'12:00',red:'reel',tipo:'Contenido dinámico',desc:'Reel teaser venue'},
+  {id:4,fecha:'2025-03-14',hora:'20:00',red:'tiktok',tipo:'Cuenta regresiva',desc:'TikTok 1 día'},
+  {id:5,fecha:'2025-03-15',hora:'09:00',red:'ig_story',tipo:'Post día del evento',desc:'Stories del día'},
+  {id:6,fecha:'2025-03-16',hora:'11:00',red:'ig_feed',tipo:'Post post-evento',desc:'Carrusel fotos'},
+  {id:7,fecha:'2025-03-20',hora:'10:00',red:'ig_feed',tipo:'Lanzamiento del evento',desc:'Flyer Sunset Mar 22'},
+  {id:8,fecha:'2025-03-25',hora:'10:00',red:'ig_feed',tipo:'Lanzamiento del evento',desc:'Primer flyer Fiesta Abr 5'},
+  {id:9,fecha:'2025-04-03',hora:'10:00',red:'ig_story',tipo:'Cuenta regresiva',desc:'2 días para la fiesta'},
+];
+let TASKS=[
+  {id:1,titulo:'Diseñar flyer lanzamiento Sunset',fecha:'2025-03-09',hora:'10:00',aviso:1440,area:'CM',vis:'todos',done:true},
+  {id:2,titulo:'Confirmar DJ y subir anuncio',fecha:'2025-03-11',hora:'12:00',aviso:1440,area:'Producción',vis:'todos',done:true},
+  {id:3,titulo:'Pack de stories día del evento',fecha:'2025-03-15',hora:'08:00',aviso:120,area:'CM',vis:'cm',done:false},
+  {id:4,titulo:'Editar y subir video resumen',fecha:'2025-03-17',hora:'11:00',aviso:2880,area:'CM',vis:'todos',done:false},
+  {id:5,titulo:'Diseñar flyer Fiesta Abr 5',fecha:'2025-03-24',hora:'10:00',aviso:2880,area:'Diseño',vis:'todos',done:false},
+  {id:6,titulo:'Confirmar caché artista principal',fecha:'2025-03-28',hora:'12:00',aviso:1440,area:'Producción',vis:'todos',done:false},
+];
+let IDEAS=[
+  {id:1,txt:'Dinámica en stories: la gente vota el próximo DJ',cat:'Contenido',autor:'Lu',fecha:'Mar 10',votos:4,votado:false},
+  {id:2,txt:'Filtro de Instagram de BOOM para que la gente use en sus stories',cat:'Marketing',autor:'Sol',fecha:'Mar 12',votos:7,votado:true},
+  {id:3,txt:'Lista de Spotify colaborativa con el setlist',cat:'Experiencia',autor:'Mateo',fecha:'Mar 13',votos:3,votado:false},
+  {id:4,txt:'BTS de preparación del evento en TikTok',cat:'Contenido',autor:'Lu',fecha:'Mar 14',votos:5,votado:false},
+];
+let PROVEEDORES=[
+  {id:1,n:'ProAudio SRL',cat:'Sonido',cont:'Martín Ruiz',tel:'+54 9 261 555-1001',cal:5,obs:'Puntual, equipo top.',eventos:[0,1],pagado:[true,true],montos:[45000,45000]},
+  {id:2,n:'LumiShow',cat:'Iluminación',cont:'Carolina Paz',tel:'+54 9 261 555-1002',cal:4,obs:'Muy buen servicio.',eventos:[0,1],pagado:[true,false],montos:[35000,35000]},
+  {id:3,n:'Hernán López (DJ)',cat:'DJ / Artista',cont:'Hernán López',tel:'+54 9 261 555-1003',cal:5,obs:'TOP. Siempre llena la pista.',eventos:[0],pagado:[true],montos:[120000]},
+  {id:4,n:'Gráfica Norte',cat:'Imprenta',cont:'Pablo Norte',tel:'+54 9 261 555-1004',cal:3,obs:'OK. Demoró en el último.',eventos:[0,1],pagado:[true,true],montos:[12000,8000]},
+  {id:5,n:'La Parrilla SA',cat:'Venue',cont:'Diego Herrera',tel:'+54 9 261 555-1005',cal:5,obs:'Excelente venue.',eventos:[0,1,2],pagado:[true,true,false],montos:[80000,80000,80000]},
+  {id:6,n:'SecurEvent',cat:'Seguridad',cont:'Roberto Vega',tel:'+54 9 261 555-1006',cal:4,obs:'Profesionales.',eventos:[0,1],pagado:[false,false],montos:[55000,50000]},
+];
+const EV_NOMBRES=['Sunset 15 Mar','Sunset 22 Mar','Fiesta 5 Abr'];
+const CHAT_DATA={
+  general:{l:'# General',msgs:[{u:'Lu (CEO)',t:'Bienvenidos al chat interno de BOOM! 🎉',ts:'10:00'},{u:'Community Manager',t:'Todo listo para el Sunset del sábado',ts:'10:05'},{u:'Líder de Barra',t:'Stock confirmado ✓',ts:'10:10'}]},
+  ideas:{l:'# Ideas',msgs:[{u:'Líder de Públicas',t:'Idea: sistema de puntos acumulativos para públicas',ts:'09:30'},{u:'Lu (CEO)',t:'Me encanta! Lo vemos el lunes',ts:'09:45'}]},
+  barra:{l:'# Barra',msgs:[{u:'Líder de Barra',t:'¿Apruebo el pedido de Quilmes para el sábado?',ts:'11:00'},{u:'Lu (CEO)',t:'Aprobado ✓',ts:'11:05'}]},
+  cm:{l:'# CM',msgs:[{u:'Community Manager',t:'El reel llegó a 8k reproducciones 🔥',ts:'14:00'},{u:'Lu (CEO)',t:'Excelente! Repetí el formato',ts:'14:10'}]},
+  publicas:{l:'# Públicas',msgs:[{u:'Líder de Públicas',t:'Valentina y Nicolás son TOP esta campaña',ts:'16:00'},{u:'Lu (CEO)',t:'Los reconocemos en el próximo evento',ts:'16:05'}]},
+  admin:{l:'# Admin',msgs:[{u:'Administración',t:'La factura de SecurEvent sigue pendiente',ts:'09:00'},{u:'Lu (CEO)',t:'Autorizado para pagar esta semana',ts:'09:10'}]},
+  ev0:{l:'# Sunset 15 Mar',msgs:[{u:'Lu (CEO)',t:'Canal del Sunset 15 Mar',ts:'08:00'},{u:'Líder de Barra',t:'Stock verificado ✓',ts:'08:30'},{u:'Administración',t:'Habilitaciones confirmadas ✓',ts:'09:00'}]},
+  ev1:{l:'# Sunset 22 Mar',msgs:[{u:'Lu (CEO)',t:'Arrancamos planificación Sunset 22 Mar',ts:'10:00'}]},
+  ev2:{l:'# Fiesta 5 Abr',msgs:[{u:'Community Manager',t:'Trabajando en el flyer',ts:'10:15'},{u:'Lu (CEO)',t:'Vamos con todo!',ts:'10:20'}]},
+};
+
+const HOY=new Date(2025,2,15);
+let calYear=2025,calMonth=2;
+let CU=null,curPage='dashboard',catTarget='',pubTarget=null,actTarget=null,editProvId=null,editUsrIdx=null;
+let curCh='general';
+let npid=10,ntid=7,niid=5,npvid=7;
+const RED_LABEL={ig_feed:'IG Feed',ig_story:'Story',reel:'Reel',tiktok:'TikTok',facebook:'Facebook'};
+const RED_CLS={ig_feed:'ce-ig',ig_story:'ce-story',reel:'ce-reel',tiktok:'ce-tiktok',facebook:'ce-ig'};
+const AVC=['#e8d5a3','#4ade80','#60a5fa','#f87171','#a78bfa','#fbbf24','#34d399','#fb7185'];
+
+// ═══ HELPERS ═══
+const fmt=n=>'$'+Math.round(n).toLocaleString('es-AR');
+const ini=s=>s.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+const stars=n=>'★'.repeat(n)+'☆'.repeat(5-n);
+const avs=i=>`background:${AVC[i%8]}22;color:${AVC[i%8]}`;
+const gEv=()=>parseInt(document.getElementById('g-ev')?.value||0);
+const dateStr=d=>d.toISOString().split('T')[0];
+function diffDias(s){const t=new Date(s.replace(/-/g,'/'));const h=new Date(HOY);h.setHours(0,0,0,0);t.setHours(0,0,0,0);return Math.round((t-h)/864e5);}
+function diasLabel(d){return d===0?'Hoy':d===1?'Mañana':d===-1?'Ayer':d<0?`Hace ${Math.abs(d)}d`:`En ${d}d`;}
+function getAct(ev,pid){return ACT_EV[ev]?.[pid]||{stories:0,reels:0,tiktok:0,inv:0,ing:0,actitud:'media',obs:''};}
+function tpubs(a){return(a.stories||0)+(a.reels||0)+(a.tiktok||0);}
+function nivel(ev,pid){const a=getAct(ev,pid);const tp=tpubs(a);const m=EVENTOS[ev].minPubs;if(tp>=m&&a.inv>=10&&a.actitud==='alta')return'top';if(tp>=m&&a.actitud!=='baja')return'activa';if(tp>=Math.ceil(m*.6))return'floja';return'descartable';}
+const NVL={top:'🔥 TOP',activa:'⚡ Activa',floja:'🟡 Floja',descartable:'❌ Descartable'};
+const NVC={top:'bgold',activa:'bok',floja:'bwarn',descartable:'bdanger'};
+function openTab(prefix,id){
+  document.querySelectorAll(`[id^="${prefix}-"]`).forEach(el=>{if(el.classList.contains('tsec'))el.classList.remove('active');});
+  const el=document.getElementById(`${prefix}-${id}`);if(el)el.classList.add('active');
+  document.querySelectorAll('.tbtn').forEach(b=>{const o=b.getAttribute('onclick');if(o)b.classList.toggle('active',o.includes(`'${id}'`)||o.includes(`"${id}"`));});
+}
+
+// ═══ AUTH ═══
+function doLogin(){
+  const u=document.getElementById('l-user').value.trim().toUpperCase();
+  const p=document.getElementById('l-pass').value.trim();
+  const f=USERS.find(x=>x.user===u&&x.pass===p);
+  if(!f){document.getElementById('l-err').style.display='block';return;}
+  CU=f;
+  document.getElementById('login').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('t-role').textContent=f.role;
+  updateTopbarAvatar();
+  buildSidebar();buildMobileNav();
+  if(window.fbLoad){window.fbLoad().then(()=>navigate(CU.pages[0]));}else{navigate(CU.pages[0]);}
+}
+function doLogout(){CU=null;document.getElementById('login').style.display='flex';document.getElementById('app').style.display='none';document.getElementById('l-user').value='';document.getElementById('l-pass').value='';document.getElementById('l-err').style.display='none';}
+
+// ═══ SIDEBAR ═══
+function buildMobileNav(){
+  const nav=document.getElementById('mobile-bottom-nav');if(!nav)return;
+  const show=CU.pages.filter(p=>p!=='usuarios'&&p!=='perfil').slice(0,4);
+  nav.innerHTML=show.map(p=>`<div class="mbn-item${curPage===p?' active':''}" onclick="navigate('${p}')"><span class="ico">${PAGE_ICONS[p]}</span><span>${(PAGE_LABELS[p]||p).slice(0,8)}</span></div>`).join('')+
+  `<div class="mbn-item${curPage==='perfil'?' active':''}" onclick="navigate('perfil')"><span class="ico">👤</span><span>Perfil</span></div>`;
+}
+
+function buildSidebar(){
+  const sb=document.getElementById('sb');sb.innerHTML='';
+  const secs={};
+  CU.pages.forEach(p=>{const sec=PAGE_SECTIONS[p]||'Otro';if(!secs[sec])secs[sec]=[];secs[sec].push(p);});
+  Object.entries(secs).forEach(([sec,pages])=>{
+    sb.innerHTML+=`<div class="ss">${sec}</div>`;
+    pages.forEach(p=>sb.innerHTML+=`<div class="si" id="si-${p}" onclick="navigate('${p}')"><span>${PAGE_ICONS[p]}</span>${PAGE_LABELS[p]}</div>`);
+  });
+}
+function navigate(page){
+  curPage=page;
+  document.querySelectorAll('.si').forEach(el=>el.classList.remove('active'));
+  document.getElementById('si-'+page)?.classList.add('active');
+  document.getElementById('mc').innerHTML='';
+  buildMobileNav();
+  renderPage(page);
+}
+function onEvChange(){renderPage(curPage);}
+
+// ═══ RENDER DISPATCHER ═══
+function renderPage(p){
+  const mc=document.getElementById('mc');
+  if(p==='dashboard')mc.innerHTML=pgDash();
+  else if(p==='barra'){mc.innerHTML=pgBarra();initBarra();}
+  else if(p==='adminfin')mc.innerHTML=pgAdminFin();
+  else if(p==='liderpub'){mc.innerHTML=pgLiderPub();initLider();}
+  else if(p==='publicas')mc.innerHTML=pgPublicas();
+  else if(p==='cm'){mc.innerHTML=pgCM();initCM();}
+  else if(p==='boom'){mc.innerHTML=pgBoom();initBoom();}
+  else if(p==='chat'){mc.innerHTML=pgChat();initChat();}
+  else if(p==='proveedores')mc.innerHTML=pgProveedores();
+  else if(p==='kpi'){mc.innerHTML=pgKPI();initKPI();}
+  else if(p==='usuarios')mc.innerHTML=pgUsuarios();
+  else if(p==='perfil'){mc.innerHTML=pgPerfil();initPerfil();}
+}
+
+// ═══ TAB HELPER ═══
+function makeTabs(prefix,tabs,first){
+  const nav=tabs.map(t=>`<button class="tbtn${t.id===first?' active':''}" onclick="openTab('${prefix}','${t.id}')">${t.l}</button>`).join('');
+  const secs=tabs.map(t=>`<div id="${prefix}-${t.id}" class="tsec${t.id===first?' active':''}"></div>`).join('');
+  return`<div class="tnav">${nav}</div>${secs}`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════
+function pgDash(){
+  const ev=gEv();const d=EV_FIN[ev];
+  const tT=(d.tickets.eb+d.tickets.ae+d.tickets.am+d.tickets.taq)*d.tickets.precio;
+  const ing=tT+d.barra.g;const gas=GASTOS_EV[ev].reduce((a,g)=>a+g.m,0);
+  const res=ing-gas;const ok=ev<2;
+  const pG=GASTOS_EV[ev].filter(g=>g.e!=='pagado').length;
+  return`<div class="ptitle">📊 Dashboard</div><div class="psub">${EVENTOS[ev].nombre} — Vista del CEO</div>
+  <div class="mg">
+    <div class="met"><div class="ml">Resultado evento</div><div class="mv ${ok?res>0?'pos':'neg':''}">${ok?fmt(res):'—'}</div><div class="ms">${ok?res>0?'Positivo':'Negativo':'En planificación'}</div></div>
+    <div class="met"><div class="ml">Ingresos totales</div><div class="mv pos">${ok?fmt(ing):'—'}</div></div>
+    <div class="met"><div class="ml">Gastos registrados</div><div class="mv neg">${fmt(gas)}</div></div>
+    <div class="met"><div class="ml">Gastos pendientes</div><div class="mv ${pG?'neg':''}">${pG}</div></div>
+    <div class="met"><div class="ml">Tickets vendidos</div><div class="mv">${d.tickets.eb+d.tickets.ae+d.tickets.am+(ok?d.tickets.taq:0)}</div></div>
+    <div class="met"><div class="ml">Públicas activas</div><div class="mv">${PUBLICAS.filter(p=>p.activo).length}</div></div>
+  </div>
+  <div class="card"><div class="ctitle">Ganancia por área</div>
+  ${[['Tickets Eventbrite',d.tickets.eb*d.tickets.precio,'#60a5fa'],['Anticipadas efectivo',d.tickets.ae*d.tickets.precio,'#4ade80'],['Anticipadas MP',d.tickets.am*d.tickets.precio,'#a78bfa'],['Taquilla',d.tickets.taq*d.tickets.precio,'#fbbf24'],['Barra',d.barra.g,'#e8d5a3']].map(([l,v,c])=>{
+    const mx=Math.max(d.tickets.eb,d.tickets.ae,d.tickets.am,d.tickets.taq)*d.tickets.precio||1;
+    return`<div class="bar-row"><span class="bar-lbl">${l}</span><div class="bar-bg"><div class="bar-fill" style="width:${v?Math.min(100,Math.round(v/mx*100)):5}%;background:${c}">${fmt(v)}</div></div></div>`;
+  }).join('')}</div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// BARRA
+// ═══════════════════════════════════════════════════════════
+function pgBarra(){
+  return`<div class="ptitle">🍺 Módulo de Barra</div><div class="psub" id="barra-sub"></div>
+  ${makeTabs('b',[{id:'inicio',l:'Inicio'},{id:'cierre',l:'Cierre'},{id:'consumo',l:'Consumo'},{id:'precios',l:'Precios'},{id:'cajas',l:'Cajas'},{id:'staff',l:'Staff'},{id:'compra',l:'Compra'}],'inicio')}`;
+}
+function initBarra(){
+  document.getElementById('barra-sub').textContent=EVENTOS[gEv()].nombre;
+  bLoadInicio();bLoadCierre();bLoadConsumo();bLoadPrecios();bLoadCajas();bLoadStaff();bLoadCompra();
+}
+function bLoadInicio(){
+  const ev=gEv();const ini0=STOCK_INI[ev];
+  let h=`<div class="card"><div class="ctitle">Stock al inicio del evento</div><table><thead><tr><th>Producto</th><th>Categoría</th><th>Unidades</th><th>Cajas</th><th>Estado</th></tr></thead><tbody>`;
+  PRODS.forEach((p,i)=>{const u=ini0[i];const s=u>=30?'bok':u>=12?'bwarn':'bdanger';h+=`<tr><td style="font-weight:500">${p.n}</td><td><span class="badge bgray" style="font-size:10px">${p.cat}</span></td><td><input type="number" value="${u}" min="0" style="width:65px" id="bi${i}" onchange="STOCK_INI[gEv()][${i}]=parseInt(this.value)||0;document.getElementById('bic${i}').textContent=Math.floor((parseInt(this.value)||0)/${p.uxc})"></td><td id="bic${i}">${Math.floor(u/p.uxc)}</td><td><span class="badge ${s}">${u>=30?'OK':u>=12?'Bajo':'Muy bajo'}</span></td></tr>`;});
+  h+=`</tbody></table></div>`;
+  document.getElementById('b-inicio').innerHTML=h;
+}
+function bLoadCierre(){
+  const ev=gEv();const ini0=STOCK_INI[ev];const cie=STOCK_CIE[ev];
+  let h=`<div class="card"><div class="ctitle">Stock al cierre</div><table><thead><tr><th>Producto</th><th>Inicio</th><th>Sobró</th><th>Vendido</th></tr></thead><tbody>`;
+  PRODS.forEach((p,i)=>{h+=`<tr><td style="font-weight:500">${p.n}</td><td>${ini0[i]}</td><td><input type="number" value="${cie[i]??''}" min="0" style="width:65px" onchange="STOCK_CIE[gEv()][${i}]=parseInt(this.value)||0;document.getElementById('bcv${i}').textContent=STOCK_INI[gEv()][${i}]-(parseInt(this.value)||0)"></td><td id="bcv${i}">${cie[i]!==null?ini0[i]-cie[i]:'—'}</td></tr>`;});
+  h+=`</tbody></table></div>`;
+  document.getElementById('b-cierre').innerHTML=h;
+}
+function bLoadConsumo(){
+  const ev=gEv();const ini0=STOCK_INI[ev];const cie=STOCK_CIE[ev];
+  const vend=cie[0]!==null?ini0.map((u,i)=>u-cie[i]):null;
+  if(!vend){document.getElementById('b-consumo').innerHTML='<div class="empty">Cargá el cierre para ver consumo.</div>';return;}
+  const tv=vend.reduce((a,b)=>a+b,0);const mx=Math.max(...vend)||1;
+  const sorted=PRODS.map((p,i)=>({n:p.n,v:vend[i]})).sort((a,b)=>b.v-a.v);
+  let h=`<div class="mg"><div class="met"><div class="ml">Total vendido</div><div class="mv">${tv}</div></div><div class="met"><div class="ml">Rotación</div><div class="mv">${Math.round(tv/ini0.reduce((a,b)=>a+b,0)*100)}%</div></div></div>`;
+  h+=`<div class="card"><div class="ctitle">Ranking de productos</div>`;
+  sorted.forEach((x,idx)=>{h+=`<div class="bar-row"><span class="bar-lbl">${x.n.split(' ').slice(0,2).join(' ')}</span><div class="bar-bg"><div class="bar-fill" style="width:${Math.round(x.v/mx*100)}%;background:${AVC[idx%8]}">${x.v}</div></div></div>`;});
+  h+=`</div>`;
+  document.getElementById('b-consumo').innerHTML=h;
+}
+function bLoadPrecios(){
+  const ev=gEv();const ini0=STOCK_INI[ev];const cie=STOCK_CIE[ev];
+  const vend=cie[0]!==null?ini0.map((u,i)=>u-cie[i]):null;
+  let h=`<div class="card"><div class="ctitle">Precios y margen</div><table><thead><tr><th>Producto</th><th>Venta</th><th>Costo</th><th>Margen</th><th>Vendido</th><th>Ganancia est.</th></tr></thead><tbody>`;
+  let totalG=0;
+  PRODS.forEach((p,i)=>{const mg=p.pv-p.pc;const v=vend?vend[i]:null;const g=v!==null?mg*v:null;if(g)totalG+=g;h+=`<tr><td style="font-weight:500">${p.n}</td><td>${fmt(p.pv)}</td><td>${fmt(p.pc)}</td><td class="${mg>0?'pos':'neg'}">${fmt(mg)}</td><td>${v??'—'}</td><td>${g!==null?`<span class="pos">${fmt(g)}</span>`:'—'}</td></tr>`;});
+  h+=`<tr class="trow-total"><td colspan="4" style="text-align:right">Total estimado</td><td>${vend?vend.reduce((a,b)=>a+b,0):'—'}</td><td>${totalG?`<span class="pos">${fmt(totalG)}</span>`:'—'}</td></tr></tbody></table></div>`;
+  document.getElementById('b-precios').innerHTML=h;
+}
+function bLoadCajas(){
+  const ev=gEv();const cjs=CAJAS_EV[ev];
+  let tFE=0,tFM=0,tRE=0,tRM=0;cjs.forEach(c=>{tFE+=c.fE;tFM+=c.fM;tRE+=c.rE;tRM+=c.rM;});
+  const dE=tRE-tFE,dM=tRM-tFM,dT=(tRE+tRM)-(tFE+tFM);
+  let h='';
+  cjs.forEach((c,i)=>{h+=`<div class="pcard" style="margin-bottom:.5rem"><div style="font-size:12px;font-weight:500;margin-bottom:.5rem;color:var(--text2)">Caja ${i+1}</div><div class="fr"><div class="fc"><span class="fl">Fudo Efectivo</span><input type="number" value="${c.fE}" style="width:110px" onchange="CAJAS_EV[gEv()][${i}].fE=parseFloat(this.value)||0;bLoadCajas()"></div><div class="fc"><span class="fl">Fudo MP</span><input type="number" value="${c.fM}" style="width:110px" onchange="CAJAS_EV[gEv()][${i}].fM=parseFloat(this.value)||0;bLoadCajas()"></div><div class="fc"><span class="fl">Real Efectivo</span><input type="number" value="${c.rE}" style="width:110px" onchange="CAJAS_EV[gEv()][${i}].rE=parseFloat(this.value)||0;bLoadCajas()"></div><div class="fc"><span class="fl">Real MP</span><input type="number" value="${c.rM}" style="width:110px" onchange="CAJAS_EV[gEv()][${i}].rM=parseFloat(this.value)||0;bLoadCajas()"></div></div></div>`;});
+  h+=`<div class="card"><div class="ctitle">Resultado del cierre</div><table><thead><tr><th></th><th>Fudo</th><th>Real</th><th>Diferencia</th><th>Estado</th></tr></thead><tbody>
+  <tr><td style="font-weight:500">Efectivo total</td><td>${fmt(tFE)}</td><td>${fmt(tRE)}</td><td class="${dE===0?'pos':'neg'}">${fmt(dE)}</td><td><span class="badge ${dE===0?'bok':'bdanger'}">${dE===0?'Cuadra':'Diferencia'}</span></td></tr>
+  <tr><td style="font-weight:500">MercadoPago total</td><td>${fmt(tFM)}</td><td>${fmt(tRM)}</td><td class="${dM===0?'pos':'neg'}">${fmt(dM)}</td><td><span class="badge ${dM===0?'bok':'bdanger'}">${dM===0?'Cuadra':'Diferencia'}</span></td></tr>
+  <tr class="trow-total"><td>Total general</td><td>${fmt(tFE+tFM)}</td><td>${fmt(tRE+tRM)}</td><td class="${dT===0?'pos':'neg'}">${fmt(dT)}</td><td><span class="badge ${dT===0?'bok':'bdanger'}">${dT===0?'✓ Cuadra':'⚠ Diferencia'}</span></td></tr>
+  </tbody></table></div>`;
+  document.getElementById('b-cajas').innerHTML=h;
+}
+function bLoadStaff(){
+  const ev=gEv();const st=STAFF_EV[ev];
+  const pag=st.filter(s=>s.pag).reduce((a,s)=>a+s.monto,0);
+  const pend=st.filter(s=>!s.pag).reduce((a,s)=>a+s.monto,0);
+  let h=`<div class="mg"><div class="met"><div class="ml">Staff total</div><div class="mv">${st.length}</div></div><div class="met"><div class="ml">Pagado</div><div class="mv pos">${fmt(pag)}</div></div><div class="met"><div class="ml">Pendiente</div><div class="mv ${pend?'neg':''}">${fmt(pend)}</div></div></div>`;
+  h+=`<div class="card"><div class="ctitle">Personal del evento</div>`;
+  if(!st.length){h+='<div class="empty">Sin staff cargado para este evento.</div>';}
+  else{h+=`<table><thead><tr><th>Nombre</th><th>Rol</th><th>Horario</th><th>Monto</th><th>Método</th><th>Estado</th></tr></thead><tbody>`;st.forEach(s=>{h+=`<tr><td style="font-weight:500">${s.n}</td><td><span class="badge binfo" style="font-size:10px">${s.rol}</span></td><td>${s.ent}–${s.sal}</td><td>${fmt(s.monto)}</td><td>${s.met}</td><td><span class="badge ${s.pag?'bok':'bwarn'}">${s.pag?'Pagado':'Pendiente'}</span></td></tr>`;});h+=`</tbody></table>`;}
+  h+=`</div>`;
+  document.getElementById('b-staff').innerHTML=h;
+}
+function bLoadCompra(){
+  const todos=EVENTOS.map((_,i)=>STOCK_CIE[i][0]!==null?STOCK_INI[i].map((u,j)=>u-STOCK_CIE[i][j]):null).filter(Boolean);
+  if(!todos.length){document.getElementById('b-compra').innerHTML='<div class="empty">Guardá al menos un cierre para ver la lista de compra.</div>';return;}
+  const ev=gEv();const cie=STOCK_CIE[ev];const stock=cie[0]!==null?cie:PRODS.map(()=>0);
+  const prom=PRODS.map((_,i)=>Math.round(todos.reduce((a,e)=>a+e[i],0)/todos.length));
+  let h=`<div class="card"><div class="ctitle">Sugerencia de compra (+10% buffer)</div><table><thead><tr><th>Producto</th><th>Stock actual</th><th>Prom. consumo</th><th>Objetivo</th><th>A comprar</th><th>Cajas</th></tr></thead><tbody>`;
+  PRODS.forEach((p,i)=>{const obj=Math.ceil(prom[i]*1.1);const sc=stock[i];const comp=Math.max(0,obj-sc);h+=`<tr><td style="font-weight:500">${p.n}</td><td>${sc}</td><td>${prom[i]}</td><td>${obj}</td><td>${comp>0?`<span class="badge bdanger">${comp}</span>`:'<span class="badge bok">OK</span>'}</td><td>${comp>0?Math.ceil(comp/p.uxc):'—'}</td></tr>`;});
+  h+=`</tbody></table></div>`;
+  document.getElementById('b-compra').innerHTML=h;
+}
+
+// ═══════════════════════════════════════════════════════════
+// ADMIN FIN
+// ═══════════════════════════════════════════════════════════
+function pgAdminFin(){
+  const ev=gEv();const gs=GASTOS_EV[ev];
+  const total=gs.reduce((a,g)=>a+g.m,0);const pag=gs.filter(g=>g.e==='pagado').reduce((a,g)=>a+g.m,0);
+  const ap=gs.filter(g=>g.e==='aprobacion');const pend=gs.filter(g=>g.e==='pendiente');
+  let h=`<div class="ptitle">📋 Administración</div><div class="psub">${EVENTOS[ev].nombre}</div>
+  <div class="mg"><div class="met"><div class="ml">Total gastos</div><div class="mv">${fmt(total)}</div></div><div class="met"><div class="ml">Pagado</div><div class="mv pos">${fmt(pag)}</div></div><div class="met"><div class="ml">Pendiente de pago</div><div class="mv neg">${fmt(total-pag)}</div></div><div class="met"><div class="ml">En aprobación</div><div class="mv ${ap.length?'neg':''}">${ap.length}</div></div></div>
+  ${makeTabs('af',[{id:'gastos',l:'Gastos'},{id:'aprob',l:'Aprobaciones'}],'gastos')}`;
+  // gastos tab
+  let hg=`<div style="display:flex;justify-content:flex-end;margin-bottom:.5rem"><button class="btn btnp btnsm" onclick="afAddGasto()">+ Gasto</button></div>`;
+  hg+=`<div class="card"><div class="ctitle">Lista de gastos</div><table><thead><tr><th>Descripción</th><th>Rubro</th><th>Monto</th><th>Archivo</th><th>Estado</th><th></th></tr></thead><tbody>`;
+  gs.forEach((g,i)=>{hg+=`<tr><td style="font-weight:500">${g.d}</td><td><span class="tag">${g.r}</span></td><td class="${g.e==='pagado'?'pos':'neg'}">${fmt(g.m)}</td><td>${g.a?`<span class="badge binfo" style="font-size:10px">${g.a}</span>`:'—'}</td><td><span class="badge ${g.e==='pagado'?'bok':g.e==='aprobacion'?'bwarn':'bdanger'}">${g.e==='pagado'?'Pagado':g.e==='aprobacion'?'Aprobación':'Pendiente'}</span></td><td>${g.e!=='pagado'?`<button class="btn btnsm" onclick="GASTOS_EV[gEv()][${i}].e='pagado';renderPage('adminfin')">✓ Pagar</button>`:''}</td></tr>`;});
+  hg+=`</tbody></table></div>`;
+  // aprob tab
+  let ha=ap.length?ap.map(g=>`<div class="ai"><div><div style="font-size:13px;font-weight:500">${g.d}</div><div style="font-size:11px;color:var(--text2)">${g.r}</div></div><div style="display:flex;align-items:center;gap:8px"><span style="font-weight:500">${fmt(g.m)}</span><button class="btn btnsm btnp" onclick="afAprob('${g.d}')">Aprobar</button><button class="btn btnsm btnd" onclick="afRech('${g.d}')">Rechazar</button></div></div>`).join(''):'<div class="empty">Sin gastos pendientes de aprobación.</div>';
+  h+=`<script>document.getElementById('af-gastos').innerHTML=${JSON.stringify(hg)};document.getElementById('af-aprob').innerHTML=\`<div class="card"><div class="ctitle">Esperando aprobación del CEO</div>${ha}</div>\`;<\/script>`;
+  return h;
+}
+function afAddGasto(){const d=prompt('Descripción:');if(!d)return;const m=parseFloat(prompt('Monto:')||0);if(!m)return;GASTOS_EV[gEv()].push({d,r:'Otros gastos',m,e:'pendiente',a:''});renderPage('adminfin');}
+function afAprob(d){const g=GASTOS_EV[gEv()].find(x=>x.d===d&&x.e==='aprobacion');if(g)g.e='pendiente';if(window._fbOK)window.fbSave.gastos?.(gEv());renderPage('adminfin');}
+function afRech(d){const ev=gEv();const i=GASTOS_EV[ev].findIndex(x=>x.d===d&&x.e==='aprobacion');if(i>=0)GASTOS_EV[ev].splice(i,1);if(window._fbOK)window.fbSave.gastos?.(ev);renderPage('adminfin');}
+
+// ═══════════════════════════════════════════════════════════
+// LIDER PUBLICAS
+// ═══════════════════════════════════════════════════════════
+function pgLiderPub(){
+  return`<div class="ptitle">⭐ Líder de Públicas</div><div class="psub" id="lp-sub"></div>
+  <div id="lp-alerta"></div>
+  <div class="mg" id="lp-metrics"></div>
+  ${makeTabs('lp',[{id:'ranking',l:'Ranking'},{id:'actividad',l:'Actividad'},{id:'invitados',l:'Invitados'},{id:'clasificacion',l:'Clasificación'},{id:'beneficios',l:'Beneficios'},{id:'post',l:'Post-evento'}],'ranking')}`;
+}
+function initLider(){
+  document.getElementById('lp-sub').textContent=EVENTOS[gEv()].nombre;
+  lpLoadAll();
+}
+function lpGetStats(ev){return PUBLICAS.filter(p=>p.activo).map(p=>({p,a:getAct(ev,p.id),nv:nivel(ev,p.id)})).sort((a,b)=>tpubs(b.a)-tpubs(a.a));}
+function lpLoadAll(){
+  const ev=gEv();const cfg=EVENTOS[ev];const stats=lpGetStats(ev);
+  const N=stats.length;const cumplieron=stats.filter(s=>tpubs(s.a)>=cfg.minPubs).length;
+  const pct=Math.round(cumplieron/N*100);
+  const tInv=stats.reduce((a,s)=>a+s.a.inv,0);const tIng=stats.reduce((a,s)=>a+s.a.ing,0);
+  const scls=pct>=70?'agreen':pct>=40?'ayellow':'ared';const ssem=pct>=70?'semg':pct>=40?'semy':'semr';
+  document.getElementById('lp-alerta').innerHTML=`<div class="abox ${scls}"><div class="sem ${ssem}"></div><div><div style="font-size:13px;font-weight:500">${pct>=70?'Campaña en buen camino 🟢':pct>=40?'Campaña irregular ⚠️':'Campaña en riesgo 🔴'}</div><div style="font-size:12px;color:var(--text2);margin-top:2px">${cumplieron} de ${N} públicas cumpliendo (mín: ${cfg.minPubs} pubs)</div></div></div>`;
+  document.getElementById('lp-metrics').innerHTML=`<div class="met"><div class="ml">Públicas activas</div><div class="mv">${N}</div></div><div class="met"><div class="ml">Prom. stories</div><div class="mv">${(stats.reduce((a,s)=>a+s.a.stories,0)/N).toFixed(1)}</div></div><div class="met"><div class="ml">Total invitados</div><div class="mv">${tInv}</div></div><div class="met"><div class="ml">Ingresaron</div><div class="mv pos">${tIng}</div><div class="ms">${tInv?Math.round(tIng/tInv*100):0}% conv.</div></div><div class="met"><div class="ml">% cumplimiento</div><div class="mv ${pct>=70?'pos':pct>=40?'':'neg'}">${pct}%</div></div>`;
+  lpLoadRanking();lpLoadActividad();lpLoadInvitados();lpLoadClasif();lpLoadBeneficios();lpLoadPost();
+}
+function lpLoadRanking(){
+  const ev=gEv();const cfg=EVENTOS[ev];const stats=lpGetStats(ev);const N=stats.length;
+  const z1=Math.ceil(N*.33),z2=Math.ceil(N*.66);
+  let h=`<div style="display:flex;justify-content:flex-end;margin-bottom:.5rem"><button class="btn btnp btnsm" onclick="lpAddPublica()">+ Nueva pública</button></div><div class="card"><div class="ctitle">Tabla de posiciones</div>`;
+  stats.forEach(({p,a,nv},i)=>{
+    const tp=tpubs(a);const pct=cfg.minPubs?Math.min(100,Math.round(tp/cfg.minPubs*100)):0;
+    const zona=i<z1?'zona-a':i>=z2?'zona-d':'zona-m';const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1;
+    const col=i<z1?'#4ade80':i>=z2?'#f87171':'#fbbf24';
+    h+=`<div class="rkcard ${zona}"><div style="width:24px;text-align:center;font-size:${i<3?'17':'13'}px;font-weight:500;flex-shrink:0">${medal}</div><div class="av" style="${avs(i)}">${ini(p.n)}</div><div style="flex:1"><div style="font-size:13px;font-weight:500">${p.n} <span class="badge ${p.tipo==='vip'?'bvip':'bgray'}" style="font-size:10px">${p.tipo==='vip'?'VIP':'Común'}</span></div><div style="font-size:11px;color:var(--text2)">${p.ig} · ${a.inv} inv · actitud ${a.actitud}</div><div class="progbg" style="width:100px;margin-top:3px"><div class="progfill" style="width:${pct}%;background:${col}"></div></div></div><div style="text-align:right"><div style="font-size:15px;font-weight:500">${tp}</div><span class="badge ${tp>=cfg.minPubs?'bok':'bdanger'}" style="font-size:10px">${tp>=cfg.minPubs?'OK':'Falta '+(cfg.minPubs-tp)}</span></div></div>`;
+  });
+  h+=`</div>`;document.getElementById('lp-ranking').innerHTML=h;
+}
+function lpLoadActividad(){
+  const ev=gEv();const cfg=EVENTOS[ev];const stats=lpGetStats(ev);
+  let h=`<div class="card"><div class="ctitle">Seguimiento rápido</div><table><thead><tr><th>Pública</th><th>Stories</th><th>Reels</th><th>TikTok</th><th>Total</th><th>Mín ${cfg.minPubs}</th><th>Actitud</th><th></th></tr></thead><tbody>`;
+  stats.forEach(({p,a})=>{const tp=tpubs(a);const ok=tp>=cfg.minPubs;h+=`<tr><td style="font-weight:500">${p.n}</td><td>${a.stories}</td><td>${a.reels}</td><td>${a.tiktok}</td><td style="font-weight:500;color:${ok?'var(--green)':'var(--red)'}">${tp}</td><td><span class="badge ${ok?'bok':'bdanger'}">${ok?'✓':'Falta '+(cfg.minPubs-tp)}</span></td><td>${a.actitud==='alta'?'🔥':a.actitud==='media'?'⚡':'🟡'} ${a.actitud}</td><td><button class="btn btnsm" onclick="lpOpenAct(${p.id})">Actualizar</button></td></tr>`;});
+  h+=`</tbody></table></div>`;document.getElementById('lp-actividad').innerHTML=h;
+}
+function lpLoadInvitados(){
+  const ev=gEv();const stats=lpGetStats(ev).sort((a,b)=>b.a.ing-a.a.ing);
+  let h=`<div class="card"><div class="ctitle">Control de invitados</div><table><thead><tr><th>Pública</th><th>Invitados</th><th>Ingresaron</th><th>Conversión</th><th></th></tr></thead><tbody>`;
+  stats.forEach(({p,a})=>{const conv=a.inv?Math.round(a.ing/a.inv*100):0;h+=`<tr><td style="font-weight:500">${p.n}</td><td>${a.inv}</td><td class="pos">${a.ing}</td><td><span class="badge ${conv>=80?'bok':conv>=50?'bwarn':'bdanger'}">${conv}%</span></td><td><button class="btn btnsm" onclick="lpOpenAct(${p.id})">Editar</button></td></tr>`;});
+  h+=`</tbody></table></div>`;document.getElementById('lp-invitados').innerHTML=h;
+}
+function lpLoadClasif(){
+  const ev=gEv();const g={top:[],activa:[],floja:[],descartable:[]};lpGetStats(ev).forEach(s=>g[s.nv].push(s));
+  let h='';
+  [{k:'top',l:'🔥 TOP',d:'Cumplen + llevan gente'},{k:'activa',l:'⚡ Activas',d:'Cumplen justo'},{k:'floja',l:'🟡 Flojas',d:'No llegan al mínimo'},{k:'descartable',l:'❌ Descartables',d:'No suman — evaluar baja'}].forEach(def=>{
+    h+=`<div class="card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:.5rem"><span class="badge ${NVC[def.k]}">${def.l}</span><span style="font-size:12px;color:var(--text2)">${g[def.k].length} públicas · ${def.d}</span></div>`;
+    if(!g[def.k].length){h+='<div class="empty">Sin públicas.</div>';}
+    else g[def.k].forEach(({p,a})=>{const idx=PUBLICAS.indexOf(p);h+=`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)"><div class="av" style="${avs(idx)}">${ini(p.n)}</div><div style="flex:1"><div style="font-size:13px;font-weight:500">${p.n}</div><div style="font-size:11px;color:var(--text2)">${tpubs(a)} pubs · ${a.inv} inv · ${a.actitud}</div></div><button class="btn btnsm" onclick="lpOpenAct(${p.id})">Actualizar</button></div>`;});
+    h+=`</div>`;
+  });
+  document.getElementById('lp-clasificacion').innerHTML=h;
+}
+function lpLoadBeneficios(){
+  const ev=gEv();const ben=BENEF_EV[ev]||{};
+  let h=`<div class="card"><div class="ctitle">Control de beneficios</div><table><thead><tr><th>Pública</th><th>Nivel</th><th>Entrada</th><th>Consumición</th><th>Extras</th></tr></thead><tbody>`;
+  PUBLICAS.filter(p=>p.activo).forEach(p=>{const b=ben[p.id]||{ent:false,con:false,ex:''};const nv=nivel(ev,p.id);h+=`<tr><td style="font-weight:500">${p.n}</td><td><span class="badge ${NVC[nv]}" style="font-size:10px">${NVL[nv]}</span></td><td><button class="chkbtn ${b.ent?'on':''}" onclick="lpTogBen(${p.id},'ent')">${b.ent?'✓':''}</button></td><td><button class="chkbtn ${b.con?'on':''}" onclick="lpTogBen(${p.id},'con')">${b.con?'✓':''}</button></td><td style="font-size:12px;color:var(--text2)">${b.ex||'—'}</td></tr>`;});
+  h+=`</tbody></table></div>`;document.getElementById('lp-beneficios').innerHTML=h;
+}
+function lpTogBen(pid,key){const ev=gEv();if(!BENEF_EV[ev])BENEF_EV[ev]={};if(!BENEF_EV[ev][pid])BENEF_EV[ev][pid]={ent:false,con:false,ex:''};BENEF_EV[ev][pid][key]=!BENEF_EV[ev][pid][key];if(window._fbOK)window.fbSave.benef?.(ev);lpLoadBeneficios();}
+function lpLoadPost(){
+  const ev=0;const cfg=EVENTOS[ev];
+  const stats=PUBLICAS.filter(p=>p.activo).map(p=>{const a=getAct(ev,p.id);const cumple=tpubs(a)>=cfg.minPubs;return{p,a,cumple};}).sort((a,b)=>b.a.ing-a.a.ing);
+  let h=`<div style="font-size:13px;color:var(--text2);margin-bottom:1rem">Análisis post-evento: <strong style="color:var(--text)">${EVENTOS[0].nombre}</strong></div><div class="card"><div class="ctitle">Análisis individual</div>`;
+  stats.forEach(({p,a,cumple})=>{const v=a.ing>=15&&cumple?'Superó expectativas':cumple&&a.ing>=5?'Cumplió':cumple?'Cumplió (sin ventas)':'No cumplió';const vc=v.includes('Superó')?'bgold':v.includes('Cumplió')?'bok':'bdanger';const idx=PUBLICAS.indexOf(p);h+=`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><div class="av" style="${avs(idx)}">${ini(p.n)}</div><div style="flex:1"><div style="font-size:13px;font-weight:500">${p.n}</div><div style="font-size:11px;color:var(--text2)">${tpubs(a)} pubs · ${a.inv} inv · ${a.ing} ingresaron</div></div><span class="badge ${vc}" style="font-size:10px">${v}</span></div>`;});
+  h+=`</div>`;document.getElementById('lp-post').innerHTML=h;
+}
+function lpOpenAct(pid){
+  actTarget=pid;const p=PUBLICAS.find(x=>x.id===pid);const ev=gEv();const a=getAct(ev,pid);
+  document.getElementById('m-act-ttl').textContent='Actividad — '+p.n;
+  document.getElementById('ma-st').value=a.stories;document.getElementById('ma-re').value=a.reels;
+  document.getElementById('ma-tt').value=a.tiktok;document.getElementById('ma-inv').value=a.inv;
+  document.getElementById('ma-ing').value=a.ing;document.getElementById('ma-act').value=a.actitud;
+  document.getElementById('ma-obs').value=a.obs;
+  document.getElementById('m-act').style.display='flex';
+}
+function saveAct(){
+  const ev=gEv();if(!ACT_EV[ev])ACT_EV[ev]={};
+  ACT_EV[ev][actTarget]={stories:parseInt(document.getElementById('ma-st').value)||0,reels:parseInt(document.getElementById('ma-re').value)||0,tiktok:parseInt(document.getElementById('ma-tt').value)||0,inv:parseInt(document.getElementById('ma-inv').value)||0,ing:parseInt(document.getElementById('ma-ing').value)||0,actitud:document.getElementById('ma-act').value,obs:document.getElementById('ma-obs').value};
+  document.getElementById('m-act').style.display='none';initLider();
+}
+function lpAddPublica(){const n=prompt('Nombre:');if(!n)return;PUBLICAS.push({id:++npid,n,ig:'@nuevo',tel:'',tipo:'comun',com:0,activo:true,obs:'',camps:0});initLider();}
+
+// ═══════════════════════════════════════════════════════════
+// PUBLICAS
+// ═══════════════════════════════════════════════════════════
+function pgPublicas(){
+  const ev=gEv();const cfg=EVENTOS[ev];
+  const stats=PUBLICAS.filter(p=>p.activo).map(p=>({p,a:getAct(ev,p.id)})).sort((a,b)=>tpubs(b.a)-tpubs(a.a));
+  let h=`<div class="ptitle">📸 Módulo de Públicas</div><div class="psub">${EVENTOS[ev].nombre}</div>`;
+  h+=`<div class="mg"><div class="met"><div class="ml">Equipo activo</div><div class="mv">${stats.length}</div></div><div class="met"><div class="ml">Total publicaciones</div><div class="mv">${stats.reduce((a,s)=>a+tpubs(s.a),0)}</div></div><div class="met"><div class="ml">Entradas vendidas</div><div class="mv">${PUB_LOGS[ev].reduce((a,l)=>a+l.ent,0)}</div></div></div>`;
+  h+=`<div class="card"><div class="ctitle">Equipo</div>`;
+  stats.forEach(({p,a},i)=>{const tp=tpubs(a);const ok=tp>=cfg.minPubs;h+=`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><div class="av" style="${avs(i)}">${ini(p.n)}</div><div style="flex:1"><div style="font-size:13px;font-weight:500">${p.n} <span class="badge ${p.tipo==='vip'?'bvip':'bgray'}" style="font-size:10px">${p.tipo==='vip'?'VIP':'Común'}</span></div><div style="font-size:11px;color:var(--text2)">${p.ig} · ${tp} publicaciones · ${a.inv} invitados</div></div><span class="badge ${ok?'bok':'bdanger'}">${ok?'✓':'Falta '+(cfg.minPubs-tp)}</span><button class="btn btnsm" onclick="pubOpenModal(${p.id})">+ Pub</button></div>`;});
+  h+=`</div>`;
+  h+=`<div class="card"><div class="ctitle">Últimas publicaciones</div>`;
+  const logs=[...PUB_LOGS[ev]].slice(-8).reverse();
+  if(!logs.length)h+='<div class="empty">Sin publicaciones.</div>';
+  else logs.forEach(l=>{const p=PUBLICAS.find(x=>x.id===l.pid);h+=`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)"><span class="badge bgray" style="font-size:10px;min-width:50px">${l.tipo.split(' ')[0]}</span><div style="flex:1;font-size:13px;font-weight:500">${p?.n||'?'} <span style="font-weight:400;color:var(--text2)">· ${l.desc}</span></div><span style="font-size:12px;color:var(--text2)">${l.ts}hs</span>${l.ent>0?`<span class="pos" style="font-size:12px">+${l.ent}</span>`:''}</div>`;});
+  h+=`</div>`;return h;
+}
+function pubOpenModal(pid){
+  pubTarget=pid;const p=PUBLICAS.find(x=>x.id===pid);
+  document.getElementById('m-pub-ttl').textContent='Registrar — '+p.n;
+  document.getElementById('m-pub-desc').value='';document.getElementById('m-pub-ent').value='';
+  document.getElementById('m-pub').style.display='flex';
+}
+function confirmPub(){
+  const tipo=document.getElementById('m-pub-tipo').value;const desc=document.getElementById('m-pub-desc').value.trim();const ent=parseInt(document.getElementById('m-pub-ent').value)||0;
+  const ev=gEv();const now=new Date();const ts=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  PUB_LOGS[ev].push({pid:pubTarget,tipo,desc,ent,ts});
+  document.getElementById('m-pub').style.display='none';
+  if(window._fbOK)window.fbSave.pubLogs?.(gEv());
+  renderPage(curPage);
+}
+
+// ═══════════════════════════════════════════════════════════
+// CM
+// ═══════════════════════════════════════════════════════════
+function pgCM(){
+  return`<div class="ptitle">📅 Módulo CM</div><div class="psub">Calendario de contenido y tareas</div>
+  ${makeTabs('cm',[{id:'calendario',l:'Calendario'},{id:'lista',l:'Lista de contenido'},{id:'tareas',l:'Tareas'}],'calendario')}`;
+}
+function initCM(){buildCal('cm-calendario');cmLoadLista();cmLoadTareas();}
+function buildCal(containerId){
+  const el=document.getElementById(containerId);if(!el)return;
+  const mN=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const dN=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const firstDay=new Date(calYear,calMonth,1);const lastDay=new Date(calYear,calMonth+1,0);
+  const pe=[{fecha:'2025-03-15',nombre:EVENTOS[0].nombre},{fecha:'2025-03-22',nombre:EVENTOS[1].nombre},{fecha:'2025-04-05',nombre:EVENTOS[2].nombre}].filter(e=>diffDias(e.fecha)>=0).sort((a,b)=>diffDias(a.fecha)-diffDias(b.fecha))[0];
+  let h='';
+  if(pe)h+=`<div class="cdbox"><div><div style="font-size:11px;color:var(--text3)">Próximo evento</div><div style="font-size:13px;font-weight:500">${pe.nombre}</div></div><div style="text-align:right"><div class="cdval">${diffDias(pe.fecha)}</div><div style="font-size:11px;color:var(--text3)">días</div></div></div>`;
+  h+=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem"><button class="calnav" onclick="calGo(-1,'${containerId}')">‹</button><span style="font-size:14px;font-weight:500">${mN[calMonth]} ${calYear}</span><button class="calnav" onclick="calGo(1,'${containerId}')">›</button></div>`;
+  h+=`<div style="display:flex;justify-content:flex-end;gap:6px;margin-bottom:.5rem"><button class="btn btnp btnsm" onclick="document.getElementById('m-post').style.display='flex'">+ Publicación</button><button class="btn btnsm" onclick="document.getElementById('m-task').style.display='flex'">+ Tarea</button></div>`;
+  h+=`<div class="calgrid">${dN.map(d=>`<div class="caldhdr">${d}</div>`).join('')}`;
+  const cells=[];
+  for(let i=0;i<firstDay.getDay();i++)cells.push(null);
+  for(let d=1;d<=lastDay.getDate();d++)cells.push(new Date(calYear,calMonth,d));
+  while(cells.length%7!==0)cells.push(null);
+  const evDates=['2025-03-15','2025-03-22','2025-04-05'];
+  cells.forEach(cell=>{
+    if(!cell){h+=`<div class="calday otherm"></div>`;return;}
+    const ds=dateStr(cell);const isHoy=ds===dateStr(HOY);const isEv=evDates.includes(ds);
+    const postsDay=POSTS.filter(p=>p.fecha===ds);const tasksDay=TASKS.filter(t=>t.fecha===ds&&!t.done);
+    let cls='calday'+(isHoy?' today':'')+(isEv?' evday':'');
+    h+=`<div class="${cls}" onclick="calClickDay('${ds}')"><div class="caldayn">${cell.getDate()}</div>`;
+    if(isEv)h+=`<div class="calevt ce-evento">🎉 Evento</div>`;
+    postsDay.slice(0,2).forEach(p=>h+=`<div class="calevt ${RED_CLS[p.red]}">${RED_LABEL[p.red]}</div>`);
+    if(postsDay.length>2)h+=`<div style="font-size:9px;color:var(--text3)">+${postsDay.length-2} más</div>`;
+    tasksDay.slice(0,1).forEach(t=>h+=`<div class="calevt ce-task">⚡${t.titulo.slice(0,12)}</div>`);
+    h+=`</div>`;
+  });
+  h+=`</div>`;
+  el.innerHTML=h;
+}
+function calGo(dir,containerId){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}else if(calMonth<0){calMonth=11;calYear--;}buildCal(containerId);}
+function calClickDay(ds){
+  const postsDay=POSTS.filter(p=>p.fecha===ds).sort((a,b)=>a.hora.localeCompare(b.hora));
+  const tasksDay=TASKS.filter(t=>t.fecha===ds);
+  const evDay=['2025-03-15','2025-03-22','2025-04-05'].find(e=>e===ds);
+  let msg=`📅 ${ds}\n\n`;
+  if(evDay)msg+=`🎉 DÍA DE EVENTO\n\n`;
+  if(postsDay.length){msg+=`PUBLICACIONES (${postsDay.length}):\n`;postsDay.forEach(p=>msg+=`· ${p.hora}hs [${RED_LABEL[p.red]}] ${p.tipo}: ${p.desc}\n`);}
+  if(tasksDay.length){msg+=`\nTAREAS (${tasksDay.length}):\n`;tasksDay.forEach(t=>msg+=`· ${t.titulo} (${t.area})\n`);}
+  if(!postsDay.length&&!tasksDay.length&&!evDay)msg+='Sin contenido programado para este día.';
+  alert(msg);
+}
+function cmLoadLista(){
+  const el=document.getElementById('cm-lista');if(!el)return;
+  const sorted=[...POSTS].sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  const prox=sorted.filter(p=>diffDias(p.fecha)>=0);const hist=sorted.filter(p=>diffDias(p.fecha)<0);
+  let h=`<div style="display:flex;justify-content:flex-end;margin-bottom:.5rem"><button class="btn btnp btnsm" onclick="document.getElementById('m-post').style.display='flex'">+ Publicación</button></div>`;
+  h+=`<div class="mg"><div class="met"><div class="ml">Total programadas</div><div class="mv">${POSTS.length}</div></div><div class="met"><div class="ml">Próximas</div><div class="mv">${prox.length}</div></div><div class="met"><div class="ml">Publicadas</div><div class="mv pos">${hist.length}</div></div></div>`;
+  h+=`<div class="card"><div class="ctitle">Próximas publicaciones</div>`;
+  if(!prox.length)h+='<div class="empty">Sin publicaciones próximas.</div>';
+  else prox.forEach(p=>{h+=`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)"><div style="min-width:48px;text-align:right;font-size:11px;color:var(--text2)">${p.fecha.slice(5).replace('-','/')}</div><span class="badge ${RED_CLS[p.red]==='ce-ig'?'bvip':RED_CLS[p.red]==='ce-reel'?'bdanger':RED_CLS[p.red]==='ce-tiktok'?'bok':'bgray'}">${RED_LABEL[p.red]}</span><div style="flex:1;font-size:13px">${p.tipo} <span style="color:var(--text2)">· ${p.desc.slice(0,40)}</span></div><span class="badge bgray" style="font-size:10px">${diasLabel(diffDias(p.fecha))}</span><button class="btn btnsm btnd" onclick="POSTS=POSTS.filter(x=>x.id!==${p.id});initCM()">✕</button></div>`;});
+  h+=`</div></div>`;
+  el.innerHTML=h;
+}
+function cmLoadTareas(){
+  const el=document.getElementById('cm-tareas');if(!el)return;
+  const pend=TASKS.filter(t=>!t.done);const hechas=TASKS.filter(t=>t.done);
+  let h=`<div style="display:flex;justify-content:flex-end;margin-bottom:.5rem"><button class="btn btnp btnsm" onclick="document.getElementById('m-task').style.display='flex'">+ Tarea</button></div>`;
+  h+=`<div class="mg"><div class="met"><div class="ml">Pendientes</div><div class="mv ${pend.length?'neg':''}">${pend.length}</div></div><div class="met"><div class="ml">Completadas</div><div class="mv pos">${hechas.length}</div></div></div>`;
+  h+=`<div class="card"><div class="ctitle">Pendientes</div>`;
+  if(!pend.length)h+='<div class="empty">Sin tareas pendientes. 🎉</div>';
+  else pend.forEach(t=>{h+=`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><button class="chkbtn" onclick="TASKS.find(x=>x.id===${t.id}).done=true;initCM()"></button><div style="flex:1"><div style="font-size:13px;font-weight:500">${t.titulo}</div><div style="font-size:11px;color:var(--text2)">${t.area} · ${t.fecha} · ${diasLabel(diffDias(t.fecha))}</div></div><button class="btn btnsm btnd" onclick="TASKS=TASKS.filter(x=>x.id!==${t.id});initCM()">✕</button></div>`;});
+  h+=`</div>`;
+  if(hechas.length){h+=`<div class="card"><div class="ctitle">Completadas</div>`;hechas.forEach(t=>{h+=`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)"><button class="chkbtn on" onclick="TASKS.find(x=>x.id===${t.id}).done=false;initCM()">✓</button><div style="flex:1;opacity:.5;text-decoration:line-through"><div style="font-size:13px;font-weight:500">${t.titulo}</div><div style="font-size:11px;color:var(--text2)">${t.area}</div></div></div>`;});h+=`</div>`;}
+  el.innerHTML=h;
+}
+function savePost(){
+  const f=document.getElementById('mpost-f').value;if(!f){alert('Seleccioná una fecha.');return;}
+  POSTS.push({id:++npid,fecha:f,hora:document.getElementById('mpost-h').value,red:document.getElementById('mpost-red').value,tipo:document.getElementById('mpost-tipo').value,desc:document.getElementById('mpost-desc').value});
+  document.getElementById('m-post').style.display='none';
+  if(window._fbOK)window.fbSave.posts?.();
+  if(curPage==='cm')initCM();else if(curPage==='boom')initBoom();
+}
+function saveTask(){
+  const titulo=document.getElementById('mt-titulo').value.trim();const fecha=document.getElementById('mt-fecha').value;if(!titulo||!fecha){alert('Completá título y fecha.');return;}
+  TASKS.push({id:++ntid,titulo,fecha,hora:document.getElementById('mt-hora').value,aviso:parseInt(document.getElementById('mt-aviso').value),area:document.getElementById('mt-area').value,vis:document.getElementById('mt-vis').value,done:false});
+  document.getElementById('m-task').style.display='none';
+  if(window._fbOK)window.fbSave.tasks?.();
+  if(curPage==='cm')initCM();else if(curPage==='boom')initBoom();
+}
+
+// ═══════════════════════════════════════════════════════════
+// BOOM GENERAL
+// ═══════════════════════════════════════════════════════════
+function pgBoom(){
+  return`<div class="ptitle">🏠 BOOM General</div><div class="psub">Calendario compartido · Tareas · Brainstorming</div>
+  ${makeTabs('bm',[{id:'calendario',l:'Calendario'},{id:'tareas',l:'Tareas del equipo'},{id:'brain',l:'Brainstorming'}],'calendario')}`;
+}
+function initBoom(){buildCal('bm-calendario');boomLoadTareas();boomLoadBrain();}
+function boomLoadTareas(){
+  const el=document.getElementById('bm-tareas');if(!el)return;
+  const todos=TASKS.filter(t=>t.vis==='todos');const pend=todos.filter(t=>!t.done);
+  let h=`<div style="display:flex;justify-content:flex-end;margin-bottom:.5rem"><button class="btn btnp btnsm" onclick="document.getElementById('m-task').style.display='flex'">+ Tarea</button></div>`;
+  h+=`<div class="card"><div class="ctitle">Tareas del equipo (${pend.length} pendientes)</div>`;
+  if(!pend.length)h+='<div class="empty">Sin tareas pendientes.</div>';
+  else pend.forEach(t=>{h+=`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><button class="chkbtn" onclick="TASKS.find(x=>x.id===${t.id}).done=true;initBoom()"></button><div style="flex:1"><div style="font-size:13px;font-weight:500">${t.titulo}</div><div style="font-size:11px;color:var(--text2)">${t.area} · ${t.fecha} · ${diasLabel(diffDias(t.fecha))}</div></div></div>`;});
+  h+=`</div>`;el.innerHTML=h;
+}
+function boomLoadBrain(){
+  const el=document.getElementById('bm-brain');if(!el)return;
+  const sorted=[...IDEAS].sort((a,b)=>b.votos-a.votos);
+  let h=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem"><div><div style="font-size:14px;font-weight:500">Ideas del equipo</div><div style="font-size:12px;color:var(--text2)">Todos pueden proponer. Las mejores suben.</div></div><button class="btn btnp btnsm" onclick="document.getElementById('m-idea').style.display='flex'">+ Idea</button></div>`;
+  sorted.forEach(i=>{h+=`<div class="pcard"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.35rem"><div style="display:flex;align-items:center;gap:8px"><span class="badge bgray" style="font-size:10px">${i.cat}</span><span style="font-size:11px;color:var(--text2)">${i.autor} · ${i.fecha}</span></div><div style="display:flex;align-items:center;gap:6px"><button class="btn btnsm ${i.votado?'btnp':''}" onclick="IDEAS.find(x=>x.id===${i.id}).votado=!IDEAS.find(x=>x.id===${i.id}).votado;IDEAS.find(x=>x.id===${i.id}).votos+=IDEAS.find(x=>x.id===${i.id}).votado?1:-1;boomLoadBrain()">${i.votado?'✓':'+'}  ${i.votos}</button><button class="btn btnsm btnd" onclick="IDEAS=IDEAS.filter(x=>x.id!==${i.id});boomLoadBrain()">✕</button></div></div><div style="font-size:13px;line-height:1.5">${i.txt}</div></div>`;});
+  el.innerHTML=h;
+}
+function saveIdea(){
+  const txt=document.getElementById('mi-txt').value.trim();if(!txt){alert('Escribí tu idea.');return;}
+  IDEAS.push({id:++niid,txt,cat:document.getElementById('mi-cat').value,autor:CU?.chatName||'Anónimo',fecha:'Hoy',votos:0,votado:false});
+  document.getElementById('m-idea').style.display='none';
+  if(window._fbOK)window.fbSave.ideas?.();
+  boomLoadBrain();
+}
+
+// ═══════════════════════════════════════════════════════════
+// CHAT — sin selector de usuario, usa el usuario logueado
+// ═══════════════════════════════════════════════════════════
+function pgChat(){
+  const cn=CU?.chatName||'Anónimo';
+  const col=AVC[USERS.indexOf(CU)%8];
+  return`<div class="ptitle">💬 Chat interno</div>
+  <div class="chat-whobox"><div class="av" style="background:${col}22;color:${col};width:28px;height:28px;font-size:11px">${ini(cn)}</div><span>Chateando como <strong>${cn}</strong></span></div>
+  <div class="chat-wrap">
+    <div class="chat-sb">
+      <div class="chat-sec">General</div>
+      <div class="chat-ch active" id="ch-general" onclick="setCh('general')"># General</div>
+      <div class="chat-ch" id="ch-ideas" onclick="setCh('ideas')"># Ideas</div>
+      <div class="chat-sec">Áreas</div>
+      <div class="chat-ch" id="ch-barra" onclick="setCh('barra')"># Barra</div>
+      <div class="chat-ch" id="ch-cm" onclick="setCh('cm')"># CM</div>
+      <div class="chat-ch" id="ch-publicas" onclick="setCh('publicas')"># Públicas</div>
+      <div class="chat-ch" id="ch-admin" onclick="setCh('admin')"># Admin</div>
+      <div class="chat-sec">Eventos</div>
+      <div class="chat-ch" id="ch-ev0" onclick="setCh('ev0')"># Sunset 15 Mar</div>
+      <div class="chat-ch" id="ch-ev1" onclick="setCh('ev1')"># Sunset 22 Mar</div>
+      <div class="chat-ch" id="ch-ev2" onclick="setCh('ev2')"># Fiesta 5 Abr</div>
+    </div>
+    <div class="chat-main">
+      <div class="chat-hdr" id="chat-hdr"># General</div>
+      <div class="chat-msgs" id="chat-msgs"></div>
+      <div class="chat-inp-row">
+        <input class="chat-inp" id="chat-inp" placeholder="Escribí tu mensaje..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}">
+        <button class="chat-send" onclick="sendMsg()">Enviar</button>
+      </div>
+    </div>
+  </div>`;
+}
+function initChat(){curCh='general';renderMsgs();}
+function setCh(ch){
+  curCh=ch;
+  document.querySelectorAll('.chat-ch').forEach(el=>el.classList.remove('active'));
+  document.getElementById('ch-'+ch)?.classList.add('active');
+  document.getElementById('chat-hdr').textContent=CHAT_DATA[ch]?.l||'#'+ch;
+  renderMsgs();
+}
+function renderMsgs(){
+  const msgs=CHAT_DATA[curCh]?.msgs||[];const el=document.getElementById('chat-msgs');if(!el)return;
+  const me=CU?.chatName||'Anónimo';
+  el.innerHTML=msgs.map(m=>{
+    const isMe=m.u===me;const idx=USERS.findIndex(u=>u.chatName===m.u);const col=idx>=0?AVC[idx%8]:'#888';const photo=idx>=0?USERS[idx].photo:'';
+    return`<div class="msg ${isMe?'mine':''}"><div class="msg-av" style="background:${col}22;color:${col};overflow:hidden">${photo?`<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:ini(m.u)}</div><div>${!isMe?`<div style="font-size:11px;color:var(--text3);margin-bottom:2px">${m.u}</div>`:''}<div class="msg-bub">${m.t}</div><div class="msg-meta">${m.ts}hs</div></div></div>`;
+  }).join('');
+  el.scrollTop=el.scrollHeight;
+}
+function sendMsg(){
+  const inp=document.getElementById('chat-inp');const t=inp.value.trim();if(!t)return;
+  const now=new Date();const ts=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  const me=CU?.chatName||'Anónimo';
+  if(!CHAT_DATA[curCh])CHAT_DATA[curCh]={l:'#'+curCh,msgs:[]};
+  CHAT_DATA[curCh].msgs.push({u:me,t,ts});inp.value='';renderMsgs();
+  if(window._fbOK)window.fbSave.chat?.(curCh);
+}
+
+// ═══════════════════════════════════════════════════════════
+// PROVEEDORES — con editar y eliminar
+// ═══════════════════════════════════════════════════════════
+function pgProveedores(){
+  const cats=[...new Set(PROVEEDORES.map(p=>p.cat))];
+  const pend=PROVEEDORES.reduce((a,p)=>a+p.pagado.filter(ok=>!ok).length,0);
+  let h=`<div class="ptitle">🤝 Proveedores</div><div class="psub">Base de datos y control de pagos</div>`;
+  h+=`<div class="mg"><div class="met"><div class="ml">Proveedores</div><div class="mv">${PROVEEDORES.length}</div></div><div class="met"><div class="ml">Categorías</div><div class="mv">${cats.length}</div></div><div class="met"><div class="ml">Calificación prom.</div><div class="mv">${(PROVEEDORES.reduce((a,p)=>a+p.cal,0)/PROVEEDORES.length).toFixed(1)}★</div></div><div class="met"><div class="ml">Pagos pendientes</div><div class="mv neg">${pend}</div></div></div>`;
+  h+=`<div style="display:flex;justify-content:flex-end;margin-bottom:.5rem"><button class="btn btnp btnsm" onclick="openProv(null)">+ Proveedor</button></div>`;
+  cats.forEach(cat=>{
+    h+=`<div class="card"><div class="ctitle">${cat}</div>`;
+    PROVEEDORES.filter(p=>p.cat===cat).forEach((p,i)=>{
+      h+=`<div class="pcard"><div style="display:flex;align-items:flex-start;gap:10px">
+        <div class="av" style="background:var(--accent)22;color:var(--accent)">${ini(p.n)}</div>
+        <div style="flex:1"><div style="font-size:13px;font-weight:500">${p.n}</div>
+        <div style="font-size:11px;color:var(--text2)">${p.cont} · ${p.tel}</div>
+        <div style="font-size:12px;color:var(--accent);margin-top:2px">${stars(p.cal)}</div></div>
+        <div style="display:flex;gap:4px"><button class="btn btnsm" onclick="openProv(${p.id})">Editar</button><button class="btn btnsm btnd" onclick="delProv(${p.id})">Eliminar</button></div>
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-top:.5rem;font-style:italic">"${p.obs}"</div>
+      <div style="margin-top:.5rem;display:flex;gap:4px;flex-wrap:wrap">${p.eventos.map((ev,i)=>`<span class="badge ${p.pagado[i]?'bok':'bwarn'}" style="font-size:10px">${EV_NOMBRES[ev]} ${p.pagado[i]?'✓':'pendiente'}</span>`).join('')}</div>
+      </div>`;
+    });
+    h+=`</div>`;
+  });
+  return h;
+}
+function openProv(id){
+  editProvId=id;
+  const p=id?PROVEEDORES.find(x=>x.id===id):null;
+  document.getElementById('m-prov-ttl').textContent=p?'Editar proveedor':'Nuevo proveedor';
+  document.getElementById('pv-n').value=p?.n||'';
+  document.getElementById('pv-cont').value=p?.cont||'';
+  document.getElementById('pv-tel').value=p?.tel||'';
+  document.getElementById('pv-cal').value=p?.cal||5;
+  document.getElementById('pv-obs').value=p?.obs||'';
+  if(p)document.getElementById('pv-cat').value=p.cat;
+  document.getElementById('m-prov').style.display='flex';
+}
+function saveProv(){
+  const n=document.getElementById('pv-n').value.trim();if(!n){alert('Ingresá el nombre.');return;}
+  const data={n,cat:document.getElementById('pv-cat').value,cont:document.getElementById('pv-cont').value,tel:document.getElementById('pv-tel').value,cal:parseInt(document.getElementById('pv-cal').value),obs:document.getElementById('pv-obs').value};
+  if(editProvId){const p=PROVEEDORES.find(x=>x.id===editProvId);if(p)Object.assign(p,data);}
+  else PROVEEDORES.push({id:++npvid,...data,eventos:[],pagado:[],montos:[]});
+  document.getElementById('m-prov').style.display='none';
+  if(window._fbOK)window.fbSave.provs?.();
+  renderPage('proveedores');
+}
+function delProv(id){if(!confirm('¿Eliminar este proveedor?'))return;PROVEEDORES=PROVEEDORES.filter(p=>p.id!==id);if(window._fbOK)window.fbSave.provs?.();renderPage('proveedores');}
+
+// ═══════════════════════════════════════════════════════════
+// KPI — sin scripts embebidos
+// ═══════════════════════════════════════════════════════════
+function pgKPI(){
+  return`<div class="ptitle">📈 Reportes y KPIs</div><div class="psub">Vista completa de la temporada</div>
+  ${makeTabs('kpi',[{id:'general',l:'General'},{id:'financiero',l:'Financiero'},{id:'barra',l:'Barra'},{id:'publicas',l:'Públicas'}],'general')}`;
+}
+function initKPI(){kpiGeneral();kpiFinanciero();kpiBarra();kpiPublicas();}
+function kpiGeneral(){
+  const el=document.getElementById('kpi-general');if(!el)return;
+  const cerrados=EV_FIN.slice(0,2);
+  const totIng=cerrados.reduce((a,d)=>a+(d.tickets.eb+d.tickets.ae+d.tickets.am+d.tickets.taq)*d.tickets.precio+d.barra.g,0);
+  const totGas=GASTOS_EV.slice(0,2).reduce((a,gs)=>a+gs.reduce((b,g)=>b+g.m,0),0);
+  let h=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem">
+    <div class="pcard" style="text-align:center"><div style="font-size:28px;font-weight:600">2</div><div style="font-size:12px;color:var(--text3);margin-top:4px">Eventos realizados</div></div>
+    <div class="pcard" style="text-align:center"><div style="font-size:28px;font-weight:600">360</div><div style="font-size:12px;color:var(--text3);margin-top:4px">Asistencia promedio</div></div>
+    <div class="pcard" style="text-align:center"><div style="font-size:28px;font-weight:600;color:var(--green)">${fmt(totIng)}</div><div style="font-size:12px;color:var(--text3);margin-top:4px">Ingresos totales</div></div>
+    <div class="pcard" style="text-align:center"><div style="font-size:28px;font-weight:600;${totIng-totGas>0?'color:var(--green)':'color:var(--red)'}">${fmt(totIng-totGas)}</div><div style="font-size:12px;color:var(--text3);margin-top:4px">Resultado neto</div></div>
+  </div>`;
+  h+=`<div class="card"><div class="ctitle">Resultado por evento</div>`;
+  EV_FIN.forEach((d,i)=>{const ing=(d.tickets.eb+d.tickets.ae+d.tickets.am+d.tickets.taq)*d.tickets.precio+d.barra.g;const gas=GASTOS_EV[i].reduce((a,g)=>a+g.m,0);const res=ing-gas;const ok=i<2;h+=`<div class="ai"><div><div style="font-size:13px;font-weight:500">${EVENTOS[i].nombre}</div><div style="font-size:11px;color:var(--text2)">${ok?'Realizado':'En planificación'}</div></div><div style="text-align:right"><div style="font-size:14px;font-weight:500" class="${ok?res>0?'pos':'neg':''}">${ok?fmt(res):'—'}</div><span class="badge ${ok?res>0?'bok':'bdanger':'bwarn'}">${ok?res>0?'Positivo':'Negativo':'Pendiente'}</span></div></div>`;});
+  h+=`</div>`;el.innerHTML=h;
+}
+function kpiFinanciero(){
+  const el=document.getElementById('kpi-financiero');if(!el)return;
+  let h=`<div class="card"><div class="ctitle">Comparativo financiero</div><table><thead><tr><th>Evento</th><th>Ingresos</th><th>Gastos</th><th>Margen</th><th>Resultado</th></tr></thead><tbody>`;
+  EV_FIN.forEach((d,i)=>{const ing=(d.tickets.eb+d.tickets.ae+d.tickets.am+d.tickets.taq)*d.tickets.precio+d.barra.g;const gas=GASTOS_EV[i].reduce((a,g)=>a+g.m,0);const res=ing-gas;const m=ing?Math.round(res/ing*100):0;const ok=i<2;h+=`<tr><td style="font-weight:500">${EVENTOS[i].nombre}</td><td class="pos">${ok?fmt(ing):'—'}</td><td class="neg">${fmt(gas)}</td><td>${ok?m+'%':'—'}</td><td class="${ok?res>0?'pos':'neg':''}">${ok?fmt(res):'—'}</td></tr>`;});
+  h+=`</tbody></table></div>`;
+  h+=`<div class="card"><div class="ctitle">Desglose de gastos promedio</div>`;
+  [['Cachets artistas','#D85A30',120000],['Alquiler venue','#60a5fa',80000],['Staff','#4ade80',39000],['Publicidad','#fbbf24',41500],['Habilitaciones','#a78bfa',18000],['Otros','#888',20000]].forEach(([l,c,v])=>{h+=`<div class="bar-row"><span class="bar-lbl">${l}</span><div class="bar-bg"><div class="bar-fill" style="width:${Math.round(v/120000*100)}%;background:${c}">${fmt(v)}</div></div></div>`;});
+  h+=`</div>`;el.innerHTML=h;
+}
+function kpiBarra(){
+  const el=document.getElementById('kpi-barra');if(!el)return;
+  const cerrados=EV_FIN.slice(0,2);
+  let h=`<div class="mg">${cerrados.map((d,i)=>`<div class="met"><div class="ml">${EVENTOS[i].nombre}</div><div class="mv pos">${fmt(d.barra.g)}</div><div class="ms">Margen ${d.barra.g?Math.round((d.barra.g-d.barra.c)/d.barra.g*100):0}%</div></div>`).join('')}</div>`;
+  h+=`<div class="card"><div class="ctitle">Producto más vendido (histórico)</div>`;
+  [['Coca-Cola',48],['Quilmes',40],['Corona',30],['Fernet',16],['Malbec',14],['Champagne',9]].forEach(([n,v])=>{h+=`<div class="bar-row"><span class="bar-lbl">${n}</span><div class="bar-bg"><div class="bar-fill" style="width:${Math.round(v/48*100)}%;background:var(--accent)">${v} unid.</div></div></div>`;});
+  h+=`</div>`;el.innerHTML=h;
+}
+function kpiPublicas(){
+  const el=document.getElementById('kpi-publicas');if(!el)return;
+  let h=`<div class="mg"><div class="met"><div class="ml">Cumplimiento prom.</div><div class="mv">81%</div></div><div class="met"><div class="ml">Invitados prom.</div><div class="mv">65</div></div><div class="met"><div class="ml">Conversión prom.</div><div class="mv">83%</div></div></div>`;
+  h+=`<div class="card"><div class="ctitle">KPIs por evento</div><table><thead><tr><th>Evento</th><th>Equipo</th><th>Cumplieron</th><th>Invitados</th><th>Ingresaron</th><th>Conversión</th></tr></thead><tbody><tr><td style="font-weight:500">Sunset 15 Mar</td><td>8</td><td>6</td><td>70</td><td>58</td><td>83%</td></tr><tr><td style="font-weight:500">Sunset 22 Mar</td><td>8</td><td>7</td><td>60</td><td>51</td><td>85%</td></tr></tbody></table></div>`;
+  el.innerHTML=h;
+}
+
+// ═══════════════════════════════════════════════════════════
+// USUARIOS — gestión de módulos por usuario
+// ═══════════════════════════════════════════════════════════
+function pgUsuarios(){
+  let h=`<div class="ptitle">👥 Usuarios</div><div class="psub">Gestión de accesos y módulos</div>`;
+  h+=`<div class="card"><div class="ctitle">Usuarios activos</div>`;
+  USERS.forEach((u,i)=>{
+    h+=`<div class="user-card"><div class="av" style="background:${AVC[i%8]}22;color:${AVC[i%8]}">${u.user.slice(0,2)}</div>
+    <div style="flex:1"><div style="font-size:13px;font-weight:500">${u.user} <span class="badge bgray" style="font-size:10px">${u.role}</span></div>
+    <div style="font-size:11px;color:var(--text2);margin-top:2px">${u.chatName} · Chat como: "${u.chatName}"</div>
+    <div style="margin-top:4px">${u.pages.map(p=>`<span class="mod-tag">${PAGE_LABELS[p]||p}</span>`).join('')}</div></div>
+    <div style="display:flex;gap:4px;flex-shrink:0">
+      <button class="btn btnsm" onclick="openUserMods(${i})">Módulos</button>
+      ${u.role!=='Admin Console'?`<button class="btn btnsm btnd" onclick="delUser(${i})">Eliminar</button>`:''}
+    </div></div>`;
+  });
+  h+=`</div>`;
+  h+=`<div class="card"><div class="ctitle">Agregar usuario</div>
+  <div class="fr">
+    <div class="fc"><span class="fl">Usuario</span><input type="text" id="nu-u" style="width:130px" placeholder="Ej: FOTO"></div>
+    <div class="fc"><span class="fl">Contraseña</span><input type="password" id="nu-p" style="width:130px" placeholder="Contraseña"></div>
+    <div class="fc"><span class="fl">Nombre en chat</span><input type="text" id="nu-cn" style="width:150px" placeholder="Ej: Fotógrafo"></div>
+    <div class="fc"><span class="fl">Rol</span><select id="nu-r" style="width:150px"><option value="Barra">Barra</option><option value="Públicas">Públicas</option><option value="CM">CM</option><option value="Administración">Administración</option><option value="Producción">Producción</option><option value="Otro">Otro</option></select></div>
+    <div class="fc" style="justify-content:flex-end"><button class="btn btnp" onclick="addUser()">Agregar</button></div>
+  </div>
+  <div id="u-msg" style="font-size:12px;margin-top:4px"></div></div>`;
+  h+=`<div class="card" style="border-color:var(--border2)"><div class="ctitle">Módulos disponibles</div><div style="font-size:12px;color:var(--text2);margin-bottom:.5rem">Al agregar un usuario nuevo, asignale los módulos desde el botón "Módulos" en cada fila.</div>
+  <div>${ALL_PAGES.map(p=>`<span class="mod-tag">${PAGE_ICONS[p]} ${PAGE_LABELS[p]}</span>`).join('')}</div></div>`;
+  return h;
+}
+function openUserMods(idx){
+  editUsrIdx=idx;const u=USERS[idx];
+  document.getElementById('m-usr-ttl').textContent='Módulos de '+u.user;
+  document.getElementById('m-usr-body').innerHTML=`<div style="font-size:12px;color:var(--text2);margin-bottom:.75rem">Tildá los módulos a los que tendrá acceso este usuario.</div>`+
+  ALL_PAGES.filter(p=>p!=='usuarios'||u.role==='Admin Console').map(p=>{
+    const on=u.pages.includes(p);
+    return`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)"><button class="chkbtn ${on?'on':''}" id="umod-${p}" onclick="toggleUmod('${p}')">${on?'✓':''}</button><span style="font-size:13px">${PAGE_ICONS[p]} ${PAGE_LABELS[p]}</span></div>`;
+  }).join('');
+  document.getElementById('m-usr').style.display='flex';
+}
+function toggleUmod(p){
+  const btn=document.getElementById('umod-'+p);const on=btn.classList.toggle('on');btn.textContent=on?'✓':'';
+}
+function saveUserMods(){
+  const u=USERS[editUsrIdx];
+  u.pages=ALL_PAGES.filter(p=>{const btn=document.getElementById('umod-'+p);return btn?.classList.contains('on');});
+  document.getElementById('m-usr').style.display='none';renderPage('usuarios');
+}
+function addUser(){
+  const u=document.getElementById('nu-u')?.value.trim().toUpperCase();
+  const p=document.getElementById('nu-p')?.value.trim();
+  const cn=document.getElementById('nu-cn')?.value.trim()||u;
+  const r=document.getElementById('nu-r')?.value;
+  if(!u||!p){document.getElementById('u-msg').innerHTML='<span style="color:var(--red)">Completá usuario y contraseña.</span>';return;}
+  if(USERS.find(x=>x.user===u)){document.getElementById('u-msg').innerHTML='<span style="color:var(--red)">Ya existe.</span>';return;}
+  USERS.push({user:u,pass:p,role:r,chatName:cn,photo:'',bio:'',instagram:'',telefono:'',pages:['boom','chat','perfil']});
+  document.getElementById('u-msg').innerHTML='<span style="color:var(--green)">Usuario agregado. Asigná los módulos con el botón "Módulos".</span>';
+  if(window._fbOK)window.fbSave.users?.();
+  renderPage('usuarios');
+}
+function delUser(i){if(!confirm(`¿Eliminar usuario ${USERS[i].user}?`))return;USERS.splice(i,1);renderPage('usuarios');}
+
+
+// ═══════════════════════════════════════════════════════════
+// PERFIL DE USUARIO
+// ═══════════════════════════════════════════════════════════
+function pgPerfil(){
+  return`<div class="ptitle">👤 Mi perfil</div><div class="psub">Tus datos personales y configuración</div>
+  <div class="card"><div class="profile-header">
+    <div class="upload-av" onclick="document.getElementById('prof-file').click()">
+      <div id="prof-av-preview" style="width:80px;height:80px;border-radius:50%;background:var(--bg3);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:600;overflow:hidden;color:var(--accent)"></div>
+      <span class="upload-av-label">Cambiar foto</span>
+      <input type="file" id="prof-file" accept="image/*" style="display:none" onchange="handlePhotoUpload(this)">
+    </div>
+    <div class="profile-info">
+      <div class="profile-name" id="prof-display-name"></div>
+      <div class="profile-role" id="prof-display-role"></div>
+      <div class="profile-bio" id="prof-display-bio" style="font-style:italic"></div>
+    </div>
+  </div></div>
+  <div class="card"><div class="ctitle">Editar información</div>
+    <div class="fr">
+      <div class="fc" style="flex:1;min-width:150px"><span class="fl">Nombre en el chat</span><input type="text" id="prof-chatname" style="width:100%" placeholder="Tu nombre visible"></div>
+      <div class="fc" style="flex:1;min-width:150px"><span class="fl">Instagram</span><input type="text" id="prof-ig" style="width:100%" placeholder="@tuusuario"></div>
+    </div>
+    <div class="fr">
+      <div class="fc" style="flex:1;min-width:150px"><span class="fl">Teléfono</span><input type="text" id="prof-tel" style="width:100%" placeholder="+54 9 261..."></div>
+    </div>
+    <div class="fc" style="margin-bottom:12px"><span class="fl">Bio / Descripción</span><textarea id="prof-bio" placeholder="Contá algo sobre vos o tu rol en BOOM..."></textarea></div>
+    <button class="btn btnp" onclick="saveProfile()">Guardar cambios</button>
+    <div id="prof-msg" style="font-size:12px;margin-top:8px"></div>
+  </div>
+  <div class="card"><div class="ctitle">Cambiar contraseña</div>
+    <div class="fr">
+      <div class="fc" style="flex:1;min-width:150px"><span class="fl">Contraseña actual</span><input type="password" id="prof-pass-old" style="width:100%" placeholder="••••••••"></div>
+      <div class="fc" style="flex:1;min-width:150px"><span class="fl">Nueva contraseña</span><input type="password" id="prof-pass-new" style="width:100%" placeholder="••••••••"></div>
+      <div class="fc" style="flex:1;min-width:150px"><span class="fl">Confirmar nueva</span><input type="password" id="prof-pass-conf" style="width:100%" placeholder="••••••••"></div>
+    </div>
+    <button class="btn" onclick="savePassword()">Cambiar contraseña</button>
+    <div id="prof-pass-msg" style="font-size:12px;margin-top:8px"></div>
+  </div>
+  <div class="card"><div class="ctitle">Mis módulos</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:.5rem">Módulos a los que tenés acceso. Si necesitás más, pedíselos al Admin.</div>
+    <div id="prof-mods"></div>
+  </div>`;
+}
+function initPerfil(){
+  const u=CU;
+  const col=AVC[USERS.indexOf(u)%8];
+  const el=document.getElementById('prof-av-preview');
+  if(u.photo){el.innerHTML=`<img src="${u.photo}" style="width:100%;height:100%;object-fit:cover">`;}
+  else{el.textContent=ini(u.chatName);el.style.color=col;}
+  document.getElementById('prof-display-name').textContent=u.chatName;
+  document.getElementById('prof-display-role').textContent=u.role+' · '+u.user;
+  document.getElementById('prof-display-bio').textContent=u.bio||'Sin bio todavía.';
+  document.getElementById('prof-chatname').value=u.chatName;
+  document.getElementById('prof-ig').value=u.instagram||'';
+  document.getElementById('prof-tel').value=u.telefono||'';
+  document.getElementById('prof-bio').value=u.bio||'';
+  document.getElementById('prof-mods').innerHTML=u.pages.filter(p=>p!=='perfil').map(p=>`<span class="mod-tag">${PAGE_ICONS[p]} ${PAGE_LABELS[p]||p}</span>`).join('');
+}
+function handlePhotoUpload(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    CU.photo=e.target.result;
+    const el=document.getElementById('prof-av-preview');
+    if(el)el.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">`;
+    updateTopbarAvatar();
+    document.getElementById('prof-msg').innerHTML='<span style="color:var(--green)">Foto actualizada.</span>';
+  };
+  reader.readAsDataURL(file);
+}
+function saveProfile(){
+  const cn=document.getElementById('prof-chatname').value.trim();
+  if(!cn){document.getElementById('prof-msg').innerHTML='<span style="color:var(--red)">El nombre no puede estar vacío.</span>';return;}
+  CU.chatName=cn;
+  CU.instagram=document.getElementById('prof-ig').value.trim();
+  CU.telefono=document.getElementById('prof-tel').value.trim();
+  CU.bio=document.getElementById('prof-bio').value.trim();
+  document.getElementById('prof-display-name').textContent=cn;
+  document.getElementById('prof-display-bio').textContent=CU.bio||'Sin bio todavía.';
+  updateTopbarAvatar();
+  document.getElementById('prof-msg').innerHTML='<span style="color:var(--green)">Perfil guardado correctamente.</span>';
+  if(window._fbOK)window.fbSave.users?.();
+}
+function savePassword(){
+  const old=document.getElementById('prof-pass-old').value;
+  const nw=document.getElementById('prof-pass-new').value;
+  const conf=document.getElementById('prof-pass-conf').value;
+  const msg=document.getElementById('prof-pass-msg');
+  if(old!==CU.pass){msg.innerHTML='<span style="color:var(--red)">La contraseña actual no es correcta.</span>';return;}
+  if(!nw||nw.length<6){msg.innerHTML='<span style="color:var(--red)">La nueva contraseña debe tener al menos 6 caracteres.</span>';return;}
+  if(nw!==conf){msg.innerHTML='<span style="color:var(--red)">Las contraseñas no coinciden.</span>';return;}
+  CU.pass=nw;msg.innerHTML='<span style="color:var(--green)">Contraseña actualizada correctamente.</span>';
+  document.getElementById('prof-pass-old').value='';document.getElementById('prof-pass-new').value='';document.getElementById('prof-pass-conf').value='';
+}
+function updateTopbarAvatar(){
+  const btn=document.getElementById('tav-btn');if(!btn)return;
+  const u=CU;const col=AVC[USERS.indexOf(u)%8];
+  if(u.photo){btn.innerHTML=`<img src="${u.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;border:1.5px solid var(--border2)">`;btn.style.background='transparent';}
+  else{btn.style.cssText=`width:28px;height:28px;border-radius:50%;background:${col}22;color:${col};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;cursor:pointer;flex-shrink:0;border:1.5px solid ${col}44;`;btn.textContent=ini(u.chatName);}
+}
+
+// ═══ INIT ═══
+document.getElementById('l-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+</script>
+
+<!-- FIREBASE SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script>
+try {
+  firebase.initializeApp({
+    apiKey:"AIzaSyCJ3JlOH7cWId3t4pe_7WuuyqptWk7VXE0",
+    authDomain:"boom-producciones.firebaseapp.com",
+    projectId:"boom-producciones",
+    storageBucket:"boom-producciones.firebasestorage.app",
+    messagingSenderId:"53907802659",
+    appId:"1:53907802659:web:4c66eeb1eaed087e467f96"
+  });
+  const _db = firebase.firestore();
+  window._fbOK = true;
+
+  async function fbSet(col,id,data){try{await _db.collection(col).doc(id).set(data,{merge:true});}catch(e){console.warn('fbSet:',e.message);}}
+  async function fbGet(col,id){try{const d=await _db.collection(col).doc(id).get();return d.exists?d.data():null;}catch(e){return null;}}
+  function fbListen(col,id,cb){return _db.collection(col).doc(id).onSnapshot(s=>{if(s.exists)cb(s.data());});}
+
+  // SAVE
+  window.fbSave = {
+    stock:   ev => fbSet('stock',   'ev'+ev, {ini:STOCK_INI[ev],cie:STOCK_CIE[ev]}),
+    gastos:  ev => fbSet('gastos',  'ev'+ev, {items:GASTOS_EV[ev]}),
+    posts:   ()  => fbSet('cm',     'posts', {items:POSTS}),
+    tasks:   ()  => fbSet('cm',     'tasks', {items:TASKS}),
+    ideas:   ()  => fbSet('boom',   'ideas', {items:IDEAS}),
+    publicas:()  => fbSet('publicas','lista',{items:PUBLICAS}),
+    actEv:   ev => fbSet('actividad','ev'+ev,ACT_EV[ev]||{}),
+    pubLogs: ev => fbSet('publogs', 'ev'+ev, {items:PUB_LOGS[ev]}),
+    users:   ()  => fbSet('config', 'users', {items:USERS}),
+    chat:    ch  => fbSet('chat',   ch,      {msgs:CHAT_DATA[ch].msgs}),
+    cajas:   ev => fbSet('cajas',  'ev'+ev, {items:CAJAS_EV[ev]}),
+    staff:   ev => fbSet('staff',  'ev'+ev, {items:STAFF_EV[ev]}),
+    benef:   ev => fbSet('beneficios','ev'+ev,BENEF_EV[ev]||{}),
+    provs:   ()  => fbSet('proveedores','lista',{items:PROVEEDORES}),
+  };
+
+  // LOAD
+  window.fbLoad = async function(){
+    console.log('Cargando desde Firebase...');
+    for(let ev=0;ev<3;ev++){
+      const d=await fbGet('stock','ev'+ev);
+      if(d){if(d.ini)STOCK_INI[ev]=d.ini;if(d.cie)STOCK_CIE[ev]=d.cie;}
+    }
+    for(let ev=0;ev<3;ev++){const d=await fbGet('gastos','ev'+ev);if(d?.items)GASTOS_EV[ev]=d.items;}
+    const posts=await fbGet('cm','posts');if(posts?.items)POSTS=posts.items;
+    const tasks=await fbGet('cm','tasks');if(tasks?.items)TASKS=tasks.items;
+    const ideas=await fbGet('boom','ideas');if(ideas?.items)IDEAS=ideas.items;
+    const pub=await fbGet('publicas','lista');if(pub?.items)PUBLICAS=pub.items;
+    for(let ev=0;ev<3;ev++){const d=await fbGet('actividad','ev'+ev);if(d)ACT_EV[ev]=d;}
+    for(let ev=0;ev<3;ev++){const d=await fbGet('publogs','ev'+ev);if(d?.items)PUB_LOGS[ev]=d.items;}
+    for(let ev=0;ev<3;ev++){const d=await fbGet('cajas','ev'+ev);if(d?.items)CAJAS_EV[ev]=d.items;}
+    for(let ev=0;ev<3;ev++){const d=await fbGet('staff','ev'+ev);if(d?.items)STAFF_EV[ev]=d.items;}
+    for(let ev=0;ev<3;ev++){const d=await fbGet('beneficios','ev'+ev);if(d)BENEF_EV[ev]=d;}
+    const prov=await fbGet('proveedores','lista');if(prov?.items)PROVEEDORES=prov.items;
+    const users=await fbGet('config','users');if(users?.items)USERS=users.items;
+    // Chat tiempo real
+    Object.keys(CHAT_DATA).forEach(ch=>{
+      fbListen('chat',ch,data=>{
+        if(data?.msgs){CHAT_DATA[ch].msgs=data.msgs;if(typeof renderMsgs==='function'&&curCh===ch)renderMsgs();}
+      });
+    });
+    console.log('Firebase OK');
+  };
+
+} catch(e) {
+  console.warn('Firebase no disponible, usando datos locales:', e.message);
+  window._fbOK = false;
+  window.fbSave = {};
+  window.fbLoad = async()=>{};
+}
+</script>
+
+</body>
+</html>
