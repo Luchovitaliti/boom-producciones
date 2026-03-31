@@ -883,7 +883,7 @@ function pgAdminFin(){
   <div class="mg"><div class="met"><div class="ml">Total gastos</div><div class="mv">${fmt(total)}</div></div><div class="met"><div class="ml">Pagado</div><div class="mv pos">${fmt(pag)}</div></div><div class="met"><div class="ml">Pendiente</div><div class="mv neg">${fmt(total-pag)}</div></div><div class="met"><div class="ml">En aprobación</div><div class="mv ${ap.length?'neg':''}">${ap.length}</div></div></div>
   <div class="tnav"><button class="tbtn active" onclick="afLoadGastos()">Gastos</button><button class="tbtn" onclick="afLoadAprob()">Aprobaciones</button></div>
   <div id="af-gastos-target"></div>
-  <div id="af-aprob-target"></div>\`;
+  <div id="af-aprob-target"></div>`;
 }
 function initAdminFin(){
   afLoadGastos();afLoadAprob();
