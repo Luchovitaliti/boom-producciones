@@ -155,13 +155,16 @@ tr:hover td{background:var(--bg3);}
 .chat-main{flex:1;display:flex;flex-direction:column;}
 .chat-hdr{padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px;font-weight:500;}
 .chat-msgs{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:10px;}
-.msg{display:flex;align-items:flex-start;gap:8px;}
-.msg.mine{flex-direction:row-reverse;}
-.msg-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;}
-.msg-bub{max-width:72%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;font-size:13px;line-height:1.5;}
-.msg.mine .msg-bub{background:var(--accent);color:var(--bg);border-color:transparent;}
-.msg-meta{font-size:10px;color:var(--text3);margin-top:3px;}
-.msg.mine .msg-meta{text-align:right;}
+.msg{display:flex;align-items:flex-end;gap:8px;max-width:85%;margin-bottom:2px;}
+.msg.mine{flex-direction:row-reverse;margin-left:auto;}
+.msg.other{margin-right:auto;}
+.msg-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;overflow:hidden;}
+.msg-body{display:flex;flex-direction:column;}
+.msg.mine .msg-body{align-items:flex-end;}
+.msg-bub{background:var(--bg3);border:1px solid var(--border);border-radius:14px;border-bottom-left-radius:4px;padding:8px 13px;font-size:13px;line-height:1.5;word-break:break-word;}
+.msg.mine .msg-bub{background:linear-gradient(135deg,#5ab033,#3d8522);color:#0c0e0c;border:none;border-radius:14px;border-bottom-right-radius:4px;}
+.msg-meta{font-size:10px;color:var(--text3);margin-top:3px;padding:0 2px;}
+.msg-sender{font-size:10px;color:var(--text3);margin-bottom:2px;padding:0 2px;}
 .chat-inp-row{padding:10px 16px;border-top:1px solid var(--border);display:flex;gap:8px;}
 .chat-inp{flex:1;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;}
 .chat-send{padding:8px 16px;background:var(--accent);color:var(--bg);border:none;border-radius:var(--rs);font-size:13px;cursor:pointer;font-weight:500;}
@@ -279,6 +282,22 @@ tr:hover td{background:var(--bg3);}
 </style>
 
 <!-- MODALS -->
+
+<div id="m-ev" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal"><div class="mtitle" id="m-ev-ttl">Nuevo evento</div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Nombre del evento</span><input type="text" id="ev-nombre" style="width:100%" placeholder="Ej: Sunset Valle de Uco - 12 Abr"></div>
+  <div class="fr">
+    <div class="fc" style="flex:1"><span class="fl">Fecha</span><input type="date" id="ev-fecha" style="width:100%"></div>
+    <div class="fc"><span class="fl">Precio entrada</span><input type="number" id="ev-precio" style="width:120px" placeholder="0"></div>
+  </div>
+  <div class="fr">
+    <div class="fc"><span class="fl">Mín. publicaciones</span><input type="number" id="ev-minpubs" style="width:110px" value="8" min="0"></div>
+    <div class="fc" style="flex:1"><span class="fl">Venue / Lugar</span><input type="text" id="ev-venue" style="width:100%" placeholder="Ej: Finca El Alambique"></div>
+  </div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Descripción / Notas</span><textarea id="ev-desc" placeholder="Notas del evento..."></textarea></div>
+  <div class="mrow"><button class="btn btnp" style="flex:1" onclick="saveEvento()">Guardar</button><button class="btn" style="flex:1" onclick="document.getElementById('m-ev').style.display='none'">Cancelar</button></div></div>
+</div>
+
 <div id="m-cat" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
   <div class="modal"><div class="mtitle" id="mc-ttl">Agregar opción</div>
   <input type="text" id="mc-inp" style="width:100%" placeholder="Nueva opción...">
@@ -373,9 +392,7 @@ tr:hover td{background:var(--bg3);}
     <div class="tsep"></div>
     <div class="tev"><span>Evento:</span>
       <select id="g-ev" onchange="onEvChange()">
-        <option value="0">Sunset Sáb 15 Mar</option>
-        <option value="1">Sunset Sáb 22 Mar</option>
-        <option value="2">Fiesta Sáb 5 Abr</option>
+        <option value="">Sin eventos</option>
       </select>
     </div>
     <div class="tright">
@@ -389,29 +406,96 @@ tr:hover td{background:var(--bg3);}
     <div class="main" id="mc"></div>
   </div>
 </div>
-<div id="mobile-bottom-nav"></div>
+<div id="mobile-bottom-nav">
+<div id="m-staff" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal"><div class="mtitle">Agregar personal</div>
+  <div class="fr"><div class="fc" style="flex:1"><span class="fl">Nombre</span><input type="text" id="ms-nombre" style="width:100%" placeholder="Nombre completo"></div></div>
+  <div class="fr">
+    <div class="fc" style="flex:1"><span class="fl">Rol</span><select id="ms-rol" style="width:100%"><option>Bartender</option><option>Barback</option><option>Cajero/a</option><option>Encargado de barra</option><option>Seguridad</option><option>Producción</option><option>Otro</option></select></div>
+  </div>
+  <div class="fr">
+    <div class="fc"><span class="fl">Entrada</span><input type="time" id="ms-ent" value="20:00" style="width:100px"></div>
+    <div class="fc"><span class="fl">Salida</span><input type="time" id="ms-sal" value="03:00" style="width:100px"></div>
+    <div class="fc"><span class="fl">Monto</span><input type="number" id="ms-monto" placeholder="0" style="width:110px"></div>
+    <div class="fc"><span class="fl">Método</span><select id="ms-met" style="width:130px"><option>Efectivo</option><option>Transferencia</option><option>MercadoPago</option></select></div>
+  </div>
+  <div class="mrow"><button class="btn btnp" style="flex:1" onclick="bGuardarStaff()">Agregar</button><button class="btn" style="flex:1" onclick="document.getElementById('m-staff').style.display='none'">Cancelar</button></div></div>
+</div>
+
+
+<div id="m-gasto" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal"><div class="mtitle">Nuevo gasto</div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Descripción</span><input type="text" id="mg-desc" style="width:100%" placeholder="Ej: Caché DJ"></div>
+  <div class="fr">
+    <div class="fc" style="flex:1"><span class="fl">Rubro</span><select id="mg-rubro" style="width:100%"><option>Flyer/diseño</option><option>Publicidad en redes</option><option>Cachets artistas/DJ</option><option>Alquiler lugar/equipos</option><option>Staff</option><option>Habilitaciones</option><option>Sonido</option><option>Iluminación</option><option>Seguridad</option><option>Otros gastos</option></select></div>
+    <div class="fc"><span class="fl">Monto</span><input type="number" id="mg-monto" placeholder="0" style="width:120px"></div>
+  </div>
+  <div class="mrow"><button class="btn btnp" style="flex:1" onclick="afSaveGasto()">Guardar</button><button class="btn" style="flex:1" onclick="document.getElementById('m-gasto').style.display='none'">Cancelar</button></div></div>
+</div>
+
+
+<div id="m-nueva-publica" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal"><div class="mtitle">Nueva pública</div>
+  <div class="fr">
+    <div class="fc" style="flex:1"><span class="fl">Nombre completo</span><input type="text" id="np-nombre" style="width:100%" placeholder="Nombre y apellido"></div>
+  </div>
+  <div class="fr">
+    <div class="fc" style="flex:1"><span class="fl">Instagram</span><input type="text" id="np-ig" style="width:100%" placeholder="@usuario"></div>
+    <div class="fc" style="flex:1"><span class="fl">Teléfono</span><input type="text" id="np-tel" style="width:100%" placeholder="+54 9 261..."></div>
+  </div>
+  <div class="fr">
+    <div class="fc"><span class="fl">Tipo</span><select id="np-tipo" style="width:110px"><option value="comun">Común</option><option value="vip">VIP</option></select></div>
+    <div class="fc"><span class="fl">Comisión</span><input type="number" id="np-com" value="0" style="width:100px"></div>
+  </div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Observaciones</span><textarea id="np-obs" placeholder="Notas..." style="min-height:50px"></textarea></div>
+  <div class="mrow"><button class="btn btnp" style="flex:1" onclick="lpSavePublica()">Agregar</button><button class="btn" style="flex:1" onclick="document.getElementById('m-nueva-publica').style.display='none'">Cancelar</button></div></div>
+</div>
+
+
+<div id="m-cal-day" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="max-width:460px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+      <div class="mtitle" id="m-cal-day-fecha"></div>
+      <button onclick="document.getElementById('m-cal-day').style.display='none'" style="background:transparent;border:none;color:var(--text2);font-size:18px;cursor:pointer">×</button>
+    </div>
+    <div id="m-cal-day-content"></div>
+    <div class="mrow" style="margin-top:1rem">
+      <button class="btn btnp btnsm" style="flex:1" onclick="document.getElementById('m-cal-day').style.display='none';document.getElementById('m-post').style.display='flex'">+ Publicación</button>
+      <button class="btn btnsm" style="flex:1" onclick="document.getElementById('m-cal-day').style.display='none';document.getElementById('m-task').style.display='flex'">+ Tarea</button>
+    </div>
+  </div>
+</div>
+
+
+<div id="m-del-prov" style="display:none" class="modal-bg">
+  <div class="modal" style="max-width:360px;text-align:center">
+    <div style="font-size:32px;margin-bottom:.75rem">🗑</div>
+    <div class="mtitle">¿Eliminar proveedor?</div>
+    <div style="font-size:13px;color:var(--text2);margin:8px 0 1.25rem" id="m-del-prov-nombre"></div>
+    <input type="hidden" id="m-del-prov-id">
+    <div class="mrow"><button class="btn btnd" style="flex:1" onclick="confirmDelProv()">Sí, eliminar</button><button class="btn btnp" style="flex:1" onclick="document.getElementById('m-del-prov').style.display='none'">Cancelar</button></div>
+  </div>
+</div>
+
+</div>
 
 <script>
 // ═══ DATA ═══
 let USERS=[
-  {user:'ADMIN',pass:'Lucho1',role:'Admin Console',chatName:'Lu (CEO)',photo:'',bio:'CEO y fundador de BOOM Producciones.',instagram:'',telefono:'',pages:['dashboard','barra','adminfin','liderpub','publicas','cm','boom','chat','proveedores','kpi','usuarios','perfil']},
-  {user:'BARRA',pass:'boombarra1',role:'Barra',chatName:'Líder de Barra',photo:'',bio:'',instagram:'',telefono:'',pages:['barra','chat','perfil']},
-  {user:'PUBLICA',pass:'boomlider1',role:'Públicas',chatName:'Líder de Públicas',photo:'',bio:'',instagram:'',telefono:'',pages:['liderpub','publicas','boom','chat','perfil']},
-  {user:'CM',pass:'boomcm1',role:'CM',chatName:'Community Manager',photo:'',bio:'',instagram:'',telefono:'',pages:['cm','boom','chat','perfil']},
-  {user:'ADMINFIN',pass:'boomadmin1',role:'Administración',chatName:'Administración',photo:'',bio:'',instagram:'',telefono:'',pages:['adminfin','proveedores','chat','perfil']},
+  {user:'ADMIN',role:'Admin Console',chatName:'Lu (CEO)',photo:'',bio:'CEO y fundador de BOOM Producciones.',instagram:'',telefono:'',pages:['dashboard','barra','adminfin','liderpub','publicas','cm','boom','chat','proveedores','kpi','usuarios','perfil']},
+  {user:'BARRA',role:'Barra',chatName:'Líder de Barra',photo:'',bio:'',instagram:'',telefono:'',pages:['barra','chat','perfil']},
+  {user:'PUBLICA',role:'Públicas',chatName:'Líder de Públicas',photo:'',bio:'',instagram:'',telefono:'',pages:['liderpub','publicas','boom','chat','perfil']},
+  {user:'CM',role:'CM',chatName:'Community Manager',photo:'',bio:'',instagram:'',telefono:'',pages:['cm','boom','chat','perfil']},
+  {user:'ADMINFIN',role:'Administración',chatName:'Administración',photo:'',bio:'',instagram:'',telefono:'',pages:['adminfin','proveedores','chat','perfil']},
 ];
 const ALL_PAGES=['dashboard','barra','adminfin','liderpub','publicas','cm','boom','chat','proveedores','kpi','usuarios','perfil'];
 const PAGE_LABELS={dashboard:'Dashboard',barra:'Barra',adminfin:'Administración',liderpub:'Líder Públicas',publicas:'Públicas',cm:'CM',boom:'BOOM General',chat:'Chat interno',proveedores:'Proveedores',kpi:'Reportes y KPIs',usuarios:'Usuarios',perfil:'Mi perfil'};
 const PAGE_ICONS={dashboard:'📊',barra:'🍺',adminfin:'📋',liderpub:'⭐',publicas:'📸',cm:'📅',boom:'🏠',chat:'💬',proveedores:'🤝',kpi:'📈',usuarios:'👥',perfil:'👤'};
 const PAGE_SECTIONS={dashboard:'Admin',barra:'Módulos',adminfin:'Módulos',liderpub:'Módulos',publicas:'Módulos',cm:'Comunicación',boom:'Comunicación',chat:'Comunicación',proveedores:'Admin',kpi:'Admin',usuarios:'Admin',perfil:'Mi cuenta'};
 
-const EVENTOS=[{nombre:'Sunset Sáb 15 Mar',minPubs:8},{nombre:'Sunset Sáb 22 Mar',minPubs:8},{nombre:'Fiesta Sáb 5 Abr',minPubs:20}];
+let EVENTOS=[]; // Se carga desde Firebase o queda vacío
 const EV_DATES=['2025-03-15','2025-03-22','2025-04-05'];
-const EV_FIN=[
-  {tickets:{eb:180,ae:95,am:130,taq:75,precio:3500},barra:{g:312000,c:148000}},
-  {tickets:{eb:150,ae:80,am:110,taq:60,precio:3500},barra:{g:285000,c:132000}},
-  {tickets:{eb:60,ae:30,am:45,taq:0,precio:3500},barra:{g:0,c:0}},
-];
+let EV_FIN=[]; // Se sincroniza con EVENTOS
 const PRODS=[
   {n:'Cerveza Quilmes 1L',cat:'Cervezas',uxc:12,pv:1500,pc:800},
   {n:'Cerveza Corona 355ml',cat:'Cervezas',uxc:24,pv:1200,pc:600},
@@ -422,42 +506,14 @@ const PRODS=[
   {n:'Champagne Chandon 750ml',cat:'Vinos/Champagne',uxc:6,pv:3500,pc:1800},
   {n:'Vino tinto Malbec 750ml',cat:'Vinos/Champagne',uxc:12,pv:2000,pc:900},
 ];
-let STOCK_INI=[[48,36,18,60,48,36,12,18],[48,36,18,60,48,36,12,18],[0,0,0,0,0,0,0,0]];
-let STOCK_CIE=[[8,6,2,12,10,8,3,4],[6,4,1,8,9,7,2,3],[null,null,null,null,null,null,null,null]];
-let STAFF_EV=[
-  [{n:'Lucía Gómez',rol:'Cajero/a',ent:'20:00',sal:'03:00',monto:8000,met:'Efectivo',pag:true},{n:'Matías Ríos',rol:'Bartender',ent:'20:00',sal:'03:00',monto:9000,met:'Efectivo',pag:true},{n:'Sol Pereyra',rol:'Barback',ent:'19:30',sal:'03:00',monto:7000,met:'Efectivo',pag:true},{n:'Diego Herrera',rol:'Encargado de barra',ent:'18:00',sal:'04:00',monto:15000,met:'Transferencia',pag:false}],
-  [{n:'Lucía Gómez',rol:'Cajero/a',ent:'20:00',sal:'03:00',monto:8000,met:'Efectivo',pag:true},{n:'Matías Ríos',rol:'Bartender',ent:'20:00',sal:'03:00',monto:9000,met:'Efectivo',pag:true},{n:'Diego Herrera',rol:'Encargado de barra',ent:'18:00',sal:'04:00',monto:15000,met:'Transferencia',pag:false}],
-  [],
-];
-let CAJAS_EV=[
-  [{fE:45000,fM:82000,rE:44500,rM:82000},{fE:38000,fM:65000,rE:38000,rM:65000},{fE:31000,fM:55000,rE:30500,rM:55000}],
-  [{fE:42000,fM:78000,rE:42000,rM:78000},{fE:35000,fM:60000,rE:35000,rM:60000},{fE:28000,fM:50000,rE:27800,rM:50000}],
-  [{fE:0,fM:0,rE:0,rM:0},{fE:0,fM:0,rE:0,rM:0},{fE:0,fM:0,rE:0,rM:0}],
-];
-let GASTOS_EV=[
-  [{d:'Flyer redes',r:'Flyer/diseño',m:15000,e:'pagado',a:'flyer.jpg'},{d:'Meta Ads',r:'Publicidad en redes',m:45000,e:'pagado',a:''},{d:'Caché DJ Hernán',r:'Cachets artistas/DJ',m:120000,e:'pagado',a:'recibo.pdf'},{d:'Alquiler La Parrilla',r:'Alquiler lugar/equipos',m:80000,e:'pagado',a:'fact.pdf'},{d:'Personal seguridad',r:'Staff',m:55000,e:'pendiente',a:''},{d:'Habilitación municipal',r:'Habilitaciones',m:18000,e:'pagado',a:''}],
-  [{d:'Flyer evento',r:'Flyer/diseño',m:12000,e:'pagado',a:''},{d:'Meta Ads',r:'Publicidad en redes',m:38000,e:'pagado',a:''},{d:'Caché DJ invitado',r:'Cachets artistas/DJ',m:110000,e:'aprobacion',a:''},{d:'Alquiler lugar',r:'Alquiler lugar/equipos',m:80000,e:'pagado',a:''}],
-  [{d:'Diseño flyer',r:'Flyer/diseño',m:15000,e:'aprobacion',a:''},{d:'Pauta digital',r:'Publicidad en redes',m:30000,e:'pendiente',a:''}],
-];
-let PUBLICAS=[
-  {id:1,n:'Valentina Ríos',ig:'@valen_rios',tel:'+54 9 261 555-0101',tipo:'vip',com:500,activo:true,obs:'Muy activa, buena llegada.',camps:3},
-  {id:2,n:'Mateo Díaz',ig:'@mateo.d',tel:'+54 9 261 555-0102',tipo:'vip',com:500,activo:true,obs:'Buen alcance en TikTok.',camps:3},
-  {id:3,n:'Lucía Fernández',ig:'@luci.f',tel:'+54 9 261 555-0103',tipo:'comun',com:0,activo:true,obs:'Buena actitud, pocos invitados.',camps:2},
-  {id:4,n:'Tomás Soria',ig:'@tomi_s',tel:'+54 9 261 555-0104',tipo:'comun',com:0,activo:true,obs:'Irregular.',camps:2},
-  {id:5,n:'Sofía Herrera',ig:'@sofi.h',tel:'+54 9 261 555-0105',tipo:'comun',com:0,activo:true,obs:'Nueva. Primer evento.',camps:1},
-  {id:6,n:'Nicolás Castro',ig:'@nico_c',tel:'+54 9 261 555-0106',tipo:'vip',com:500,activo:true,obs:'Top performer siempre.',camps:4},
-  {id:7,n:'Camila Torres',ig:'@cami.t',tel:'+54 9 261 555-0107',tipo:'comun',com:0,activo:true,obs:'Invitados fieles.',camps:2},
-  {id:8,n:'Agustín Mora',ig:'@agus.m',tel:'+54 9 261 555-0108',tipo:'comun',com:0,activo:true,obs:'Bajo rendimiento.',camps:1},
-];
-let ACT_EV=[
-  {1:{stories:9,reels:2,tiktok:1,inv:18,ing:15,actitud:'alta',obs:'Excelente'},2:{stories:7,reels:1,tiktok:2,inv:12,ing:10,actitud:'alta',obs:''},3:{stories:6,reels:1,tiktok:0,inv:4,ing:3,actitud:'media',obs:''},4:{stories:4,reels:0,tiktok:0,inv:2,ing:1,actitud:'baja',obs:''},5:{stories:5,reels:0,tiktok:1,inv:3,ing:2,actitud:'media',obs:''},6:{stories:11,reels:3,tiktok:2,inv:22,ing:20,actitud:'alta',obs:'TOP'},7:{stories:8,reels:1,tiktok:0,inv:8,ing:7,actitud:'media',obs:''},8:{stories:2,reels:0,tiktok:0,inv:1,ing:0,actitud:'baja',obs:''}},
-  {1:{stories:8,reels:1,tiktok:1,inv:14,ing:12,actitud:'alta',obs:''},2:{stories:6,reels:2,tiktok:1,inv:9,ing:8,actitud:'alta',obs:''},3:{stories:5,reels:0,tiktok:0,inv:3,ing:2,actitud:'media',obs:''},4:{stories:3,reels:0,tiktok:0,inv:1,ing:0,actitud:'baja',obs:''},5:{stories:4,reels:1,tiktok:0,inv:2,ing:2,actitud:'media',obs:''},6:{stories:12,reels:2,tiktok:3,inv:25,ing:22,actitud:'alta',obs:''},7:{stories:7,reels:1,tiktok:0,inv:6,ing:5,actitud:'media',obs:''},8:{stories:1,reels:0,tiktok:0,inv:0,ing:0,actitud:'baja',obs:''}},
-  {},
-];
-let BENEF_EV=[
-  {1:{ent:true,con:true,ex:'Lista VIP + cortesía'},2:{ent:true,con:true,ex:'Lista VIP'},3:{ent:true,con:false,ex:''},4:{ent:false,con:false,ex:'No cumplió'},5:{ent:true,con:false,ex:''},6:{ent:true,con:true,ex:'Premio top'},7:{ent:true,con:false,ex:''},8:{ent:false,con:false,ex:''}},
-  {},{},
-];
+let STOCK_INI=[];
+let STOCK_CIE=[];
+let STAFF_EV=[];
+let CAJAS_EV=[];
+let GASTOS_EV=[];
+let PUBLICAS=[];
+let ACT_EV=[];
+let BENEF_EV=[];
 let PUB_LOGS=[[
   {pid:1,tipo:'Story de Instagram',desc:'Cuenta regresiva',ent:3,ts:'20:00'},{pid:1,tipo:'Reel/video',desc:'Teaser',ent:5,ts:'21:00'},
   {pid:2,tipo:'Story de Instagram',desc:'Flyer',ent:4,ts:'19:30'},{pid:3,tipo:'TikTok',desc:'Video promo',ent:1,ts:'21:30'},
@@ -468,54 +524,25 @@ let PUB_LOGS=[[
   {pid:1,tipo:'Story de Instagram',desc:'Promo',ent:2,ts:'19:00'},{pid:2,tipo:'Reel/video',desc:'Reel',ent:7,ts:'20:00'},
   {pid:6,tipo:'TikTok',desc:'TT viral',ent:8,ts:'21:00'},{pid:3,tipo:'Story de Instagram',desc:'Story',ent:0,ts:'20:00'},
 ],[],];
-let POSTS=[
-  {id:1,fecha:'2025-03-10',hora:'10:00',red:'ig_feed',tipo:'Lanzamiento del evento',desc:'Flyer oficial lanzamiento Sunset Mar 15'},
-  {id:2,fecha:'2025-03-12',hora:'18:00',red:'ig_story',tipo:'Anuncio venta de entradas',desc:'Stories con link Eventbrite'},
-  {id:3,fecha:'2025-03-13',hora:'12:00',red:'reel',tipo:'Contenido dinámico',desc:'Reel teaser venue'},
-  {id:4,fecha:'2025-03-14',hora:'20:00',red:'tiktok',tipo:'Cuenta regresiva',desc:'TikTok 1 día'},
-  {id:5,fecha:'2025-03-15',hora:'09:00',red:'ig_story',tipo:'Post día del evento',desc:'Stories del día'},
-  {id:6,fecha:'2025-03-16',hora:'11:00',red:'ig_feed',tipo:'Post post-evento',desc:'Carrusel fotos'},
-  {id:7,fecha:'2025-03-20',hora:'10:00',red:'ig_feed',tipo:'Lanzamiento del evento',desc:'Flyer Sunset Mar 22'},
-  {id:8,fecha:'2025-03-25',hora:'10:00',red:'ig_feed',tipo:'Lanzamiento del evento',desc:'Primer flyer Fiesta Abr 5'},
-  {id:9,fecha:'2025-04-03',hora:'10:00',red:'ig_story',tipo:'Cuenta regresiva',desc:'2 días para la fiesta'},
-];
-let TASKS=[
-  {id:1,titulo:'Diseñar flyer lanzamiento Sunset',fecha:'2025-03-09',hora:'10:00',aviso:1440,area:'CM',vis:'todos',done:true},
-  {id:2,titulo:'Confirmar DJ y subir anuncio',fecha:'2025-03-11',hora:'12:00',aviso:1440,area:'Producción',vis:'todos',done:true},
-  {id:3,titulo:'Pack de stories día del evento',fecha:'2025-03-15',hora:'08:00',aviso:120,area:'CM',vis:'cm',done:false},
-  {id:4,titulo:'Editar y subir video resumen',fecha:'2025-03-17',hora:'11:00',aviso:2880,area:'CM',vis:'todos',done:false},
-  {id:5,titulo:'Diseñar flyer Fiesta Abr 5',fecha:'2025-03-24',hora:'10:00',aviso:2880,area:'Diseño',vis:'todos',done:false},
-  {id:6,titulo:'Confirmar caché artista principal',fecha:'2025-03-28',hora:'12:00',aviso:1440,area:'Producción',vis:'todos',done:false},
-];
-let IDEAS=[
-  {id:1,txt:'Dinámica en stories: la gente vota el próximo DJ',cat:'Contenido',autor:'Lu',fecha:'Mar 10',votos:4,votado:false},
-  {id:2,txt:'Filtro de Instagram de BOOM para que la gente use en sus stories',cat:'Marketing',autor:'Sol',fecha:'Mar 12',votos:7,votado:true},
-  {id:3,txt:'Lista de Spotify colaborativa con el setlist',cat:'Experiencia',autor:'Mateo',fecha:'Mar 13',votos:3,votado:false},
-  {id:4,txt:'BTS de preparación del evento en TikTok',cat:'Contenido',autor:'Lu',fecha:'Mar 14',votos:5,votado:false},
-];
-let PROVEEDORES=[
-  {id:1,n:'ProAudio SRL',cat:'Sonido',cont:'Martín Ruiz',tel:'+54 9 261 555-1001',cal:5,obs:'Puntual, equipo top.',eventos:[0,1],pagado:[true,true],montos:[45000,45000]},
-  {id:2,n:'LumiShow',cat:'Iluminación',cont:'Carolina Paz',tel:'+54 9 261 555-1002',cal:4,obs:'Muy buen servicio.',eventos:[0,1],pagado:[true,false],montos:[35000,35000]},
-  {id:3,n:'Hernán López (DJ)',cat:'DJ / Artista',cont:'Hernán López',tel:'+54 9 261 555-1003',cal:5,obs:'TOP. Siempre llena la pista.',eventos:[0],pagado:[true],montos:[120000]},
-  {id:4,n:'Gráfica Norte',cat:'Imprenta',cont:'Pablo Norte',tel:'+54 9 261 555-1004',cal:3,obs:'OK. Demoró en el último.',eventos:[0,1],pagado:[true,true],montos:[12000,8000]},
-  {id:5,n:'La Parrilla SA',cat:'Venue',cont:'Diego Herrera',tel:'+54 9 261 555-1005',cal:5,obs:'Excelente venue.',eventos:[0,1,2],pagado:[true,true,false],montos:[80000,80000,80000]},
-  {id:6,n:'SecurEvent',cat:'Seguridad',cont:'Roberto Vega',tel:'+54 9 261 555-1006',cal:4,obs:'Profesionales.',eventos:[0,1],pagado:[false,false],montos:[55000,50000]},
-];
+let POSTS=[];
+let TASKS=[];
+let IDEAS=[];
+let PROVEEDORES=[];
 const EV_NOMBRES=['Sunset 15 Mar','Sunset 22 Mar','Fiesta 5 Abr'];
 const CHAT_DATA={
-  general:{l:'# General',msgs:[{u:'Lu (CEO)',t:'Bienvenidos al chat interno de BOOM! 🎉',ts:'10:00'},{u:'Community Manager',t:'Todo listo para el Sunset del sábado',ts:'10:05'},{u:'Líder de Barra',t:'Stock confirmado ✓',ts:'10:10'}]},
-  ideas:{l:'# Ideas',msgs:[{u:'Líder de Públicas',t:'Idea: sistema de puntos acumulativos para públicas',ts:'09:30'},{u:'Lu (CEO)',t:'Me encanta! Lo vemos el lunes',ts:'09:45'}]},
-  barra:{l:'# Barra',msgs:[{u:'Líder de Barra',t:'¿Apruebo el pedido de Quilmes para el sábado?',ts:'11:00'},{u:'Lu (CEO)',t:'Aprobado ✓',ts:'11:05'}]},
-  cm:{l:'# CM',msgs:[{u:'Community Manager',t:'El reel llegó a 8k reproducciones 🔥',ts:'14:00'},{u:'Lu (CEO)',t:'Excelente! Repetí el formato',ts:'14:10'}]},
-  publicas:{l:'# Públicas',msgs:[{u:'Líder de Públicas',t:'Valentina y Nicolás son TOP esta campaña',ts:'16:00'},{u:'Lu (CEO)',t:'Los reconocemos en el próximo evento',ts:'16:05'}]},
-  admin:{l:'# Admin',msgs:[{u:'Administración',t:'La factura de SecurEvent sigue pendiente',ts:'09:00'},{u:'Lu (CEO)',t:'Autorizado para pagar esta semana',ts:'09:10'}]},
-  ev0:{l:'# Sunset 15 Mar',msgs:[{u:'Lu (CEO)',t:'Canal del Sunset 15 Mar',ts:'08:00'},{u:'Líder de Barra',t:'Stock verificado ✓',ts:'08:30'},{u:'Administración',t:'Habilitaciones confirmadas ✓',ts:'09:00'}]},
-  ev1:{l:'# Sunset 22 Mar',msgs:[{u:'Lu (CEO)',t:'Arrancamos planificación Sunset 22 Mar',ts:'10:00'}]},
-  ev2:{l:'# Fiesta 5 Abr',msgs:[{u:'Community Manager',t:'Trabajando en el flyer',ts:'10:15'},{u:'Lu (CEO)',t:'Vamos con todo!',ts:'10:20'}]},
+  general:{l:'# General',msgs:[]},
+  ideas:{l:'# Ideas',msgs:[]},
+  barra:{l:'# Barra',msgs:[]},
+  cm:{l:'# CM',msgs:[]},
+  publicas:{l:'# Públicas',msgs:[]},
+  admin:{l:'# Admin',msgs:[]},
+  ev0:{l:'# Evento 1',msgs:[]},
+  ev1:{l:'# Evento 2',msgs:[]},
+  ev2:{l:'# Evento 3',msgs:[]},
 };
 
-const HOY=new Date(2025,2,15);
-let calYear=2025,calMonth=2;
+const HOY=new Date();
+let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
 let CU=null,curPage='dashboard',catTarget='',pubTarget=null,actTarget=null,editProvId=null,editUsrIdx=null;
 let curCh='general';
 let npid=10,ntid=7,niid=5,npvid=7;
@@ -528,7 +555,7 @@ const fmt=n=>'$'+Math.round(n).toLocaleString('es-AR');
 const ini=s=>s.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
 const stars=n=>'★'.repeat(n)+'☆'.repeat(5-n);
 const avs=i=>`background:${AVC[i%8]}22;color:${AVC[i%8]}`;
-const gEv=()=>parseInt(document.getElementById('g-ev')?.value||0);
+const gEv=()=>{const v=parseInt(document.getElementById('g-ev')?.value);return isNaN(v)?0:v;};
 const dateStr=d=>d.toISOString().split('T')[0];
 function diffDias(s){const t=new Date(s.replace(/-/g,'/'));const h=new Date(HOY);h.setHours(0,0,0,0);t.setHours(0,0,0,0);return Math.round((t-h)/864e5);}
 function diasLabel(d){return d===0?'Hoy':d===1?'Mañana':d===-1?'Ayer':d<0?`Hace ${Math.abs(d)}d`:`En ${d}d`;}
@@ -541,23 +568,100 @@ function openTab(prefix,id){
   document.querySelectorAll(`[id^="${prefix}-"]`).forEach(el=>{if(el.classList.contains('tsec'))el.classList.remove('active');});
   const el=document.getElementById(`${prefix}-${id}`);if(el)el.classList.add('active');
   document.querySelectorAll('.tbtn').forEach(b=>{const o=b.getAttribute('onclick');if(o)b.classList.toggle('active',o.includes(`'${id}'`)||o.includes(`"${id}"`));});
+  if(id==='gastos')afLoadGastos?.();
+  if(id==='aprob')afLoadAprob?.();
+}
+
+
+// Inicializar arrays por evento
+function ensureEvArrays(){
+  while(STOCK_INI.length<EVENTOS.length){STOCK_INI.push(Array(PRODS.length).fill(0));}
+  while(STOCK_CIE.length<EVENTOS.length){STOCK_CIE.push(Array(PRODS.length).fill(null));}
+  while(STAFF_EV.length<EVENTOS.length){STAFF_EV.push([]);}
+  while(CAJAS_EV.length<EVENTOS.length){CAJAS_EV.push([{fE:0,fM:0,rE:0,rM:0},{fE:0,fM:0,rE:0,rM:0},{fE:0,fM:0,rE:0,rM:0}]);}
+  while(GASTOS_EV.length<EVENTOS.length){GASTOS_EV.push([]);}
+  while(EV_FIN.length<EVENTOS.length){EV_FIN.push({tickets:{eb:0,ae:0,am:0,taq:0,precio:0},barra:{g:0,c:0}});}
+  while(ACT_EV.length<EVENTOS.length){ACT_EV.push({});}
+  while(BENEF_EV.length<EVENTOS.length){BENEF_EV.push({});}
+  while(PUB_LOGS.length<EVENTOS.length){PUB_LOGS.push([]);}
+}
+function syncTopbarEventos(){
+  const sel=document.getElementById('g-ev');if(!sel)return;
+  sel.innerHTML=EVENTOS.length?EVENTOS.map((e,i)=>`<option value="${i}">${e.nombre}</option>`).join(''):'<option value="">Sin eventos</option>';
+}
+function fbSaveEventos(){if(window._fbOK)window.fbSave.eventos?.();}
+
+
+// ═══════════════════════════════════════════════════════════
+// GESTIÓN DE EVENTOS (solo ADMIN)
+// ═══════════════════════════════════════════════════════════
+let editEvIdx = null;
+function openEvModal(idx){
+  editEvIdx=idx;
+  const ev=idx!==null?EVENTOS[idx]:null;
+  document.getElementById('m-ev-ttl').textContent=ev?'Editar evento':'Nuevo evento';
+  document.getElementById('ev-nombre').value=ev?.nombre||'';
+  document.getElementById('ev-fecha').value=ev?.fecha||'';
+  document.getElementById('ev-precio').value=ev?.precio||0;
+  document.getElementById('ev-minpubs').value=ev?.minPubs||8;
+  document.getElementById('ev-venue').value=ev?.venue||'';
+  document.getElementById('ev-desc').value=ev?.desc||'';
+  document.getElementById('m-ev').style.display='flex';
+}
+function saveEvento(){
+  const nombre=document.getElementById('ev-nombre').value.trim();
+  if(!nombre){alert('Ingresá el nombre del evento.');return;}
+  const ev={
+    nombre,
+    fecha:document.getElementById('ev-fecha').value,
+    precio:parseFloat(document.getElementById('ev-precio').value)||0,
+    minPubs:parseInt(document.getElementById('ev-minpubs').value)||8,
+    venue:document.getElementById('ev-venue').value.trim(),
+    desc:document.getElementById('ev-desc').value.trim(),
+  };
+  if(editEvIdx!==null){
+    EVENTOS[editEvIdx]=ev;
+  } else {
+    EVENTOS.push(ev);
+    ensureEvArrays();
+  }
+  document.getElementById('m-ev').style.display='none';
+  fbSaveEventos();
+  syncTopbarEventos();
+  // Select new event
+  if(editEvIdx===null) document.getElementById('g-ev').value=EVENTOS.length-1;
+  renderPage(curPage);
+}
+function delEvento(idx){
+  if(!confirm(`¿Eliminar "${EVENTOS[idx].nombre}"? Se borrarán todos sus datos.`))return;
+  EVENTOS.splice(idx,1);
+  STOCK_INI.splice(idx,1);STOCK_CIE.splice(idx,1);
+  STAFF_EV.splice(idx,1);CAJAS_EV.splice(idx,1);
+  GASTOS_EV.splice(idx,1);EV_FIN.splice(idx,1);
+  ACT_EV.splice(idx,1);BENEF_EV.splice(idx,1);PUB_LOGS.splice(idx,1);
+  fbSaveEventos();
+  syncTopbarEventos();
+  const sel=document.getElementById('g-ev');
+  if(sel) sel.value=Math.max(0,idx-1);
+  renderPage(curPage);
 }
 
 // ═══ AUTH ═══
-function doLogin(){
+async function doLogin(){
   const u=document.getElementById('l-user').value.trim().toUpperCase();
   const p=document.getElementById('l-pass').value.trim();
-  const f=USERS.find(x=>x.user===u&&x.pass===p);
-  if(!f){document.getElementById('l-err').style.display='block';return;}
-  CU=f;
-  document.getElementById('login').style.display='none';
-  document.getElementById('app').style.display='flex';
-  document.getElementById('t-role').textContent=f.role;
-  updateTopbarAvatar();
-  buildSidebar();buildMobileNav();
-  if(window.fbLoad){window.fbLoad().then(()=>navigate(CU.pages[0]));}else{navigate(CU.pages[0]);}
+  if(!u||!p){document.getElementById('l-err').style.display='block';return;}
+  const btn=document.querySelector('.lbtn');
+  btn.textContent='Ingresando...';btn.disabled=true;
+  try{
+    await firebase.auth().signInWithEmailAndPassword(u.toLowerCase()+'@boom.app',p);
+    // onAuthStateChanged maneja el resto
+  }catch(e){
+    document.getElementById('l-err').style.display='block';
+    btn.textContent='Ingresar';btn.disabled=false;
+  }
 }
-function doLogout(){CU=null;document.getElementById('login').style.display='flex';document.getElementById('app').style.display='none';document.getElementById('l-user').value='';document.getElementById('l-pass').value='';document.getElementById('l-err').style.display='none';}
+function doLogout(){firebase.auth().signOut();}
 
 // ═══ SIDEBAR ═══
 function buildMobileNav(){
@@ -591,7 +695,7 @@ function renderPage(p){
   const mc=document.getElementById('mc');
   if(p==='dashboard')mc.innerHTML=pgDash();
   else if(p==='barra'){mc.innerHTML=pgBarra();initBarra();}
-  else if(p==='adminfin')mc.innerHTML=pgAdminFin();
+  else if(p==='adminfin'){mc.innerHTML=pgAdminFin();initAdminFin();}
   else if(p==='liderpub'){mc.innerHTML=pgLiderPub();initLider();}
   else if(p==='publicas')mc.innerHTML=pgPublicas();
   else if(p==='cm'){mc.innerHTML=pgCM();initCM();}
@@ -614,12 +718,26 @@ function makeTabs(prefix,tabs,first){
 // DASHBOARD
 // ═══════════════════════════════════════════════════════════
 function pgDash(){
-  const ev=gEv();const d=EV_FIN[ev];
+  if(!EVENTOS.length){
+    return`<div class="ptitle">📊 Dashboard</div><div class="psub">Vista del CEO</div>
+    <div class="card" style="text-align:center;padding:3rem 1.5rem">
+      <div style="font-size:40px;margin-bottom:1rem">🎉</div>
+      <div style="font-size:16px;font-weight:500;margin-bottom:.5rem">No hay eventos creados</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:1.5rem">Creá el primer evento para empezar a trabajar</div>
+      ${CU?.role==='Admin Console'?`<button class="btn btnp" onclick="openEvModal(null)">+ Crear primer evento</button>`:''}
+    </div>`;
+  }
+  const ev=gEv();if(ev<0||ev>=EVENTOS.length)return'';
+  const d=EV_FIN[ev]||{tickets:{eb:0,ae:0,am:0,taq:0,precio:0},barra:{g:0,c:0}};
   const tT=(d.tickets.eb+d.tickets.ae+d.tickets.am+d.tickets.taq)*d.tickets.precio;
-  const ing=tT+d.barra.g;const gas=GASTOS_EV[ev].reduce((a,g)=>a+g.m,0);
-  const res=ing-gas;const ok=ev<2;
-  const pG=GASTOS_EV[ev].filter(g=>g.e!=='pagado').length;
-  return`<div class="ptitle">📊 Dashboard</div><div class="psub">${EVENTOS[ev].nombre} — Vista del CEO</div>
+  const ing=tT+d.barra.g;const gas=(GASTOS_EV[ev]||[]).reduce((a,g)=>a+g.m,0);
+  const res=ing-gas;const ok=false;
+  const pG=(GASTOS_EV[ev]||[]).filter(g=>g.e!=='pagado').length;
+  const isAdmin=CU?.role==='Admin Console';
+  return`<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:1.5rem">
+    <div><div class="ptitle">📊 Dashboard</div><div class="psub">${EVENTOS[ev].nombre} — Vista del CEO</div></div>
+    ${isAdmin?`<div style="display:flex;gap:6px"><button class="btn btnp btnsm" onclick="openEvModal(null)">+ Nuevo evento</button><button class="btn btnsm" onclick="openEvModal(${ev})">✏️ Editar</button><button class="btn btnsm btnd" onclick="delEvento(${ev})">🗑 Eliminar</button></div>`:''}
+  </div>
   <div class="mg">
     <div class="met"><div class="ml">Resultado evento</div><div class="mv ${ok?res>0?'pos':'neg':''}">${ok?fmt(res):'—'}</div><div class="ms">${ok?res>0?'Positivo':'Negativo':'En planificación'}</div></div>
     <div class="met"><div class="ml">Ingresos totales</div><div class="mv pos">${ok?fmt(ing):'—'}</div></div>
@@ -639,18 +757,43 @@ function pgDash(){
 // BARRA
 // ═══════════════════════════════════════════════════════════
 function pgBarra(){
+  if(!EVENTOS.length)return`<div class="ptitle">🍺 Módulo de Barra</div><div class="empty" style="margin-top:2rem">Creá un evento primero.</div>`;
   return`<div class="ptitle">🍺 Módulo de Barra</div><div class="psub" id="barra-sub"></div>
   ${makeTabs('b',[{id:'inicio',l:'Inicio'},{id:'cierre',l:'Cierre'},{id:'consumo',l:'Consumo'},{id:'precios',l:'Precios'},{id:'cajas',l:'Cajas'},{id:'staff',l:'Staff'},{id:'compra',l:'Compra'}],'inicio')}`;
 }
 function initBarra(){
   document.getElementById('barra-sub').textContent=EVENTOS[gEv()].nombre;
-  bLoadInicio();bLoadCierre();bLoadConsumo();bLoadPrecios();bLoadCajas();bLoadStaff();bLoadCompra();
+  ensureEvArrays();bLoadInicio();bLoadCierre();bLoadConsumo();bLoadPrecios();bLoadCajas();bLoadStaff();bLoadCompra();
+}
+function bGuardarInicio(){if(window._fbOK)window.fbSave.stock?.(gEv());alert('Stock de inicio guardado ✓');}
+function bGuardarCierre(){if(window._fbOK)window.fbSave.stock?.(gEv());alert('Stock de cierre guardado ✓');}
+function bAgregarProducto(){
+  const n=prompt('Nombre del producto:');if(!n)return;
+  const pv=parseFloat(prompt('Precio de venta:')||0);
+  const pc=parseFloat(prompt('Precio de costo:')||0);
+  const uxc=parseInt(prompt('Unidades por caja:')||1);
+  const cat=prompt('Categoría (ej: Cervezas):','Otros');
+  PRODS.push({n,cat,uxc,pv,pc});
+  STOCK_INI.forEach(s=>s.push(0));STOCK_CIE.forEach(s=>s.push(null));
+  initBarra();
+}
+function bAgregarStaff(){
+  document.getElementById('m-staff').style.display='flex';
+}
+function bGuardarStaff(){
+  const n=document.getElementById('ms-nombre').value.trim();if(!n){alert('Ingresá el nombre.');return;}
+  const s={n,rol:document.getElementById('ms-rol').value,ent:document.getElementById('ms-ent').value,sal:document.getElementById('ms-sal').value,monto:parseFloat(document.getElementById('ms-monto').value)||0,met:document.getElementById('ms-met').value,pag:false};
+  STAFF_EV[gEv()].push(s);
+  document.getElementById('m-staff').style.display='none';
+  if(window._fbOK)window.fbSave.staff?.(gEv());
+  bLoadStaff();
 }
 function bLoadInicio(){
   const ev=gEv();const ini0=STOCK_INI[ev];
   let h=`<div class="card"><div class="ctitle">Stock al inicio del evento</div><table><thead><tr><th>Producto</th><th>Categoría</th><th>Unidades</th><th>Cajas</th><th>Estado</th></tr></thead><tbody>`;
   PRODS.forEach((p,i)=>{const u=ini0[i];const s=u>=30?'bok':u>=12?'bwarn':'bdanger';h+=`<tr><td style="font-weight:500">${p.n}</td><td><span class="badge bgray" style="font-size:10px">${p.cat}</span></td><td><input type="number" value="${u}" min="0" style="width:65px" id="bi${i}" onchange="STOCK_INI[gEv()][${i}]=parseInt(this.value)||0;document.getElementById('bic${i}').textContent=Math.floor((parseInt(this.value)||0)/${p.uxc})"></td><td id="bic${i}">${Math.floor(u/p.uxc)}</td><td><span class="badge ${s}">${u>=30?'OK':u>=12?'Bajo':'Muy bajo'}</span></td></tr>`;});
   h+=`</tbody></table></div>`;
+  h+=`<div style="margin-top:.75rem;text-align:right"><button class="btn btnp btnsm" onclick="bGuardarInicio()">💾 Guardar stock inicio</button></div>`;
   document.getElementById('b-inicio').innerHTML=h;
 }
 function bLoadCierre(){
@@ -658,6 +801,7 @@ function bLoadCierre(){
   let h=`<div class="card"><div class="ctitle">Stock al cierre</div><table><thead><tr><th>Producto</th><th>Inicio</th><th>Sobró</th><th>Vendido</th></tr></thead><tbody>`;
   PRODS.forEach((p,i)=>{h+=`<tr><td style="font-weight:500">${p.n}</td><td>${ini0[i]}</td><td><input type="number" value="${cie[i]??''}" min="0" style="width:65px" onchange="STOCK_CIE[gEv()][${i}]=parseInt(this.value)||0;document.getElementById('bcv${i}').textContent=STOCK_INI[gEv()][${i}]-(parseInt(this.value)||0)"></td><td id="bcv${i}">${cie[i]!==null?ini0[i]-cie[i]:'—'}</td></tr>`;});
   h+=`</tbody></table></div>`;
+  h+=`<div style="margin-top:.75rem;text-align:right"><button class="btn btnp btnsm" onclick="bGuardarCierre()">💾 Guardar stock cierre</button></div>`;
   document.getElementById('b-cierre').innerHTML=h;
 }
 function bLoadConsumo(){
@@ -677,8 +821,9 @@ function bLoadPrecios(){
   const vend=cie[0]!==null?ini0.map((u,i)=>u-cie[i]):null;
   let h=`<div class="card"><div class="ctitle">Precios y margen</div><table><thead><tr><th>Producto</th><th>Venta</th><th>Costo</th><th>Margen</th><th>Vendido</th><th>Ganancia est.</th></tr></thead><tbody>`;
   let totalG=0;
-  PRODS.forEach((p,i)=>{const mg=p.pv-p.pc;const v=vend?vend[i]:null;const g=v!==null?mg*v:null;if(g)totalG+=g;h+=`<tr><td style="font-weight:500">${p.n}</td><td>${fmt(p.pv)}</td><td>${fmt(p.pc)}</td><td class="${mg>0?'pos':'neg'}">${fmt(mg)}</td><td>${v??'—'}</td><td>${g!==null?`<span class="pos">${fmt(g)}</span>`:'—'}</td></tr>`;});
+  PRODS.forEach((p,i)=>{const mg=p.pv-p.pc;const v=vend?vend[i]:null;const g=v!==null?mg*v:null;if(g)totalG+=g;h+=`<tr><td style="font-weight:500">${p.n}</td><td><input type="number" value="${p.pv}" style="width:90px" onchange="PRODS[${i}].pv=parseFloat(this.value)||0"></td><td><input type="number" value="${p.pc}" style="width:90px" onchange="PRODS[${i}].pc=parseFloat(this.value)||0"></td><td class="${mg>0?'pos':'neg'}">${fmt(mg)}</td><td>${v??'—'}</td><td>${g!==null?`<span class="pos">${fmt(g)}</span>`:'—'}</td></tr>`;});
   h+=`<tr class="trow-total"><td colspan="4" style="text-align:right">Total estimado</td><td>${vend?vend.reduce((a,b)=>a+b,0):'—'}</td><td>${totalG?`<span class="pos">${fmt(totalG)}</span>`:'—'}</td></tr></tbody></table></div>`;
+  h+=`<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:.5rem"><button class="btn btnsm" onclick="bAgregarProducto()">+ Producto</button><button class="btn btnp btnsm" onclick="alert('Precios actualizados ✓')">💾 Guardar precios</button></div>`;
   document.getElementById('b-precios').innerHTML=h;
 }
 function bLoadCajas(){
@@ -702,7 +847,7 @@ function bLoadStaff(){
   h+=`<div class="card"><div class="ctitle">Personal del evento</div>`;
   if(!st.length){h+='<div class="empty">Sin staff cargado para este evento.</div>';}
   else{h+=`<table><thead><tr><th>Nombre</th><th>Rol</th><th>Horario</th><th>Monto</th><th>Método</th><th>Estado</th></tr></thead><tbody>`;st.forEach(s=>{h+=`<tr><td style="font-weight:500">${s.n}</td><td><span class="badge binfo" style="font-size:10px">${s.rol}</span></td><td>${s.ent}–${s.sal}</td><td>${fmt(s.monto)}</td><td>${s.met}</td><td><span class="badge ${s.pag?'bok':'bwarn'}">${s.pag?'Pagado':'Pendiente'}</span></td></tr>`;});h+=`</tbody></table>`;}
-  h+=`</div>`;
+  h+=`<div style="display:flex;justify-content:flex-end;margin-top:.75rem"><button class="btn btnp btnsm" onclick="bAgregarStaff()">+ Agregar personal</button></div></div>`;
   document.getElementById('b-staff').innerHTML=h;
 }
 function bLoadCompra(){
@@ -720,25 +865,42 @@ function bLoadCompra(){
 // ADMIN FIN
 // ═══════════════════════════════════════════════════════════
 function pgAdminFin(){
-  const ev=gEv();const gs=GASTOS_EV[ev];
-  const total=gs.reduce((a,g)=>a+g.m,0);const pag=gs.filter(g=>g.e==='pagado').reduce((a,g)=>a+g.m,0);
-  const ap=gs.filter(g=>g.e==='aprobacion');const pend=gs.filter(g=>g.e==='pendiente');
-  let h=`<div class="ptitle">📋 Administración</div><div class="psub">${EVENTOS[ev].nombre}</div>
-  <div class="mg"><div class="met"><div class="ml">Total gastos</div><div class="mv">${fmt(total)}</div></div><div class="met"><div class="ml">Pagado</div><div class="mv pos">${fmt(pag)}</div></div><div class="met"><div class="ml">Pendiente de pago</div><div class="mv neg">${fmt(total-pag)}</div></div><div class="met"><div class="ml">En aprobación</div><div class="mv ${ap.length?'neg':''}">${ap.length}</div></div></div>
-  ${makeTabs('af',[{id:'gastos',l:'Gastos'},{id:'aprob',l:'Aprobaciones'}],'gastos')}`;
-  // gastos tab
-  let hg=`<div style="display:flex;justify-content:flex-end;margin-bottom:.5rem"><button class="btn btnp btnsm" onclick="afAddGasto()">+ Gasto</button></div>`;
-  hg+=`<div class="card"><div class="ctitle">Lista de gastos</div><table><thead><tr><th>Descripción</th><th>Rubro</th><th>Monto</th><th>Archivo</th><th>Estado</th><th></th></tr></thead><tbody>`;
-  gs.forEach((g,i)=>{hg+=`<tr><td style="font-weight:500">${g.d}</td><td><span class="tag">${g.r}</span></td><td class="${g.e==='pagado'?'pos':'neg'}">${fmt(g.m)}</td><td>${g.a?`<span class="badge binfo" style="font-size:10px">${g.a}</span>`:'—'}</td><td><span class="badge ${g.e==='pagado'?'bok':g.e==='aprobacion'?'bwarn':'bdanger'}">${g.e==='pagado'?'Pagado':g.e==='aprobacion'?'Aprobación':'Pendiente'}</span></td><td>${g.e!=='pagado'?`<button class="btn btnsm" onclick="GASTOS_EV[gEv()][${i}].e='pagado';renderPage('adminfin')">✓ Pagar</button>`:''}</td></tr>`;});
-  hg+=`</tbody></table></div>`;
-  // aprob tab
-  let ha=ap.length?ap.map(g=>`<div class="ai"><div><div style="font-size:13px;font-weight:500">${g.d}</div><div style="font-size:11px;color:var(--text2)">${g.r}</div></div><div style="display:flex;align-items:center;gap:8px"><span style="font-weight:500">${fmt(g.m)}</span><button class="btn btnsm btnp" onclick="afAprob('${g.d}')">Aprobar</button><button class="btn btnsm btnd" onclick="afRech('${g.d}')">Rechazar</button></div></div>`).join(''):'<div class="empty">Sin gastos pendientes de aprobación.</div>';
-  h+=`<script>document.getElementById('af-gastos').innerHTML=${JSON.stringify(hg)};document.getElementById('af-aprob').innerHTML=\`<div class="card"><div class="ctitle">Esperando aprobación del CEO</div>${ha}</div>\`;<\/script>`;
-  return h;
+  const ev=gEv();
+  if(!EVENTOS.length||ev>=EVENTOS.length)return`<div class="ptitle">📋 Administración</div><div class="empty" style="margin-top:2rem">Creá un evento primero.</div>`;
+  const gs=GASTOS_EV[ev]||[];
+  const total=gs.reduce((a,g)=>a+g.m,0);
+  const pag=gs.filter(g=>g.e==='pagado').reduce((a,g)=>a+g.m,0);
+  const ap=gs.filter(g=>g.e==='aprobacion');
+  return`<div class="ptitle">📋 Administración</div><div class="psub">${EVENTOS[ev].nombre}</div>
+  <div class="mg"><div class="met"><div class="ml">Total gastos</div><div class="mv">${fmt(total)}</div></div><div class="met"><div class="ml">Pagado</div><div class="mv pos">${fmt(pag)}</div></div><div class="met"><div class="ml">Pendiente</div><div class="mv neg">${fmt(total-pag)}</div></div><div class="met"><div class="ml">En aprobación</div><div class="mv ${ap.length?'neg':''}">${ap.length}</div></div></div>
+  <div class="tnav"><button class="tbtn active" onclick="afLoadGastos()">Gastos</button><button class="tbtn" onclick="afLoadAprob()">Aprobaciones</button></div>
+  <div id="af-gastos-target"></div>
+  <div id="af-aprob-target"></div>\`;
 }
-function afAddGasto(){const d=prompt('Descripción:');if(!d)return;const m=parseFloat(prompt('Monto:')||0);if(!m)return;GASTOS_EV[gEv()].push({d,r:'Otros gastos',m,e:'pendiente',a:''});renderPage('adminfin');}
-function afAprob(d){const g=GASTOS_EV[gEv()].find(x=>x.d===d&&x.e==='aprobacion');if(g)g.e='pendiente';if(window._fbOK)window.fbSave.gastos?.(gEv());renderPage('adminfin');}
-function afRech(d){const ev=gEv();const i=GASTOS_EV[ev].findIndex(x=>x.d===d&&x.e==='aprobacion');if(i>=0)GASTOS_EV[ev].splice(i,1);if(window._fbOK)window.fbSave.gastos?.(ev);renderPage('adminfin');}
+function initAdminFin(){
+  afLoadGastos();afLoadAprob();
+}
+function afLoadGastos(){
+  const el=document.getElementById('af-gastos-target');if(!el)return;
+  const ev=gEv();const gs=GASTOS_EV[ev]||[];
+  let h=`<div style="display:flex;justify-content:flex-end;margin-bottom:.5rem"><button class="btn btnp btnsm" onclick="afAddGasto()">+ Agregar gasto</button></div>`;
+  h+=`<div class="card"><div class="ctitle">Lista de gastos</div>`;
+  if(!gs.length)h+='<div class="empty">Sin gastos cargados.</div>';
+  else{h+=`<table><thead><tr><th>Descripción</th><th>Rubro</th><th>Monto</th><th>Estado</th><th></th></tr></thead><tbody>`;
+  gs.forEach((g,i)=>{h+=`<tr><td style="font-weight:500">${g.d}</td><td><span class="tag">${g.r}</span></td><td class="${g.e==='pagado'?'pos':'neg'}">${fmt(g.m)}</td><td><span class="badge ${g.e==='pagado'?'bok':g.e==='aprobacion'?'bwarn':'bdanger'}">${g.e==='pagado'?'Pagado':g.e==='aprobacion'?'Aprobación':'Pendiente'}</span></td><td><div style="display:flex;gap:4px">${g.e!=='pagado'?`<button class="btn btnsm" onclick="afPagarGasto(${i})">✓ Pagar</button>`:''}<button class="btn btnsm btnd" onclick="afBorrarGasto(${i})">✕</button></div></td></tr>`;});
+  h+=`</tbody></table>`;}
+  h+=`</div>`;el.innerHTML=h;
+}
+function afLoadAprob(){
+  const el=document.getElementById('af-aprob-target');if(!el)return;
+  const ev=gEv();const ap=(GASTOS_EV[ev]||[]).filter(g=>g.e==='aprobacion');
+  let h=`<div class="card"><div class="ctitle">Esperando aprobación CEO</div>`;
+  if(!ap.length)h+='<div class="empty">Sin gastos en aprobación.</div>';
+  else ap.forEach(g=>{h+=`<div class="ai"><div><div style="font-size:13px;font-weight:500">${g.d}</div><div style="font-size:11px;color:var(--text2)">${g.r}</div></div><div style="display:flex;align-items:center;gap:8px"><span style="font-weight:500">${fmt(g.m)}</span><button class="btn btnsm btnp" onclick="afAprob('${g.d}')">Aprobar</button><button class="btn btnsm btnd" onclick="afRech('${g.d}')">Rechazar</button></div></div>`;});
+  h+=`</div>`;el.innerHTML=h;
+}
+function afPagarGasto(i){GASTOS_EV[gEv()][i].e='pagado';if(window._fbOK)window.fbSave.gastos?.(gEv());afLoadGastos();afLoadAprob();}
+function afBorrarGasto(i){if(!confirm('¿Eliminar este gasto?'))return;GASTOS_EV[gEv()].splice(i,1);if(window._fbOK)window.fbSave.gastos?.(gEv());afLoadGastos();}
 
 // ═══════════════════════════════════════════════════════════
 // LIDER PUBLICAS
@@ -827,15 +989,30 @@ function saveAct(){
   ACT_EV[ev][actTarget]={stories:parseInt(document.getElementById('ma-st').value)||0,reels:parseInt(document.getElementById('ma-re').value)||0,tiktok:parseInt(document.getElementById('ma-tt').value)||0,inv:parseInt(document.getElementById('ma-inv').value)||0,ing:parseInt(document.getElementById('ma-ing').value)||0,actitud:document.getElementById('ma-act').value,obs:document.getElementById('ma-obs').value};
   document.getElementById('m-act').style.display='none';initLider();
 }
-function lpAddPublica(){const n=prompt('Nombre:');if(!n)return;PUBLICAS.push({id:++npid,n,ig:'@nuevo',tel:'',tipo:'comun',com:0,activo:true,obs:'',camps:0});initLider();}
+function lpAddPublica(){document.getElementById('m-nueva-publica').style.display='flex';}
+function lpSavePublica(){
+  const n=document.getElementById('np-nombre').value.trim();if(!n){alert('Ingresá el nombre.');return;}
+  PUBLICAS.push({
+    id:++npid,n,
+    ig:document.getElementById('np-ig').value.trim()||'@nuevo',
+    tel:document.getElementById('np-tel').value.trim(),
+    tipo:document.getElementById('np-tipo').value,
+    com:parseFloat(document.getElementById('np-com').value)||0,
+    activo:true,obs:document.getElementById('np-obs').value.trim(),camps:0
+  });
+  document.getElementById('m-nueva-publica').style.display='none';
+  if(window._fbOK)window.fbSave.publicas?.();
+  initLider();
+}
 
 // ═══════════════════════════════════════════════════════════
 // PUBLICAS
 // ═══════════════════════════════════════════════════════════
 function pgPublicas(){
+  if(!EVENTOS.length||gEv()>=EVENTOS.length)return`<div class="ptitle">📸 Módulo de Públicas</div><div class="empty" style="margin-top:2rem">Creá un evento primero.</div>`;
   const ev=gEv();const cfg=EVENTOS[ev];
   const stats=PUBLICAS.filter(p=>p.activo).map(p=>({p,a:getAct(ev,p.id)})).sort((a,b)=>tpubs(b.a)-tpubs(a.a));
-  let h=`<div class="ptitle">📸 Módulo de Públicas</div><div class="psub">${EVENTOS[ev].nombre}</div>`;
+  let h=`<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:1.5rem"><div><div class="ptitle">📸 Módulo de Públicas</div><div class="psub">${EVENTOS[ev].nombre}</div></div><button class="btn btnp btnsm" onclick="lpAddPublica()">+ Nueva pública</button></div>`;
   h+=`<div class="mg"><div class="met"><div class="ml">Equipo activo</div><div class="mv">${stats.length}</div></div><div class="met"><div class="ml">Total publicaciones</div><div class="mv">${stats.reduce((a,s)=>a+tpubs(s.a),0)}</div></div><div class="met"><div class="ml">Entradas vendidas</div><div class="mv">${PUB_LOGS[ev].reduce((a,l)=>a+l.ent,0)}</div></div></div>`;
   h+=`<div class="card"><div class="ctitle">Equipo</div>`;
   stats.forEach(({p,a},i)=>{const tp=tpubs(a);const ok=tp>=cfg.minPubs;h+=`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><div class="av" style="${avs(i)}">${ini(p.n)}</div><div style="flex:1"><div style="font-size:13px;font-weight:500">${p.n} <span class="badge ${p.tipo==='vip'?'bvip':'bgray'}" style="font-size:10px">${p.tipo==='vip'?'VIP':'Común'}</span></div><div style="font-size:11px;color:var(--text2)">${p.ig} · ${tp} publicaciones · ${a.inv} invitados</div></div><span class="badge ${ok?'bok':'bdanger'}">${ok?'✓':'Falta '+(cfg.minPubs-tp)}</span><button class="btn btnsm" onclick="pubOpenModal(${p.id})">+ Pub</button></div>`;});
@@ -874,7 +1051,7 @@ function buildCal(containerId){
   const mN=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   const dN=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
   const firstDay=new Date(calYear,calMonth,1);const lastDay=new Date(calYear,calMonth+1,0);
-  const pe=[{fecha:'2025-03-15',nombre:EVENTOS[0].nombre},{fecha:'2025-03-22',nombre:EVENTOS[1].nombre},{fecha:'2025-04-05',nombre:EVENTOS[2].nombre}].filter(e=>diffDias(e.fecha)>=0).sort((a,b)=>diffDias(a.fecha)-diffDias(b.fecha))[0];
+  const pe=EVENTOS.filter(e=>e.fecha&&diffDias(e.fecha)>=0).sort((a,b)=>diffDias(a.fecha)-diffDias(b.fecha))[0];
   let h='';
   if(pe)h+=`<div class="cdbox"><div><div style="font-size:11px;color:var(--text3)">Próximo evento</div><div style="font-size:13px;font-weight:500">${pe.nombre}</div></div><div style="text-align:right"><div class="cdval">${diffDias(pe.fecha)}</div><div style="font-size:11px;color:var(--text3)">días</div></div></div>`;
   h+=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem"><button class="calnav" onclick="calGo(-1,'${containerId}')">‹</button><span style="font-size:14px;font-weight:500">${mN[calMonth]} ${calYear}</span><button class="calnav" onclick="calGo(1,'${containerId}')">›</button></div>`;
@@ -884,7 +1061,7 @@ function buildCal(containerId){
   for(let i=0;i<firstDay.getDay();i++)cells.push(null);
   for(let d=1;d<=lastDay.getDate();d++)cells.push(new Date(calYear,calMonth,d));
   while(cells.length%7!==0)cells.push(null);
-  const evDates=['2025-03-15','2025-03-22','2025-04-05'];
+  const evDates=EVENTOS.filter(e=>e.fecha).map(e=>e.fecha);
   cells.forEach(cell=>{
     if(!cell){h+=`<div class="calday otherm"></div>`;return;}
     const ds=dateStr(cell);const isHoy=ds===dateStr(HOY);const isEv=evDates.includes(ds);
@@ -902,15 +1079,21 @@ function buildCal(containerId){
 }
 function calGo(dir,containerId){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}else if(calMonth<0){calMonth=11;calYear--;}buildCal(containerId);}
 function calClickDay(ds){
+  // Mostrar modal de día con contenido + opciones de agregar
+  document.getElementById('m-cal-day').style.display='flex';
+  document.getElementById('m-cal-day-fecha').textContent=ds;
   const postsDay=POSTS.filter(p=>p.fecha===ds).sort((a,b)=>a.hora.localeCompare(b.hora));
   const tasksDay=TASKS.filter(t=>t.fecha===ds);
-  const evDay=['2025-03-15','2025-03-22','2025-04-05'].find(e=>e===ds);
-  let msg=`📅 ${ds}\n\n`;
-  if(evDay)msg+=`🎉 DÍA DE EVENTO\n\n`;
-  if(postsDay.length){msg+=`PUBLICACIONES (${postsDay.length}):\n`;postsDay.forEach(p=>msg+=`· ${p.hora}hs [${RED_LABEL[p.red]}] ${p.tipo}: ${p.desc}\n`);}
-  if(tasksDay.length){msg+=`\nTAREAS (${tasksDay.length}):\n`;tasksDay.forEach(t=>msg+=`· ${t.titulo} (${t.area})\n`);}
-  if(!postsDay.length&&!tasksDay.length&&!evDay)msg+='Sin contenido programado para este día.';
-  alert(msg);
+  const evDay=EVENTOS.find(e=>e.fecha===ds);
+  let h='';
+  if(evDay) h+=`<div class="abox agreen"><div class="sem semg"></div><div><strong>🎉 Evento: ${evDay.nombre}</strong></div></div>`;
+  if(postsDay.length){h+=`<div class="ctitle" style="margin-top:.5rem">Publicaciones (${postsDay.length})</div>`;postsDay.forEach(p=>{h+=`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)"><span class="badge bgray" style="font-size:10px">${RED_LABEL[p.red]}</span><div style="flex:1;font-size:12px">${p.tipo}: ${p.desc}</div><span style="font-size:11px;color:var(--text2)">${p.hora}</span><button class="btn btnsm btnd" onclick="POSTS=POSTS.filter(x=>x.id!==${p.id});if(window._fbOK)window.fbSave.posts?.();calClickDay('${ds}');buildCal(document.querySelector('.calgrid')?'cm-calendario':'bm-calendario')">✕</button></div>`;}); }
+  if(tasksDay.length){h+=`<div class="ctitle" style="margin-top:.5rem">Tareas (${tasksDay.length})</div>`;tasksDay.forEach(t=>{h+=`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)"><div style="flex:1;font-size:12px">${t.titulo} <span style="color:var(--text2)">(${t.area})</span></div><button class="btn btnsm btnd" onclick="TASKS=TASKS.filter(x=>x.id!==${t.id});if(window._fbOK)window.fbSave.tasks?.();calClickDay('${ds}')">✕</button></div>`;}); }
+  if(!postsDay.length&&!tasksDay.length&&!evDay) h+='<div class="empty" style="padding:1rem">Sin contenido este día.</div>';
+  document.getElementById('m-cal-day-content').innerHTML=h;
+  // Set date in add modals
+  document.getElementById('mpost-f').value=ds;
+  document.getElementById('mt-fecha').value=ds;
 }
 function cmLoadLista(){
   const el=document.getElementById('cm-lista');if(!el)return;
@@ -1029,7 +1212,7 @@ function renderMsgs(){
   const me=CU?.chatName||'Anónimo';
   el.innerHTML=msgs.map(m=>{
     const isMe=m.u===me;const idx=USERS.findIndex(u=>u.chatName===m.u);const col=idx>=0?AVC[idx%8]:'#888';const photo=idx>=0?USERS[idx].photo:'';
-    return`<div class="msg ${isMe?'mine':''}"><div class="msg-av" style="background:${col}22;color:${col};overflow:hidden">${photo?`<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:ini(m.u)}</div><div>${!isMe?`<div style="font-size:11px;color:var(--text3);margin-bottom:2px">${m.u}</div>`:''}<div class="msg-bub">${m.t}</div><div class="msg-meta">${m.ts}hs</div></div></div>`;
+    return`<div class="msg ${isMe?'mine':'other'}"><div class="msg-av" style="background:${col}22;color:${col}">${photo?`<img src="${photo}" style="width:100%;height:100%;object-fit:cover">`:ini(m.u)}</div><div class="msg-body">${!isMe?`<div class="msg-sender">${m.u}</div>`:''}<div class="msg-bub">${m.t}</div><div class="msg-meta">${m.ts}hs</div></div></div>`;
   }).join('');
   el.scrollTop=el.scrollHeight;
 }
@@ -1090,7 +1273,20 @@ function saveProv(){
   if(window._fbOK)window.fbSave.provs?.();
   renderPage('proveedores');
 }
-function delProv(id){if(!confirm('¿Eliminar este proveedor?'))return;PROVEEDORES=PROVEEDORES.filter(p=>p.id!==id);if(window._fbOK)window.fbSave.provs?.();renderPage('proveedores');}
+function delProv(id){
+  const p=PROVEEDORES.find(x=>x.id===id);
+  if(!p)return;
+  document.getElementById('m-del-prov-nombre').textContent=p.n;
+  document.getElementById('m-del-prov-id').value=id;
+  document.getElementById('m-del-prov').style.display='flex';
+}
+function confirmDelProv(){
+  const id=parseInt(document.getElementById('m-del-prov-id').value);
+  PROVEEDORES=PROVEEDORES.filter(p=>p.id!==id);
+  if(window._fbOK)window.fbSave.provs?.();
+  document.getElementById('m-del-prov').style.display='none';
+  renderPage('proveedores');
+}
 
 // ═══════════════════════════════════════════════════════════
 // KPI — sin scripts embebidos
@@ -1194,9 +1390,10 @@ function addUser(){
   const r=document.getElementById('nu-r')?.value;
   if(!u||!p){document.getElementById('u-msg').innerHTML='<span style="color:var(--red)">Completá usuario y contraseña.</span>';return;}
   if(USERS.find(x=>x.user===u)){document.getElementById('u-msg').innerHTML='<span style="color:var(--red)">Ya existe.</span>';return;}
-  USERS.push({user:u,pass:p,role:r,chatName:cn,photo:'',bio:'',instagram:'',telefono:'',pages:['boom','chat','perfil']});
-  document.getElementById('u-msg').innerHTML='<span style="color:var(--green)">Usuario agregado. Asigná los módulos con el botón "Módulos".</span>';
+  const email=u.toLowerCase()+'@boom.app';
+  USERS.push({user:u,role:r,chatName:cn,photo:'',bio:'',instagram:'',telefono:'',pages:['boom','chat','perfil']});
   if(window._fbOK)window.fbSave.users?.();
+  document.getElementById('u-msg').innerHTML=`<span style="color:var(--green)">✓ Usuario guardado en la app.</span><br><span style="color:var(--yellow)">⚠️ Paso obligatorio: crealo también en <a href="https://console.firebase.google.com/project/boom-producciones/authentication/users" target="_blank" style="color:var(--accent)">Firebase Console</a> con email <b>${email}</b> y contraseña <b>${p}</b></span>`;
   renderPage('usuarios');
 }
 function delUser(i){if(!confirm(`¿Eliminar usuario ${USERS[i].user}?`))return;USERS.splice(i,1);renderPage('usuarios');}
@@ -1285,16 +1482,23 @@ function saveProfile(){
   document.getElementById('prof-msg').innerHTML='<span style="color:var(--green)">Perfil guardado correctamente.</span>';
   if(window._fbOK)window.fbSave.users?.();
 }
-function savePassword(){
+async function savePassword(){
   const old=document.getElementById('prof-pass-old').value;
   const nw=document.getElementById('prof-pass-new').value;
   const conf=document.getElementById('prof-pass-conf').value;
   const msg=document.getElementById('prof-pass-msg');
-  if(old!==CU.pass){msg.innerHTML='<span style="color:var(--red)">La contraseña actual no es correcta.</span>';return;}
   if(!nw||nw.length<6){msg.innerHTML='<span style="color:var(--red)">La nueva contraseña debe tener al menos 6 caracteres.</span>';return;}
   if(nw!==conf){msg.innerHTML='<span style="color:var(--red)">Las contraseñas no coinciden.</span>';return;}
-  CU.pass=nw;msg.innerHTML='<span style="color:var(--green)">Contraseña actualizada correctamente.</span>';
-  document.getElementById('prof-pass-old').value='';document.getElementById('prof-pass-new').value='';document.getElementById('prof-pass-conf').value='';
+  try{
+    const user=firebase.auth().currentUser;
+    const cred=firebase.auth.EmailAuthProvider.credential(user.email,old);
+    await user.reauthenticateWithCredential(cred);
+    await user.updatePassword(nw);
+    msg.innerHTML='<span style="color:var(--green)">Contraseña actualizada correctamente.</span>';
+    ['prof-pass-old','prof-pass-new','prof-pass-conf'].forEach(id=>document.getElementById(id).value='');
+  }catch(e){
+    msg.innerHTML='<span style="color:var(--red)">Contraseña actual incorrecta o sesión expirada.</span>';
+  }
 }
 function updateTopbarAvatar(){
   const btn=document.getElementById('tav-btn');if(!btn)return;
@@ -1309,6 +1513,7 @@ document.getElementById('l-pass').addEventListener('keydown',e=>{if(e.key==='Ent
 
 <!-- FIREBASE SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script>
 try {
@@ -1320,6 +1525,7 @@ try {
     messagingSenderId:"53907802659",
     appId:"1:53907802659:web:4c66eeb1eaed087e467f96"
   });
+  const _auth = firebase.auth();
   const _db = firebase.firestore();
   window._fbOK = true;
 
@@ -1343,6 +1549,7 @@ try {
     staff:   ev => fbSet('staff',  'ev'+ev, {items:STAFF_EV[ev]}),
     benef:   ev => fbSet('beneficios','ev'+ev,BENEF_EV[ev]||{}),
     provs:   ()  => fbSet('proveedores','lista',{items:PROVEEDORES}),
+    eventos: ()  => fbSet('eventos','lista',{items:EVENTOS,evFin:EV_FIN}),
   };
 
   // LOAD
@@ -1363,6 +1570,12 @@ try {
     for(let ev=0;ev<3;ev++){const d=await fbGet('staff','ev'+ev);if(d?.items)STAFF_EV[ev]=d.items;}
     for(let ev=0;ev<3;ev++){const d=await fbGet('beneficios','ev'+ev);if(d)BENEF_EV[ev]=d;}
     const prov=await fbGet('proveedores','lista');if(prov?.items)PROVEEDORES=prov.items;
+    const evs=await fbGet('eventos','lista');
+    if(evs?.items&&evs.items.length>0){
+      EVENTOS=evs.items;
+      if(evs.evFin)EV_FIN=evs.evFin;
+      ensureEvArrays();
+    }
     const users=await fbGet('config','users');if(users?.items)USERS=users.items;
     // Chat tiempo real
     Object.keys(CHAT_DATA).forEach(ch=>{
@@ -1370,8 +1583,35 @@ try {
         if(data?.msgs){CHAT_DATA[ch].msgs=data.msgs;if(typeof renderMsgs==='function'&&curCh===ch)renderMsgs();}
       });
     });
+    syncTopbarEventos();
     console.log('Firebase OK');
   };
+
+  // ═══ SESIÓN PERSISTENTE ═══
+  _auth.onAuthStateChanged(async function(fbUser){
+    if(fbUser){
+      const username=fbUser.email.replace('@boom.app','').toUpperCase();
+      // Cargar usuarios desde Firestore para obtener roles y módulos
+      const usersData=await fbGet('config','users');
+      if(usersData?.items)USERS=usersData.items;
+      const f=USERS.find(x=>x.user===username);
+      if(!f){await _auth.signOut();return;}
+      CU=f;
+      document.getElementById('login').style.display='none';
+      document.getElementById('app').style.display='flex';
+      document.getElementById('t-role').textContent=f.role;
+      updateTopbarAvatar();
+      syncTopbarEventos();buildSidebar();buildMobileNav();
+      await window.fbLoad();
+      navigate(CU.pages[0]);
+    }else{
+      CU=null;
+      document.getElementById('login').style.display='flex';
+      document.getElementById('app').style.display='none';
+      const btn=document.querySelector('.lbtn');
+      if(btn){btn.textContent='Ingresar';btn.disabled=false;}
+    }
+  });
 
 } catch(e) {
   console.warn('Firebase no disponible, usando datos locales:', e.message);
