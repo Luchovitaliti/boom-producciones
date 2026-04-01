@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BOOM Producciones</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+
+<!-- MODALS -->
+
+<div id="m-ev" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal"><div class="mtitle" id="m-ev-ttl">Nuevo evento</div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Nombre del evento</span><input type="text" id="ev-nombre" style="width:100%" placeholder="Ej: Sunset Valle de Uco - 12 Abr"></div>
+  <div class="fr">
+    <div class="fc" style="flex:1"><span class="fl">Fecha</span><input type="date" id="ev-fecha" style="width:100%"></div>
+    <div class="fc"><span class="fl">Precio entrada</span><input type="number" id="ev-precio" style="width:120px" placeholder="0"></div>
+  </div>
+  <div class="fr">
+    <div class="fc"><span class="fl">Mín. publicaciones</span><input type="number" id="ev-minpubs" style="width:110px" value="8" min="0"></div>
+    <div class="fc" style="flex:1"><span class="fl">Venue / Lugar</span><input type="text" id="ev-venue" style="width:100%" placeholder="Ej: Finca El Alambique"></div>
+  </div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Descripción / Notas</span><textarea id="ev-desc" placeholder="Notas del evento..."></textarea></div>
+  <div class="mrow"><button class="btn btnp" style="flex:1" onclick="saveEvento()">Guardar</button><button class="btn" style="flex:1" onclick="document.getElementById('m-ev').style.display='none'">Cancelar</button></div></div>
+</div>
+
+<div id="m-cat" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal"><div class="mtitle" id="mc-ttl">Agregar opción</div>
+  <input type="text" id="mc-inp" style="width:100%" placeholder="Nueva opción...">
+  <div class="mrow"><button class="btn btnp" style="flex:1" onclick="confirmCat()">Agregar</button><button class="btn" style="flex:1" onclick="document.getElementById('m-cat').style.display='none'">Cancelar</button></div></div>
+</div>
+
+<div id="m-pub" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal"><div class="mtitle" id="m-pub-ttl">Registrar publicación</div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Tipo</span><select id="m-pub-tipo" style="width:100%"><option>Story de Instagram</option><option>Reel/video</option><option>TikTok</option></select></div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Descripción</span><input type="text" id="m-pub-desc" style="width:100%" placeholder="Ej: Story cuenta regresiva"></div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Entradas vendidas</span><input type="number" id="m-pub-ent" style="width:90px" placeholder="0"></div>
+  <div class="mrow"><button class="btn btnp" style="flex:1" onclick="confirmPub()">Registrar</button><button class="btn" style="flex:1" onclick="document.getElementById('m-pub').style.display='none'">Cancelar</button></div></div>
+</div>
+
+<div id="m-post" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal"><div class="mtitle">Nueva publicación CM</div>
+  <div class="fr"><div class="fc" style="flex:1"><span class="fl">Fecha</span><input type="date" id="mpost-f" style="width:100%"></div><div class="fc"><span class="fl">Hora</span><input type="time" id="mpost-h" style="width:100px" value="10:00"></div></div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Red social</span>
+    <select id="mpost-red" style="width:100%"><option value="ig_feed">Instagram feed</option><option value="ig_story">Instagram story</option><option value="reel">Reel</option><option value="tiktok">TikTok</option><option value="facebook">Facebook</option></select></div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Tipo de contenido</span>
+    <select id="mpost-tipo" style="width:100%"><option>Lanzamiento del evento</option><option>Cuenta regresiva</option><option>Recordatorio de tickets</option><option>Anuncio venta de entradas</option><option>Contenido dinámico</option><option>Post día del evento</option><option>Post post-evento</option><option>Fotos del evento</option><option>Video del evento</option><option>Otro</option></select></div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Copy / descripción</span><textarea id="mpost-desc" placeholder="Descripción del contenido..."></textarea></div>
+  <div class="mrow"><button class="btn btnp" style="flex:1" onclick="savePost()">Guardar</button><button class="btn" style="flex:1" onclick="document.getElementById('m-post').style.display='none'">Cancelar</button></div></div>
+</div>
+
+<div id="m-task" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal"><div class="mtitle">Nueva tarea</div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Título</span><input type="text" id="mt-titulo" style="width:100%" placeholder="Ej: Diseñar flyer lanzamiento"></div>
+  <div class="fr"><div class="fc" style="flex:1"><span class="fl">Fecha límite</span><input type="date" id="mt-fecha" style="width:100%"></div><div class="fc"><span class="fl">Hora</span><input type="time" id="mt-hora" style="width:100px" value="09:00"></div></div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Avisar con</span>
+    <select id="mt-aviso" style="width:100%"><option value="120">2 horas antes</option><option value="720">12 horas antes</option><option value="1440" selected>1 día antes</option><option value="2880">2 días antes</option></select></div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Área responsable</span>
+    <select id="mt-area" style="width:100%"><option>CM</option><option>Diseño</option><option>Barra</option><option>Públicas</option><option>Habilitaciones</option><option>Producción</option><option>Todos</option></select></div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Visibilidad</span>
+    <select id="mt-vis" style="width:100%"><option value="todos">Todos</option><option value="cm">Solo CM</option></select></div>
+  <div class="mrow"><button class="btn btnp" style="flex:1" onclick="saveTask()">Guardar</button><button class="btn" style="flex:1" onclick="document.getElementById('m-task').style.display='none'">Cancelar</button></div></div>
+</div>
+
+<div id="m-idea" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal"><div class="mtitle">Nueva idea</div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Idea</span><textarea id="mi-txt" placeholder="Describí tu idea..."></textarea></div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Categoría</span><select id="mi-cat" style="width:100%"><option>Contenido</option><option>Evento</option><option>Barra</option><option>Públicas</option><option>Marketing</option><option>Experiencia</option><option>Otro</option></select></div>
+  <div class="mrow"><button class="btn btnp" style="flex:1" onclick="saveIdea()">Publicar</button><button class="btn" style="flex:1" onclick="document.getElementById('m-idea').style.display='none'">Cancelar</button></div></div>
+</div>
+
+<div id="m-prov" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal"><div class="mtitle" id="m-prov-ttl">Proveedor</div>
+  <div class="fr"><div class="fc" style="flex:2;min-width:130px"><span class="fl">Nombre / Empresa</span><input type="text" id="pv-n" style="width:100%"></div>
+  <div class="fc"><span class="fl">Categoría</span><select id="pv-cat" style="width:130px"><option>Sonido</option><option>Iluminación</option><option>DJ / Artista</option><option>Seguridad</option><option>Imprenta</option><option>Diseño</option><option>Fotografía</option><option>Catering</option><option>Venue</option><option>Otro</option></select></div></div>
+  <div class="fr"><div class="fc"><span class="fl">Contacto</span><input type="text" id="pv-cont" style="width:130px"></div><div class="fc"><span class="fl">Teléfono</span><input type="text" id="pv-tel" style="width:130px"></div></div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Calificación</span><select id="pv-cal" style="width:120px"><option value="5">★★★★★</option><option value="4">★★★★</option><option value="3">★★★</option><option value="2">★★</option><option value="1">★</option></select></div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Observaciones</span><textarea id="pv-obs" style="min-height:50px" placeholder="Notas..."></textarea></div>
+  <div class="mrow"><button class="btn btnp" style="flex:1" onclick="saveProv()">Guardar</button><button class="btn" style="flex:1" onclick="document.getElementById('m-prov').style.display='none'">Cancelar</button></div></div>
+</div>
+
+<div id="m-act" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal"><div class="mtitle" id="m-act-ttl">Cargar actividad</div>
+  <div class="fr"><div class="fc"><span class="fl">Stories</span><input type="number" id="ma-st" min="0" style="width:75px" placeholder="0"></div>
+  <div class="fc"><span class="fl">Reels</span><input type="number" id="ma-re" min="0" style="width:75px" placeholder="0"></div>
+  <div class="fc"><span class="fl">TikToks</span><input type="number" id="ma-tt" min="0" style="width:75px" placeholder="0"></div></div>
+  <div class="fr"><div class="fc"><span class="fl">Invitados</span><input type="number" id="ma-inv" min="0" style="width:75px" placeholder="0"></div>
+  <div class="fc"><span class="fl">Ingresaron</span><input type="number" id="ma-ing" min="0" style="width:75px" placeholder="0"></div>
+  <div class="fc"><span class="fl">Actitud</span><select id="ma-act" style="width:100px"><option value="alta">Alta 🔥</option><option value="media">Media ⚡</option><option value="baja">Baja 🟡</option></select></div></div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Observaciones</span><textarea id="ma-obs" style="min-height:50px" placeholder="Notas..."></textarea></div>
+  <div class="mrow"><button class="btn btnp" style="flex:1" onclick="saveAct()">Guardar</button><button class="btn" style="flex:1" onclick="document.getElementById('m-act').style.display='none'">Cancelar</button></div></div>
+</div>
+
+<div id="m-usr" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal"><div class="mtitle" id="m-usr-ttl">Gestionar módulos</div>
+  <div id="m-usr-body"></div>
+  <div class="mrow"><button class="btn btnp" style="flex:1" onclick="saveUserMods()">Guardar</button><button class="btn" style="flex:1" onclick="document.getElementById('m-usr').style.display='none'">Cancelar</button></div></div>
+</div>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="lbox">
+    <div class="lbrand"><div class="logo-login-wrap"><img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iQ2FwYV8yIiBkYXRhLW5hbWU9IkNhcGEgMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2aWV3Qm94PSIwIDAgNzg5LjEyIDEwMzcuNTMiPgogIDxkZWZzPgogICAgPHN0eWxlPgogICAgICAuY2xzLTEgewogICAgICAgIGZpbGw6ICNmZmZmZmY7CiAgICAgIH0KCiAgICAgIC5jbHMtMiB7CiAgICAgICAgZmlsbDogIzk1YzExZjsKICAgICAgfQoKICAgICAgLmNscy0zIHsKICAgICAgICBmaWxsOiAjM2FhYTM1OwogICAgICB9CiAgICA8L3N0eWxlPgogIDwvZGVmcz4KICA8ZyBpZD0iQ2FwYV8xLTIiIGRhdGEtbmFtZT0iQ2FwYSAxIj4KICAgIDxnPgogICAgICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0zOTQuNTYsMTAzNy41M2MtNTMuMjUsMC0xMDQuOTMtMTAuNDQtMTUzLjU5LTMxLjAyLTQ2Ljk5LTE5Ljg3LTg5LjE4LTQ4LjMyLTEyNS40MS04NC41NS0zNi4yMy0zNi4yMy02NC42Ny03OC40Mi04NC41NS0xMjUuNDFDMTAuNDQsNzQ3Ljg5LDAsNjk2LjIyLDAsNjQyLjk3YzAtOTMuMzMsMzMuMTktMTgzLjg4LDkzLjQ0LTI1NC45Nyw1OS41NS03MC4yNiwxNDIuMDQtMTE3LjcsMjMyLjI2LTEzMy41OCw0NS4wMy03Ljk0LDkyLjMyLTcuOTcsMTM3LjMzLS4wNiw5MC4zLDE1LjgsMTcyLjg5LDYzLjIxLDIzMi41MiwxMzMuNSw2MC4zNCw3MS4xMiw5My41NywxNjEuNzIsOTMuNTcsMjU1LjEyLDAsNTMuMjUtMTAuNDQsMTA0LjkzLTMxLjAyLDE1My41OS0xOS44Nyw0Ni45OS00OC4zMiw4OS4xOC04NC41NSwxMjUuNDEtMzYuMjMsMzYuMjMtNzguNDIsNjQuNjctMTI1LjQxLDg0LjU1LTQ4LjY2LDIwLjU4LTEwMC4zNCwzMS4wMi0xNTMuNTksMzEuMDJaTTM5NC41NiwzMDAuNjhjLTIwLjA4LDAtNDAuMTksMS43NS01OS43OCw1LjIxLTE2My43LDI4LjgxLTI4Mi41LDE3MC41Ny0yODIuNSwzMzcuMDgsMCwxODguNzQsMTUzLjU1LDM0Mi4zLDM0Mi4yOSwzNDIuM3MzNDIuMy0xNTMuNTUsMzQyLjMtMzQyLjNjMC0xNjYuNjgtMTE4Ljk1LTMwOC40Ni0yODIuODUtMzM3LjEzLTE5LjQ4LTMuNDItMzkuNDgtNS4xNS01OS40NS01LjE1WiIvPgogICAgICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0zMzAuMjMsMzA2LjI4Yy01LjgsMC0xMS40OS0xLjkzLTE2LjEyLTUuNTYtNS44NC00LjU4LTkuNDYtMTEuNDItOS45Ni0xOC44M2wtNS42NC04NC40Yy0uNDgtNy4yMiwyLjA1LTE0LjMxLDYuOTktMTkuNTksNC45NC01LjI4LDExLjg1LTguMjgsMTkuMDktOC4yOGgxMzkuNTVjNy4yMywwLDE0LjE0LDMsMTkuMDksOC4yOCw0Ljk0LDUuMjgsNy40NywxMi4zOCw2Ljk5LDE5LjZsLTUuNjQsODQuMzRjLS41LDcuNC00LjExLDE0LjI0LTkuOTUsMTguODItNS44NCw0LjU4LTEzLjM0LDYuNDYtMjAuNjUsNS4xOC0zOS4wNC02Ljg1LTgwLjE0LTYuODQtMTE5LjIyLjA2LTEuNTEuMjctMy4wMy40LTQuNTQuNFpNMzUyLjUzLDIyMS44OGwxLjkxLDI4LjU1YzI2LjQ5LTIuNjgsNTMuMzgtMi42OSw3OS44Ni0uMDRsMS45MS0yOC41MWgtODMuNjhaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTM4MC4yOCwxODkuMTVjLTEuNDYtNzAuOTcsMTIuMDctMTEyLjY0LDQxLjM2LTEyNy4zOSwxMC4yNS01LjE2LDIwLjQ0LTYuMDEsMjkuNDMtNi43NSwxMC40OC0uODcsMTYuNjItMS41OSwyMS4wNS02LjM1LDYuMDctNi41Miw3LjQ0LTE4LjksNC4wOS0zNi4xMS0xLjItNi4xNCw2LjI3LTEwLjMxLDEyLjMtMTEuOTZoMGM2Ljc3LTEuODUsOS45Ni42NSwxMS4yNyw3LjU0LDQuODUsMjUuMzYsMS40Nyw0NC40Ny0xMC4xLDU2Ljg5LTEwLjk3LDExLjc5LTI0LjYxLDEyLjkyLTM2LjYzLDEzLjkxLTcuNDguNjItMTQuNTQsMS4yMS0yMC42Miw0LjI3LTE5LjY0LDkuODktMjkuMzcsNDYuMzUtMjguMTUsMTA1LjQ2bC0yNCwuNDlaIi8+CiAgICAgIDxnPgogICAgICAgIDxwYXRoIGNsYXNzPSJjbHMtMyIgZD0iTTY5MS40LDU2NS4yMmMxNS41NCw4OS4xOS05NS40MywyNjQuNDgtMjMzLjA4LDY4LjYyLTM5LjU4LTU2LjMyLTExOC4zMS02OC41MS0xNjYuOC0zOS42MS05My4zMyw1NS42Mi0xNTkuMjMsNDMuNjItMTk2LjY2LTE1LjMyLS4xMi0uMDgtLjIzLS4xNi0uMzUtLjI0LTQuNTIsMjAuOTUtNi45Miw0Mi43LTYuOTIsNjUsMCwxNjkuNTQsMTM3LjQ0LDMwNi45NywzMDYuOTcsMzA2Ljk3czMwNi45Ny0xMzcuNDQsMzA2Ljk3LTMwNi45N2MwLTI3LjEyLTMuNTMtNTMuNDEtMTAuMTMtNzguNDVaIi8+CiAgICAgICAgPHBhdGggY2xhc3M9ImNscy0yIiBkPSJNNTYwLjc5LDUyNS4zOGMtMzQuMzksNjAuMDUtNzUuMzQsNzIuNzEtMTI5LjIzLDMwLjAyLTQ3LjQ5LTM3LjYyLTEwMi4wNi0xOS45OC0xNDEuNzMtLjM4LTY0LjY5LDMxLjk2LTEwNy4zOSw4NC4wOS0xOTUuMzMsMjMuNjQsMzcuNDQsNTguOTUsMTAzLjY4LDcxLjE4LDE5Ny4wMSwxNS41Niw0OC40OS0yOC45LDEyNy4yMi0xNi43MSwxNjYuOCwzOS42MSwxMzcuNjUsMTk1Ljg2LDI0OC42MywyMC41NywyMzMuMDgtNjguNjItNS41NC0yMS4wMy0xMy4yNi00MS4xOC0yMi45LTYwLjItMjAuNDctMzYuNTYtNTUuNjMtNjQuMjctMTA3LjcxLDIwLjM2WiIvPgogICAgICAgIDxjaXJjbGUgY2xhc3M9ImNscy0zIiBjeD0iMTcwLjIyIiBjeT0iNTA5IiByPSIxNS44MiIvPgogICAgICAgIDxjaXJjbGUgY2xhc3M9ImNscy0yIiBjeD0iMjcyLjM2IiBjeT0iNDI5Ljg4IiByPSIyNy4zMyIvPgogICAgICAgIDxjaXJjbGUgY2xhc3M9ImNscy0yIiBjeD0iMzQxLjQxIiBjeT0iNDkwLjMiIHI9IjEyLjk1Ii8+CiAgICAgICAgPGNpcmNsZSBjbGFzcz0iY2xzLTIiIGN4PSI0NjAuODEiIGN5PSIzOTguMjMiIHI9IjExLjUxIi8+CiAgICAgIDwvZz4KICAgIDwvZz4KICA8L2c+Cjwvc3ZnPg==" alt="BOOM"></div></div>
+    <div class="lsub">Valle de Uco, Mendoza</div>
+    <label class="llabel">Usuario</label>
+    <input class="linput" type="text" id="l-user" placeholder="Tu usuario" onkeydown="if(event.key==='Enter')doLogin()">
+    <label class="llabel">Contraseña</label>
+    <input class="linput" type="password" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="lbtn" onclick="doLogin()">Ingresar</button>
+    <div class="lerr" id="l-err">Usuario o contraseña incorrectos</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;flex-direction:column;">
+  <div class="topbar">
+    <div class="tbrand"><img class="tbrand-logo" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iQ2FwYV8yIiBkYXRhLW5hbWU9IkNhcGEgMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2aWV3Qm94PSIwIDAgNzg5LjEyIDEwMzcuNTMiPgogIDxkZWZzPgogICAgPHN0eWxlPgogICAgICAuY2xzLTEgewogICAgICAgIGZpbGw6ICNmZmZmZmY7CiAgICAgIH0KCiAgICAgIC5jbHMtMiB7CiAgICAgICAgZmlsbDogIzk1YzExZjsKICAgICAgfQoKICAgICAgLmNscy0zIHsKICAgICAgICBmaWxsOiAjM2FhYTM1OwogICAgICB9CiAgICA8L3N0eWxlPgogIDwvZGVmcz4KICA8ZyBpZD0iQ2FwYV8xLTIiIGRhdGEtbmFtZT0iQ2FwYSAxIj4KICAgIDxnPgogICAgICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0zOTQuNTYsMTAzNy41M2MtNTMuMjUsMC0xMDQuOTMtMTAuNDQtMTUzLjU5LTMxLjAyLTQ2Ljk5LTE5Ljg3LTg5LjE4LTQ4LjMyLTEyNS40MS04NC41NS0zNi4yMy0zNi4yMy02NC42Ny03OC40Mi04NC41NS0xMjUuNDFDMTAuNDQsNzQ3Ljg5LDAsNjk2LjIyLDAsNjQyLjk3YzAtOTMuMzMsMzMuMTktMTgzLjg4LDkzLjQ0LTI1NC45Nyw1OS41NS03MC4yNiwxNDIuMDQtMTE3LjcsMjMyLjI2LTEzMy41OCw0NS4wMy03Ljk0LDkyLjMyLTcuOTcsMTM3LjMzLS4wNiw5MC4zLDE1LjgsMTcyLjg5LDYzLjIxLDIzMi41MiwxMzMuNSw2MC4zNCw3MS4xMiw5My41NywxNjEuNzIsOTMuNTcsMjU1LjEyLDAsNTMuMjUtMTAuNDQsMTA0LjkzLTMxLjAyLDE1My41OS0xOS44Nyw0Ni45OS00OC4zMiw4OS4xOC04NC41NSwxMjUuNDEtMzYuMjMsMzYuMjMtNzguNDIsNjQuNjctMTI1LjQxLDg0LjU1LTQ4LjY2LDIwLjU4LTEwMC4zNCwzMS4wMi0xNTMuNTksMzEuMDJaTTM5NC41NiwzMDAuNjhjLTIwLjA4LDAtNDAuMTksMS43NS01OS43OCw1LjIxLTE2My43LDI4LjgxLTI4Mi41LDE3MC41Ny0yODIuNSwzMzcuMDgsMCwxODguNzQsMTUzLjU1LDM0Mi4zLDM0Mi4yOSwzNDIuM3MzNDIuMy0xNTMuNTUsMzQyLjMtMzQyLjNjMC0xNjYuNjgtMTE4Ljk1LTMwOC40Ni0yODIuODUtMzM3LjEzLTE5LjQ4LTMuNDItMzkuNDgtNS4xNS01OS40NS01LjE1WiIvPgogICAgICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0zMzAuMjMsMzA2LjI4Yy01LjgsMC0xMS40OS0xLjkzLTE2LjEyLTUuNTYtNS44NC00LjU4LTkuNDYtMTEuNDItOS45Ni0xOC44M2wtNS42NC04NC40Yy0uNDgtNy4yMiwyLjA1LTE0LjMxLDYuOTktMTkuNTksNC45NC01LjI4LDExLjg1LTguMjgsMTkuMDktOC4yOGgxMzkuNTVjNy4yMywwLDE0LjE0LDMsMTkuMDksOC4yOCw0Ljk0LDUuMjgsNy40NywxMi4zOCw2Ljk5LDE5LjZsLTUuNjQsODQuMzRjLS41LDcuNC00LjExLDE0LjI0LTkuOTUsMTguODItNS44NCw0LjU4LTEzLjM0LDYuNDYtMjAuNjUsNS4xOC0zOS4wNC02Ljg1LTgwLjE0LTYuODQtMTE5LjIyLjA2LTEuNTEuMjctMy4wMy40LTQuNTQuNFpNMzUyLjUzLDIyMS44OGwxLjkxLDI4LjU1YzI2LjQ5LTIuNjgsNTMuMzgtMi42OSw3OS44Ni0uMDRsMS45MS0yOC41MWgtODMuNjhaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTM4MC4yOCwxODkuMTVjLTEuNDYtNzAuOTcsMTIuMDctMTEyLjY0LDQxLjM2LTEyNy4zOSwxMC4yNS01LjE2LDIwLjQ0LTYuMDEsMjkuNDMtNi43NSwxMC40OC0uODcsMTYuNjItMS41OSwyMS4wNS02LjM1LDYuMDctNi41Miw3LjQ0LTE4LjksNC4wOS0zNi4xMS0xLjItNi4xNCw2LjI3LTEwLjMxLDEyLjMtMTEuOTZoMGM2Ljc3LTEuODUsOS45Ni42NSwxMS4yNyw3LjU0LDQuODUsMjUuMzYsMS40Nyw0NC40Ny0xMC4xLDU2Ljg5LTEwLjk3LDExLjc5LTI0LjYxLDEyLjkyLTM2LjYzLDEzLjkxLTcuNDguNjItMTQuNTQsMS4yMS0yMC42Miw0LjI3LTE5LjY0LDkuODktMjkuMzcsNDYuMzUtMjguMTUsMTA1LjQ2bC0yNCwuNDlaIi8+CiAgICAgIDxnPgogICAgICAgIDxwYXRoIGNsYXNzPSJjbHMtMyIgZD0iTTY5MS40LDU2NS4yMmMxNS41NCw4OS4xOS05NS40MywyNjQuNDgtMjMzLjA4LDY4LjYyLTM5LjU4LTU2LjMyLTExOC4zMS02OC41MS0xNjYuOC0zOS42MS05My4zMyw1NS42Mi0xNTkuMjMsNDMuNjItMTk2LjY2LTE1LjMyLS4xMi0uMDgtLjIzLS4xNi0uMzUtLjI0LTQuNTIsMjAuOTUtNi45Miw0Mi43LTYuOTIsNjUsMCwxNjkuNTQsMTM3LjQ0LDMwNi45NywzMDYuOTcsMzA2Ljk3czMwNi45Ny0xMzcuNDQsMzA2Ljk3LTMwNi45N2MwLTI3LjEyLTMuNTMtNTMuNDEtMTAuMTMtNzguNDVaIi8+CiAgICAgICAgPHBhdGggY2xhc3M9ImNscy0yIiBkPSJNNTYwLjc5LDUyNS4zOGMtMzQuMzksNjAuMDUtNzUuMzQsNzIuNzEtMTI5LjIzLDMwLjAyLTQ3LjQ5LTM3LjYyLTEwMi4wNi0xOS45OC0xNDEuNzMtLjM4LTY0LjY5LDMxLjk2LTEwNy4zOSw4NC4wOS0xOTUuMzMsMjMuNjQsMzcuNDQsNTguOTUsMTAzLjY4LDcxLjE4LDE5Ny4wMSwxNS41Niw0OC40OS0yOC45LDEyNy4yMi0xNi43MSwxNjYuOCwzOS42MSwxMzcuNjUsMTk1Ljg2LDI0OC42MywyMC41NywyMzMuMDgtNjguNjItNS41NC0yMS4wMy0xMy4yNi00MS4xOC0yMi45LTYwLjItMjAuNDctMzYuNTYtNTUuNjMtNjQuMjctMTA3LjcxLDIwLjM2WiIvPgogICAgICAgIDxjaXJjbGUgY2xhc3M9ImNscy0zIiBjeD0iMTcwLjIyIiBjeT0iNTA5IiByPSIxNS44MiIvPgogICAgICAgIDxjaXJjbGUgY2xhc3M9ImNscy0yIiBjeD0iMjcyLjM2IiBjeT0iNDI5Ljg4IiByPSIyNy4zMyIvPgogICAgICAgIDxjaXJjbGUgY2xhc3M9ImNscy0yIiBjeD0iMzQxLjQxIiBjeT0iNDkwLjMiIHI9IjEyLjk1Ii8+CiAgICAgICAgPGNpcmNsZSBjbGFzcz0iY2xzLTIiIGN4PSI0NjAuODEiIGN5PSIzOTguMjMiIHI9IjExLjUxIi8+CiAgICAgIDwvZz4KICAgIDwvZz4KICA8L2c+Cjwvc3ZnPg==" alt="BOOM"><span class="tbrand-text">BOOM</span></div>
+    <div class="tsep"></div>
+    <div class="tev"><span>Evento:</span>
+      <select id="g-ev" onchange="onEvChange()">
+        <option value="">Sin eventos</option>
+      </select>
+    </div>
+    <div class="tright">
+      <span class="rpill" id="t-role">ADMIN</span>
+      <div class="tav" id="tav-btn" onclick="navigate('perfil')" title="Mi perfil"></div>
+      <button class="logout" onclick="doLogout()">Salir</button>
+    </div>
+  </div>
+  <div class="layout">
+    <div class="sidebar" id="sb"></div>
+    <div class="main" id="mc"></div>
+  </div>
+</div>
+<div id="mobile-bottom-nav">
+<div id="m-staff" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal"><div class="mtitle">Agregar personal</div>
+  <div class="fr"><div class="fc" style="flex:1"><span class="fl">Nombre</span><input type="text" id="ms-nombre" style="width:100%" placeholder="Nombre completo"></div></div>
+  <div class="fr">
+    <div class="fc" style="flex:1"><span class="fl">Rol</span><select id="ms-rol" style="width:100%"><option>Bartender</option><option>Barback</option><option>Cajero/a</option><option>Encargado de barra</option><option>Seguridad</option><option>Producción</option><option>Otro</option></select></div>
+  </div>
+  <div class="fr">
+    <div class="fc"><span class="fl">Entrada</span><input type="time" id="ms-ent" value="20:00" style="width:100px"></div>
+    <div class="fc"><span class="fl">Salida</span><input type="time" id="ms-sal" value="03:00" style="width:100px"></div>
+    <div class="fc"><span class="fl">Monto</span><input type="number" id="ms-monto" placeholder="0" style="width:110px"></div>
+    <div class="fc"><span class="fl">Método</span><select id="ms-met" style="width:130px"><option>Efectivo</option><option>Transferencia</option><option>MercadoPago</option></select></div>
+  </div>
+  <div class="mrow"><button class="btn btnp" style="flex:1" onclick="bGuardarStaff()">Agregar</button><button class="btn" style="flex:1" onclick="document.getElementById('m-staff').style.display='none'">Cancelar</button></div></div>
+</div>
+
+
+<div id="m-gasto" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal"><div class="mtitle">Nuevo gasto</div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Descripción</span><input type="text" id="mg-desc" style="width:100%" placeholder="Ej: Caché DJ"></div>
+  <div class="fr">
+    <div class="fc" style="flex:1"><span class="fl">Rubro</span><select id="mg-rubro" style="width:100%"><option>Flyer/diseño</option><option>Publicidad en redes</option><option>Cachets artistas/DJ</option><option>Alquiler lugar/equipos</option><option>Staff</option><option>Habilitaciones</option><option>Sonido</option><option>Iluminación</option><option>Seguridad</option><option>Otros gastos</option></select></div>
+    <div class="fc"><span class="fl">Monto</span><input type="number" id="mg-monto" placeholder="0" style="width:120px"></div>
+  </div>
+  <div class="mrow"><button class="btn btnp" style="flex:1" onclick="afSaveGasto()">Guardar</button><button class="btn" style="flex:1" onclick="document.getElementById('m-gasto').style.display='none'">Cancelar</button></div></div>
+</div>
+
+
+<div id="m-nueva-publica" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal"><div class="mtitle">Nueva pública</div>
+  <div class="fr">
+    <div class="fc" style="flex:1"><span class="fl">Nombre completo</span><input type="text" id="np-nombre" style="width:100%" placeholder="Nombre y apellido"></div>
+  </div>
+  <div class="fr">
+    <div class="fc" style="flex:1"><span class="fl">Instagram</span><input type="text" id="np-ig" style="width:100%" placeholder="@usuario"></div>
+    <div class="fc" style="flex:1"><span class="fl">Teléfono</span><input type="text" id="np-tel" style="width:100%" placeholder="+54 9 261..."></div>
+  </div>
+  <div class="fr">
+    <div class="fc"><span class="fl">Tipo</span><select id="np-tipo" style="width:110px"><option value="comun">Común</option><option value="vip">VIP</option></select></div>
+    <div class="fc"><span class="fl">Comisión</span><input type="number" id="np-com" value="0" style="width:100px"></div>
+  </div>
+  <div class="fc" style="margin-bottom:8px"><span class="fl">Observaciones</span><textarea id="np-obs" placeholder="Notas..." style="min-height:50px"></textarea></div>
+  <div class="mrow"><button class="btn btnp" style="flex:1" onclick="lpSavePublica()">Agregar</button><button class="btn" style="flex:1" onclick="document.getElementById('m-nueva-publica').style.display='none'">Cancelar</button></div></div>
+</div>
+
+
+<div id="m-cal-day" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="max-width:460px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+      <div class="mtitle" id="m-cal-day-fecha"></div>
+      <button onclick="document.getElementById('m-cal-day').style.display='none'" style="background:transparent;border:none;color:var(--text2);font-size:18px;cursor:pointer">×</button>
+    </div>
+    <div id="m-cal-day-content"></div>
+    <div class="mrow" style="margin-top:1rem">
+      <button class="btn btnp btnsm" style="flex:1" onclick="document.getElementById('m-cal-day').style.display='none';document.getElementById('m-post').style.display='flex'">+ Publicación</button>
+      <button class="btn btnsm" style="flex:1" onclick="document.getElementById('m-cal-day').style.display='none';document.getElementById('m-task').style.display='flex'">+ Tarea</button>
+    </div>
+  </div>
+</div>
+
+
+<div id="m-del-prov" style="display:none" class="modal-bg">
+  <div class="modal" style="max-width:360px;text-align:center">
+    <div style="font-size:32px;margin-bottom:.75rem">🗑</div>
+    <div class="mtitle">¿Eliminar proveedor?</div>
+    <div style="font-size:13px;color:var(--text2);margin:8px 0 1.25rem" id="m-del-prov-nombre"></div>
+    <input type="hidden" id="m-del-prov-id">
+    <div class="mrow"><button class="btn btnd" style="flex:1" onclick="confirmDelProv()">Sí, eliminar</button><button class="btn btnp" style="flex:1" onclick="document.getElementById('m-del-prov').style.display='none'">Cancelar</button></div>
+  </div>
+</div>
+
+</div>
+
+<!-- Firebase SDK (CDN) -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<!-- App scripts -->
+<script src="js/data.js"></script>
+<script src="js/helpers.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/modules/dashboard.js"></script>
+<script src="js/modules/barra.js"></script>
+<script src="js/modules/adminfin.js"></script>
+<script src="js/modules/liderpub.js"></script>
+<script src="js/modules/publicas.js"></script>
+<script src="js/modules/cm.js"></script>
+<script src="js/modules/boom.js"></script>
+<script src="js/modules/chat.js"></script>
+<script src="js/modules/proveedores.js"></script>
+<script src="js/modules/kpi.js"></script>
+<script src="js/modules/usuarios.js"></script>
+<script src="js/modules/perfil.js"></script>
+<script src="js/firebase.js"></script>
+
+</body>
+</html>
