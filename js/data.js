@@ -46,6 +46,7 @@ let POSTS=[];
 let TASKS=[];
 let IDEAS=[];
 let PROVEEDORES=[];
+let CUSTOM_CHANNELS=[]; // Canales de chat personalizados (se cargan desde Firebase)
 const EV_NOMBRES=['Sunset 15 Mar','Sunset 22 Mar','Fiesta 5 Abr'];
 const CHAT_DATA={
   general:{l:'# General',msgs:[]},

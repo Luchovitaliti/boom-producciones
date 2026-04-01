@@ -65,7 +65,7 @@ function lpLoadBeneficios(){
 }
 function lpTogBen(pid,key){const ev=gEv();if(!BENEF_EV[ev])BENEF_EV[ev]={};if(!BENEF_EV[ev][pid])BENEF_EV[ev][pid]={ent:false,con:false,ex:''};BENEF_EV[ev][pid][key]=!BENEF_EV[ev][pid][key];if(window._fbOK)window.fbSave.benef?.(ev);lpLoadBeneficios();}
 function lpLoadPost(){
-  const ev=0;const cfg=EVENTOS[ev];
+  const ev=gEv();const cfg=EVENTOS[ev];
   const stats=PUBLICAS.filter(p=>p.activo).map(p=>{const a=getAct(ev,p.id);const cumple=tpubs(a)>=cfg.minPubs;return{p,a,cumple};}).sort((a,b)=>b.a.ing-a.a.ing);
   let h=`<div style="font-size:13px;color:var(--text2);margin-bottom:1rem">Análisis post-evento: <strong style="color:var(--text)">${EVENTOS[0].nombre}</strong></div><div class="card"><div class="ctitle">Análisis individual</div>`;
   stats.forEach(({p,a,cumple})=>{const v=a.ing>=15&&cumple?'Superó expectativas':cumple&&a.ing>=5?'Cumplió':cumple?'Cumplió (sin ventas)':'No cumplió';const vc=v.includes('Superó')?'bgold':v.includes('Cumplió')?'bok':'bdanger';const idx=PUBLICAS.indexOf(p);h+=`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><div class="av" style="${avs(idx)}">${ini(p.n)}</div><div style="flex:1"><div style="font-size:13px;font-weight:500">${p.n}</div><div style="font-size:11px;color:var(--text2)">${tpubs(a)} pubs · ${a.inv} inv · ${a.ing} ingresaron</div></div><span class="badge ${vc}" style="font-size:10px">${v}</span></div>`;});

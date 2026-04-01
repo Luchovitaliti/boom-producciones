@@ -2,9 +2,17 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>BOOM Producciones</title>
 <link rel="stylesheet" href="css/style.css">
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#95c11f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BOOM">
+<link rel="apple-touch-icon" href="img/icon.svg">
+<link rel="icon" type="image/svg+xml" href="img/icon.svg">
 </head>
 
 <!-- MODALS -->
@@ -203,6 +211,15 @@
   </div>
 </div>
 
+</div>
+
+<!-- MODAL: NUEVO CANAL DE CHAT -->
+<div id="m-chat-channel" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="max-width:360px">
+    <div class="mtitle">Nuevo canal de chat</div>
+    <div class="fc" style="margin-bottom:8px"><span class="fl">Nombre del canal</span><input type="text" id="ch-name-inp" style="width:100%" placeholder="Ej: diseño, eventos, prensa"></div>
+    <div class="mrow"><button class="btn btnp" style="flex:1" onclick="saveNewChannel()">Crear canal</button><button class="btn" style="flex:1" onclick="document.getElementById('m-chat-channel').style.display='none'">Cancelar</button></div>
+  </div>
 </div>
 
 <!-- Firebase SDK (CDN) -->
