@@ -426,6 +426,19 @@
   </div>
 </div>
 
+<!-- MODAL: NOTA DE MÓDULO -->
+<div id="m-nota" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="max-width:440px">
+    <div class="mtitle">💬 Dejar una nota — <span id="m-nota-modulo" style="color:var(--accent)"></span></div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:.75rem">Reportá un error, dejá un comentario o sugerencia. El equipo de desarrollo lo verá en el panel 🛠 Dev.</div>
+    <textarea id="m-nota-input" style="min-height:90px;width:100%" placeholder="Ej: El botón de agregar no responde en mobile, el total no se calcula bien..."></textarea>
+    <div class="mrow">
+      <button class="btn btnp" style="flex:1" onclick="notaGuardar()">Enviar nota</button>
+      <button class="btn" style="flex:1" onclick="document.getElementById('m-nota').style.display='none'">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODALES: RECAUDACIÓN -->
 <div id="m-rec-cajas" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
   <div class="modal" style="max-width:520px;max-height:90vh;overflow-y:auto">
@@ -494,6 +507,7 @@
 <script src="js/modules/kpi.js"></script>
 <script src="js/modules/trafic.js"></script>
 <script src="js/modules/recaudacion.js"></script>
+<script src="js/modules/dev.js"></script>
 <script src="js/modules/usuarios.js"></script>
 <script src="js/modules/perfil.js"></script>
 <script src="js/firebase.js"></script>

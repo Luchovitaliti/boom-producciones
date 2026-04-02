@@ -1,15 +1,15 @@
 // ═══ DATA ═══
 let USERS=[
-  {user:'ADMIN',role:'Admin Console',chatName:'Lu (CEO)',photo:'',bio:'CEO y fundador de BOOM Producciones.',instagram:'',telefono:'',pages:['dashboard','barra','adminfin','recaudacion','liderpub','publicas','trafic','cm','boom','chat','proveedores','kpi','usuarios','perfil']},
+  {user:'ADMIN',role:'Admin Console',chatName:'Lu (CEO)',photo:'',bio:'CEO y fundador de BOOM Producciones.',instagram:'',telefono:'',pages:['dashboard','barra','adminfin','recaudacion','liderpub','publicas','trafic','cm','boom','chat','proveedores','kpi','dev','usuarios','perfil']},
   {user:'BARRA',role:'Barra',chatName:'Líder de Barra',photo:'',bio:'',instagram:'',telefono:'',pages:['barra','chat','perfil']},
   {user:'PUBLICA',role:'Públicas',chatName:'Líder de Públicas',photo:'',bio:'',instagram:'',telefono:'',pages:['liderpub','publicas','boom','chat','perfil']},
   {user:'CM',role:'CM',chatName:'Community Manager',photo:'',bio:'',instagram:'',telefono:'',pages:['cm','boom','chat','perfil']},
   {user:'ADMINFIN',role:'Administración',chatName:'Administración',photo:'',bio:'',instagram:'',telefono:'',pages:['adminfin','recaudacion','proveedores','chat','perfil']},
 ];
-const ALL_PAGES=['dashboard','barra','adminfin','recaudacion','liderpub','publicas','trafic','cm','boom','chat','proveedores','kpi','usuarios','perfil'];
-const PAGE_LABELS={dashboard:'Dashboard',barra:'Barra',adminfin:'Administración',recaudacion:'Recaudación',liderpub:'Líder Públicas',publicas:'Públicas',trafic:'Trafic',cm:'CM',boom:'BOOM General',chat:'Chat interno',proveedores:'Proveedores',kpi:'Reportes y KPIs',usuarios:'Usuarios',perfil:'Mi perfil'};
-const PAGE_ICONS={dashboard:'📊',barra:'🍺',adminfin:'📋',recaudacion:'💵',liderpub:'⭐',publicas:'📸',trafic:'🚐',cm:'📅',boom:'🏠',chat:'💬',proveedores:'🤝',kpi:'📈',usuarios:'👥',perfil:'👤'};
-const PAGE_SECTIONS={dashboard:'Admin',barra:'Módulos',adminfin:'Módulos',recaudacion:'Módulos',liderpub:'Módulos',publicas:'Módulos',trafic:'Módulos',cm:'Comunicación',boom:'Comunicación',chat:'Comunicación',proveedores:'Admin',kpi:'Admin',usuarios:'Admin',perfil:'Mi cuenta'};
+const ALL_PAGES=['dashboard','barra','adminfin','recaudacion','liderpub','publicas','trafic','cm','boom','chat','proveedores','kpi','dev','usuarios','perfil'];
+const PAGE_LABELS={dashboard:'Dashboard',barra:'Barra',adminfin:'Administración',recaudacion:'Recaudación',liderpub:'Líder Públicas',publicas:'Públicas',trafic:'Trafic',cm:'CM',boom:'BOOM General',chat:'Chat interno',proveedores:'Proveedores',kpi:'Reportes y KPIs',dev:'🛠 Dev',usuarios:'Usuarios',perfil:'Mi perfil'};
+const PAGE_ICONS={dashboard:'📊',barra:'🍺',adminfin:'📋',recaudacion:'💵',liderpub:'⭐',publicas:'📸',trafic:'🚐',cm:'📅',boom:'🏠',chat:'💬',proveedores:'🤝',kpi:'📈',dev:'🛠',usuarios:'👥',perfil:'👤'};
+const PAGE_SECTIONS={dashboard:'Admin',barra:'Módulos',adminfin:'Módulos',recaudacion:'Módulos',liderpub:'Módulos',publicas:'Módulos',trafic:'Módulos',cm:'Comunicación',boom:'Comunicación',chat:'Comunicación',proveedores:'Admin',kpi:'Admin',dev:'Admin',usuarios:'Admin',perfil:'Mi cuenta'};
 
 let EVENTOS=[]; // Se carga desde Firebase o queda vacío
 const EV_DATES=['2025-03-15','2025-03-22','2025-04-05'];
@@ -50,6 +50,7 @@ let CUSTOM_CHANNELS=[]; // Canales de chat personalizados (se cargan desde Fireb
 let GASTOS_ADM=[];    // {id, fecha, cat, tipo, personaNombre, personaId, medio, monto, desc, estado, comprobante, evIdx, obs, ts}
 let PERSONAS_ADM=[];  // {id, nombre, tipo:'proveedor'|'empleado', tel, mail, cbu, cuit, dir, obs}
 let CAJAS_REC=[];     // {id, evIdx, nombre, tipo, activa, orden, ts}
+let NOTAS_MOD=[];     // {id, modulo, texto, user, ts}
 let LOTES_REC=[];     // {id, evIdx, cajaId, nroLote, fechaHora, responsableNombre, recaudadorNombre, b20000..b100, total, obs, estado, ts}
 let TRAFIC_ETAPAS=[];      // {id, evIdx, nombre, precio, orden, activa}
 let TRAFIC_LOCALIDADES=[];  // {id, evIdx, nombre, activa}

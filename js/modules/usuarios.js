@@ -2,7 +2,6 @@
 // USUARIOS — gestión completa con Firebase Auth via REST
 // ═══════════════════════════════════════════════════════════
 const _FB_KEY = 'AIzaSyCJ3JlOH7cWId3t4pe_7WuuyqptWk7VXE0';
-let editUsrIdx = -1;
 
 function pgUsuarios() {
   let h = `<div class="ptitle">👥 Usuarios</div><div class="psub">Gestión de accesos y módulos</div>`;

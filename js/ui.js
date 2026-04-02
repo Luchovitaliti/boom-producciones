@@ -41,8 +41,18 @@ function renderPage(p){
     else if(p==='chat'){mc.innerHTML=pgChat();initChat();}
     else if(p==='proveedores')mc.innerHTML=pgProveedores();
     else if(p==='kpi'){mc.innerHTML=pgKPI();initKPI();}
+    else if(p==='dev')mc.innerHTML=pgDev();
     else if(p==='usuarios')mc.innerHTML=pgUsuarios();
     else if(p==='perfil'){mc.innerHTML=pgPerfil();initPerfil();}
+    // Inyectar widget de nota en todos los módulos excepto perfil/usuarios/dev/chat
+    if(!['perfil','usuarios','dev','chat'].includes(p)){
+      const wrap=document.getElementById('mc');
+      if(wrap){
+        const nb=document.createElement('div');
+        nb.innerHTML=notaWidgetHtml(p);
+        nb.firstChild && wrap.appendChild(nb.firstChild);
+      }
+    }
   }catch(e){
     console.error('renderPage error ['+p+']:', e);
     mc.innerHTML=`<div class="ptitle" style="color:var(--red)">⚠️ Error al cargar módulo</div>

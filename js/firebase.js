@@ -44,6 +44,7 @@ try {
     provs:          ()  => fbSet('proveedores',  'lista',  {items:PROVEEDORES}),
     gastosAdm:      ()  => fbSet('adminfin',     'gastos', {items:GASTOS_ADM}),
     personasAdm:    ()  => fbSet('adminfin',     'personas',{items:PERSONAS_ADM}),
+    notasMod:       ()  => fbSet('config',       'notas',  {items:NOTAS_MOD}),
     recaudacion:    ev  => fbSet('recaudacion',  'ev'+ev,  {
       cajas:  CAJAS_REC.filter(c=>c.evIdx===ev),
       lotes:  LOTES_REC.filter(l=>l.evIdx===ev),
@@ -97,6 +98,7 @@ try {
     const ideas = await fbGet('boom','ideas');         if(ideas?.items)  IDEAS      = ideas.items;
     const pub   = await fbGet('publicas','lista');     if(pub?.items)    PUBLICAS   = pub.items;
     const prov  = await fbGet('proveedores','lista');  if(prov?.items)   PROVEEDORES= prov.items;
+    const notas = await fbGet('config','notas');       if(notas?.items)  NOTAS_MOD   = notas.items;
     const gadm  = await fbGet('adminfin','gastos');    if(gadm?.items)   GASTOS_ADM  = gadm.items;
     const padm  = await fbGet('adminfin','personas');  if(padm?.items)   PERSONAS_ADM= padm.items;
     for(let ev=0;ev<n;ev++){
