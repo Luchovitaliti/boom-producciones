@@ -411,6 +411,26 @@ tr:hover td { background: var(--bg3); }
 .card, .met, .pcard { animation: fadeIn .2s ease; }
 .modal { animation: fadeIn .15s ease; }
 
+/* ══ RECAUDACIÓN ══ */
+.rec-caja-card {
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--r);
+  padding: 1.1rem 1.1rem .9rem; cursor: pointer;
+  transition: border-color .15s, background .15s, transform .1s;
+}
+.rec-caja-card:hover {
+  border-color: var(--accent); background: var(--bg4);
+  transform: translateY(-1px);
+}
+.rec-inactiva {
+  opacity: .45; cursor: default;
+}
+.rec-inactiva:hover { transform: none; border-color: var(--border2); background: var(--bg3); }
+.rec-caja-modal-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.rec-caja-modal-row:last-child { border-bottom: none; }
+
 /* ══ ADMIN FIN — Autocomplete ══ */
 .ac-list {
   position: absolute; top: 100%; left: 0; right: 0; z-index: 500;

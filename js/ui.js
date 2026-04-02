@@ -31,6 +31,7 @@ function renderPage(p){
   if(p==='dashboard')mc.innerHTML=pgDash();
   else if(p==='barra'){mc.innerHTML=pgBarra();initBarra();}
   else if(p==='adminfin'){mc.innerHTML=pgAdminFin();initAdminFin();}
+  else if(p==='recaudacion'){mc.innerHTML=pgRecaudacion();initRecaudacion();}
   else if(p==='liderpub'){mc.innerHTML=pgLiderPub();initLider();}
   else if(p==='publicas')mc.innerHTML=pgPublicas();
   else if(p==='trafic'){mc.innerHTML=pgTrafic();initTrafic();}

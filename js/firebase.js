@@ -44,6 +44,10 @@ try {
     provs:          ()  => fbSet('proveedores',  'lista',  {items:PROVEEDORES}),
     gastosAdm:      ()  => fbSet('adminfin',     'gastos', {items:GASTOS_ADM}),
     personasAdm:    ()  => fbSet('adminfin',     'personas',{items:PERSONAS_ADM}),
+    recaudacion:    ev  => fbSet('recaudacion',  'ev'+ev,  {
+      cajas:  CAJAS_REC.filter(c=>c.evIdx===ev),
+      lotes:  LOTES_REC.filter(l=>l.evIdx===ev),
+    }),
     eventos:        ()  => fbSet('eventos',      'lista',  {items:EVENTOS, evFin:EV_FIN}),
     customChannels: ()  => fbSet('chat',         'customChannels', {items:CUSTOM_CHANNELS}),
     trafic:         ev => fbSet('trafic',        'ev'+ev, {
@@ -95,6 +99,13 @@ try {
     const prov  = await fbGet('proveedores','lista');  if(prov?.items)   PROVEEDORES= prov.items;
     const gadm  = await fbGet('adminfin','gastos');    if(gadm?.items)   GASTOS_ADM  = gadm.items;
     const padm  = await fbGet('adminfin','personas');  if(padm?.items)   PERSONAS_ADM= padm.items;
+    for(let ev=0;ev<n;ev++){
+      const d=await fbGet('recaudacion','ev'+ev);
+      if(d){
+        if(d.cajas) CAJAS_REC=CAJAS_REC.filter(c=>c.evIdx!==ev).concat(d.cajas);
+        if(d.lotes) LOTES_REC=LOTES_REC.filter(l=>l.evIdx!==ev).concat(d.lotes);
+      }
+    }
     const users = await fbGet('config','users');       if(users?.items)  USERS      = users.items;
 
     // Canales personalizados de chat
