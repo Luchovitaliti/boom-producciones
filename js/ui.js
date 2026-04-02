@@ -1,7 +1,7 @@
 // ═══ SIDEBAR ═══
 function buildMobileNav(){
   const nav=document.getElementById('mobile-bottom-nav');if(!nav)return;
-  const show=CU.pages.filter(p=>p!=='usuarios'&&p!=='perfil').slice(0,4);
+  const show=(CU.pages||[]).filter(p=>p!=='usuarios'&&p!=='perfil').slice(0,4);
   nav.innerHTML=show.map(p=>`<div class="mbn-item${curPage===p?' active':''}" onclick="navigate('${p}')"><span class="ico">${PAGE_ICONS[p]}</span><span>${(PAGE_LABELS[p]||p).slice(0,8)}</span></div>`).join('')+
   `<div class="mbn-item${curPage==='perfil'?' active':''}" onclick="navigate('perfil')"><span class="ico">👤</span><span>Perfil</span></div>`;
 }
@@ -9,7 +9,7 @@ function buildMobileNav(){
 function buildSidebar(){
   const sb=document.getElementById('sb');sb.innerHTML='';
   const secs={};
-  CU.pages.forEach(p=>{const sec=PAGE_SECTIONS[p]||'Otro';if(!secs[sec])secs[sec]=[];secs[sec].push(p);});
+  (CU.pages||[]).forEach(p=>{const sec=PAGE_SECTIONS[p]||'Otro';if(!secs[sec])secs[sec]=[];secs[sec].push(p);});
   Object.entries(secs).forEach(([sec,pages])=>{
     sb.innerHTML+=`<div class="ss">${sec}</div>`;
     pages.forEach(p=>sb.innerHTML+=`<div class="si" id="si-${p}" onclick="navigate('${p}')"><span>${PAGE_ICONS[p]}</span>${PAGE_LABELS[p]}</div>`);

@@ -14,8 +14,8 @@ function pgUsuarios() {
         <div style="font-size:13px;font-weight:500">${u.user}
           <span class="badge bgray" style="font-size:10px">${u.role}</span>
         </div>
-        <div style="font-size:11px;color:var(--text2);margin-top:1px">${u.chatName}</div>
-        <div style="margin-top:4px">${u.pages.map(p=>`<span class="mod-tag">${PAGE_LABELS[p]||p}</span>`).join('')}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:1px">${u.chatName||''}</div>
+        <div style="margin-top:4px">${(u.pages||[]).map(p=>`<span class="mod-tag">${PAGE_LABELS[p]||p}</span>`).join('')}</div>
       </div>
       <div style="display:flex;gap:4px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end">
         <button class="btn btnsm btnp" onclick="openUserEdit(${i})">✏️ Editar</button>

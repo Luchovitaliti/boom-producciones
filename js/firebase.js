@@ -108,6 +108,21 @@ try {
     }
     const users = await fbGet('config','users');       if(users?.items)  USERS      = users.items;
 
+    // Asegurar que el Admin tenga SIEMPRE todos los módulos (por si se agregaron nuevos)
+    let adminPagesUpdated = false;
+    USERS.forEach(u => {
+      if(u.role === 'Admin Console') {
+        ALL_PAGES.forEach(p => {
+          if(!Array.isArray(u.pages)) u.pages = [];
+          if(!u.pages.includes(p)) { u.pages.push(p); adminPagesUpdated = true; }
+        });
+      }
+      // Asegurar 'perfil' siempre disponible para cualquier usuario
+      if(!Array.isArray(u.pages)) u.pages = ['perfil'];
+      else if(!u.pages.includes('perfil')) u.pages.push('perfil');
+    });
+    if(adminPagesUpdated && window._fbOK) window.fbSave.users?.();
+
     // Canales personalizados de chat
     const customChs = await fbGet('chat','customChannels');
     if (customChs?.items) {
@@ -147,6 +162,14 @@ try {
         const username = fbUser.email.replace('@boom.app','').toUpperCase();
         const usersData = await fbGet('config','users');
         if (usersData?.items) USERS = usersData.items;
+        // Garantizar que arrays de páginas estén sanos
+        USERS.forEach(u => {
+          if(!Array.isArray(u.pages)) u.pages = ['perfil'];
+          if(u.role === 'Admin Console') {
+            ALL_PAGES.forEach(p => { if(!u.pages.includes(p)) u.pages.push(p); });
+          }
+          if(!u.pages.includes('perfil')) u.pages.push('perfil');
+        });
         let f = USERS.find(x => x.user === username);
         if (!f && username === 'ADMIN') f = USERS.find(x => x.user === 'ADMIN');
         if (!f) { await _auth.signOut(); return; }
