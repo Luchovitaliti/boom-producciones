@@ -143,9 +143,20 @@ function openUserEdit(idx) {
         </div>`;
       }).join('')}
     </div>
-    ${!isAdmin ? `
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:1rem;margin-top:.5rem">
-      <div class="ctitle" style="font-size:12px;margin:0 0 .6rem">🔑 Resetear contraseña</div>
+      <div class="ctitle" style="font-size:12px;margin:0 0 .75rem">🔐 Credenciales de acceso</div>
+      <div class="fc" style="margin-bottom:.75rem">
+        <span class="fl">Usuario (login)</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="ue-username" style="flex:1;font-weight:600;letter-spacing:.04em;text-transform:uppercase"
+            value="${u.user||''}" ${isAdmin?'readonly':''} placeholder="Nombre de usuario"
+            oninput="this.value=this.value.toUpperCase()"
+            ${isAdmin?`style="flex:1;font-weight:600;background:var(--bg4);color:var(--text2);border-color:var(--border)"`:''}>
+          ${!isAdmin?`<span style="font-size:11px;color:var(--text3)">Email: ${(u.user||'').toLowerCase()}@boom.app</span>`:''}
+        </div>
+        ${!isAdmin?`<div style="font-size:11px;color:var(--text3);margin-top:4px">⚠️ Cambiar el usuario requiere también actualizar la cuenta en Firebase Auth.</div>`:''}
+      </div>
+      ${!isAdmin ? `
       <div class="fr">
         <div class="fc" style="flex:1"><span class="fl">Nueva contraseña</span>
           <input type="password" id="ue-pass1" style="width:100%" placeholder="Mínimo 6 caracteres"></div>
@@ -154,7 +165,8 @@ function openUserEdit(idx) {
       </div>
       <button class="btn btnsm" style="margin-top:.5rem" onclick="resetUserPass(${idx})">🔑 Cambiar contraseña</button>
       <div id="ue-pass-msg" style="font-size:12px;margin-top:6px;min-height:14px"></div>
-    </div>` : ''}
+      ` : ''}
+    </div>
   `;
   document.getElementById('m-usr-edit').style.display = 'flex';
 }
@@ -166,25 +178,45 @@ function toggleUmod(p) {
 }
 
 function saveUserEdit() {
-  const u = USERS[editUsrIdx];
+  const u   = USERS[editUsrIdx];
+  if(!u) return;
+  const msg = document.getElementById('m-usr-edit-msg');
+
+  // Nombre en chat
   const cn = document.getElementById('ue-cn')?.value.trim();
-  if (cn) { u.chatName = cn; }
+  if (cn) u.chatName = cn;
+
+  // Rol
   const roleEl = document.getElementById('ue-role');
   if (roleEl && !roleEl.disabled) u.role = roleEl.value;
 
+  // Módulos
   u.pages = ALL_PAGES.filter(p => {
     const btn = document.getElementById('umod-' + p);
     return btn?.classList.contains('on');
   });
   if (!u.pages.includes('perfil')) u.pages.push('perfil');
 
+  // Username (solo no-admin)
+  const unameEl = document.getElementById('ue-username');
+  if (unameEl && !unameEl.readOnly) {
+    const newUser = unameEl.value.trim().toUpperCase();
+    if (newUser && newUser !== u.user) {
+      // Verificar que no exista otro usuario con ese nombre
+      if (USERS.find((x, i) => x.user === newUser && i !== editUsrIdx)) {
+        if(msg) msg.innerHTML = '<span style="color:var(--red)">Ya existe un usuario con ese nombre.</span>';
+        return;
+      }
+      u.user = newUser;
+    }
+  }
+
   // Sync to USERS array and save
-  const idx = USERS.findIndex(x => x.user === u.user);
-  if (idx !== -1) USERS[idx] = u;
+  USERS[editUsrIdx] = u;
   if (window._fbOK) window.fbSave.users?.();
 
   document.getElementById('m-usr-edit').style.display = 'none';
-  document.getElementById('m-usr-edit-msg').textContent = '';
+  if(msg) msg.textContent = '';
   renderPage('usuarios');
 }
 
