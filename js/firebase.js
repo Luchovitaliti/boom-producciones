@@ -137,6 +137,7 @@ try {
         if (!f) { await _auth.signOut(); return; }
         CU = f;
 
+        document.getElementById('boot-loader').style.display = 'none';
         document.getElementById('login').style.display = 'none';
         document.getElementById('app').style.display   = 'flex';
         document.getElementById('t-role').textContent  = CU.role;
@@ -144,10 +145,18 @@ try {
         syncTopbarEventos();
         buildSidebar();
         buildMobileNav();
-        await window.fbLoad();
         navigate(CU.pages[0]);
+        await window.fbLoad();
+        // Refrescar la página actual con datos reales
+        renderPage(curPage);
       } else {
         CU = null;
+        // Limpiar contenido de la app antes de mostrar login
+        const mc = document.getElementById('mc');
+        if (mc) mc.innerHTML = '';
+        const sb = document.getElementById('sb');
+        if (sb) sb.innerHTML = '';
+        document.getElementById('boot-loader').style.display = 'none';
         document.getElementById('login').style.display = 'flex';
         document.getElementById('app').style.display   = 'none';
         const btn = document.querySelector('.lbtn');
@@ -155,6 +164,8 @@ try {
       }
     } catch(err) {
       console.error('Error en onAuthStateChanged:', err);
+      document.getElementById('boot-loader').style.display = 'none';
+      document.getElementById('login').style.display = 'flex';
       if (typeof showLoginErr === 'function') showLoginErr('Error interno: ' + err.message);
       const btn = document.querySelector('.lbtn');
       if (btn) { btn.textContent = 'Ingresar'; btn.disabled = false; }

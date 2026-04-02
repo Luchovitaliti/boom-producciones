@@ -21,7 +21,14 @@ async function doLogin(){
     btn.textContent='Ingresar';btn.disabled=false;
   }
 }
-function doLogout(){if(typeof firebase!=='undefined'&&firebase.auth)firebase.auth().signOut();}
+function doLogout(){
+  // Limpiar UI inmediatamente, sin esperar a Firebase
+  const mc=document.getElementById('mc'); if(mc) mc.innerHTML='';
+  const sb=document.getElementById('sb'); if(sb) sb.innerHTML='';
+  document.getElementById('boot-loader').style.display='flex';
+  document.getElementById('app').style.display='none';
+  if(typeof firebase!=='undefined'&&firebase.auth) firebase.auth().signOut();
+}
 
 // ═══ INIT ═══
 document.getElementById('l-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
