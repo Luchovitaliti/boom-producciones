@@ -61,10 +61,12 @@ function handlePhotoUpload(input){
   const reader=new FileReader();
   reader.onload=e=>{
     CU.photo=e.target.result;
+    const idx=USERS.findIndex(u=>u.user===CU.user);
+    if(idx!==-1) USERS[idx].photo=e.target.result;
     const el=document.getElementById('prof-av-preview');
     if(el)el.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">`;
     updateTopbarAvatar();
-    document.getElementById('prof-msg').innerHTML='<span style="color:var(--green)">Foto actualizada.</span>';
+    document.getElementById('prof-msg').innerHTML='<span style="color:var(--accent)">Foto lista — hacé clic en Guardar cambios.</span>';
   };
   reader.readAsDataURL(file);
 }
@@ -75,6 +77,15 @@ function saveProfile(){
   CU.instagram=document.getElementById('prof-ig').value.trim();
   CU.telefono=document.getElementById('prof-tel').value.trim();
   CU.bio=document.getElementById('prof-bio').value.trim();
+  // Sync CU back into USERS array (puede estar desincronizado tras fbLoad)
+  const idx=USERS.findIndex(u=>u.user===CU.user);
+  if(idx!==-1){
+    USERS[idx].chatName=CU.chatName;
+    USERS[idx].instagram=CU.instagram;
+    USERS[idx].telefono=CU.telefono;
+    USERS[idx].bio=CU.bio;
+    USERS[idx].photo=CU.photo;
+  }
   document.getElementById('prof-display-name').textContent=cn;
   document.getElementById('prof-display-bio').textContent=CU.bio||'Sin bio todavía.';
   updateTopbarAvatar();

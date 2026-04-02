@@ -113,6 +113,12 @@ try {
       window.fbListenChannel(ch);
     });
 
+    // Re-vincular CU al nuevo array USERS (fbLoad reemplaza el array)
+    if (CU) {
+      const refreshed = USERS.find(x => x.user === CU.user);
+      if (refreshed) CU = refreshed;
+    }
+
     syncTopbarEventos();
     // Sincronizar nombres de canales de eventos en chat
     if (typeof syncChatEventChannels === 'function') syncChatEventChannels();
