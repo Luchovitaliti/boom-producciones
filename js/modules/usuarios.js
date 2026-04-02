@@ -157,6 +157,14 @@ function openUserEdit(idx) {
         ${!isAdmin?`<div style="font-size:11px;color:var(--text3);margin-top:4px">⚠️ Cambiar el usuario requiere también actualizar la cuenta en Firebase Auth.</div>`:''}
       </div>
       ${!isAdmin ? `
+      ${!u._pass ? `
+      <div style="background:rgba(245,197,66,.08);border:1px solid rgba(245,197,66,.25);border-radius:var(--rs);padding:8px 12px;font-size:12px;color:var(--yellow);margin-bottom:.75rem">
+        ⚠️ Este usuario no tiene contraseña guardada en el sistema. Ingresá la contraseña actual para poder cambiarla.
+      </div>
+      <div class="fc" style="margin-bottom:.5rem">
+        <span class="fl">Contraseña actual</span>
+        <input type="password" id="ue-pass-current" style="width:100%" placeholder="Escribí la contraseña actual del usuario">
+      </div>` : ''}
       <div class="fr">
         <div class="fc" style="flex:1"><span class="fl">Nueva contraseña</span>
           <input type="password" id="ue-pass1" style="width:100%" placeholder="Mínimo 6 caracteres"></div>
@@ -233,11 +241,11 @@ async function resetUserPass(idx) {
   msg.innerHTML = '<span style="color:var(--text2)">⏳ Procesando...</span>';
 
   const email = u.user.toLowerCase() + '@boom.app';
-  const storedPass = u._pass || '';
+  // Usar _pass guardado, o si no existe, el campo manual que ingresó el admin
+  const storedPass = u._pass || document.getElementById('ue-pass-current')?.value.trim() || '';
 
   try {
-    // 1. Sign in as the user via REST (using stored password) to get their ID token
-    if (!storedPass) throw new Error('No hay contraseña almacenada. Creá al usuario nuevamente o actualizá en Firebase Console.');
+    if (!storedPass) throw new Error('Ingresá la contraseña actual del usuario para poder cambiarla.');
 
     const signIn = await fetch(
       `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${_FB_KEY}`,
