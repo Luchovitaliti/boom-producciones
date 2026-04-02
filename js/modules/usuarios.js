@@ -8,18 +8,24 @@ function pgUsuarios() {
   let h = `<div class="ptitle">👥 Usuarios</div><div class="psub">Gestión de accesos y módulos</div>`;
   h += `<div class="card"><div class="ctitle">Usuarios activos (${USERS.length})</div>`;
   USERS.forEach((u, i) => {
+    if(!u) return;
+    const uid   = u.user   || '??';
+    const role  = u.role   || '—';
+    const cname = u.chatName || '';
+    const pages = Array.isArray(u.pages) ? u.pages : [];
+    const initials = uid.slice(0,2);
     h += `<div class="user-card">
-      <div class="av" style="background:${AVC[i%8]}22;color:${AVC[i%8]}">${u.user.slice(0,2)}</div>
+      <div class="av" style="background:${AVC[i%8]}22;color:${AVC[i%8]}">${initials}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:500">${u.user}
-          <span class="badge bgray" style="font-size:10px">${u.role}</span>
+        <div style="font-size:13px;font-weight:500">${uid}
+          <span class="badge bgray" style="font-size:10px">${role}</span>
         </div>
-        <div style="font-size:11px;color:var(--text2);margin-top:1px">${u.chatName||''}</div>
-        <div style="margin-top:4px">${(u.pages||[]).map(p=>`<span class="mod-tag">${PAGE_LABELS[p]||p}</span>`).join('')}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:1px">${cname}</div>
+        <div style="margin-top:4px">${pages.map(p=>`<span class="mod-tag">${PAGE_LABELS[p]||p}</span>`).join('')}</div>
       </div>
       <div style="display:flex;gap:4px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end">
         <button class="btn btnsm btnp" onclick="openUserEdit(${i})">✏️ Editar</button>
-        ${u.role !== 'Admin Console' ? `<button class="btn btnsm btnd" onclick="delUser(${i})">Eliminar</button>` : ''}
+        ${role !== 'Admin Console' ? `<button class="btn btnsm btnd" onclick="delUser(${i})">Eliminar</button>` : ''}
       </div>
     </div>`;
   });
@@ -110,7 +116,9 @@ async function addUser() {
 function openUserEdit(idx) {
   editUsrIdx = idx;
   const u = USERS[idx];
-  document.getElementById('m-usr-edit-ttl').textContent = '✏️ Editar — ' + u.user;
+  if(!u) return;
+  if(!Array.isArray(u.pages)) u.pages = ['perfil'];
+  document.getElementById('m-usr-edit-ttl').textContent = '✏️ Editar — ' + (u.user||'');
   document.getElementById('m-usr-edit-msg').textContent = '';
 
   const isAdmin = u.role === 'Admin Console';
@@ -132,7 +140,7 @@ function openUserEdit(idx) {
         const on = u.pages.includes(p);
         return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
           <button class="chkbtn ${on?'on':''}" id="umod-${p}" onclick="toggleUmod('${p}')">${on?'✓':''}</button>
-          <span style="font-size:12px">${PAGE_ICONS[p]} ${PAGE_LABELS[p]}</span>
+          <span style="font-size:12px">${PAGE_ICONS[p]||''} ${PAGE_LABELS[p]||p}</span>
         </div>`;
       }).join('')}
     </div>

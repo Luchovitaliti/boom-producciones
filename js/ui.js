@@ -28,20 +28,27 @@ function onEvChange(){renderPage(curPage);}
 // ═══ RENDER DISPATCHER ═══
 function renderPage(p){
   const mc=document.getElementById('mc');
-  if(p==='dashboard')mc.innerHTML=pgDash();
-  else if(p==='barra'){mc.innerHTML=pgBarra();initBarra();}
-  else if(p==='adminfin'){mc.innerHTML=pgAdminFin();initAdminFin();}
-  else if(p==='recaudacion'){mc.innerHTML=pgRecaudacion();initRecaudacion();}
-  else if(p==='liderpub'){mc.innerHTML=pgLiderPub();initLider();}
-  else if(p==='publicas')mc.innerHTML=pgPublicas();
-  else if(p==='trafic'){mc.innerHTML=pgTrafic();initTrafic();}
-  else if(p==='cm'){mc.innerHTML=pgCM();initCM();}
-  else if(p==='boom'){mc.innerHTML=pgBoom();initBoom();}
-  else if(p==='chat'){mc.innerHTML=pgChat();initChat();}
-  else if(p==='proveedores')mc.innerHTML=pgProveedores();
-  else if(p==='kpi'){mc.innerHTML=pgKPI();initKPI();}
-  else if(p==='usuarios')mc.innerHTML=pgUsuarios();
-  else if(p==='perfil'){mc.innerHTML=pgPerfil();initPerfil();}
+  try{
+    if(p==='dashboard')mc.innerHTML=pgDash();
+    else if(p==='barra'){mc.innerHTML=pgBarra();initBarra();}
+    else if(p==='adminfin'){mc.innerHTML=pgAdminFin();initAdminFin();}
+    else if(p==='recaudacion'){mc.innerHTML=pgRecaudacion();initRecaudacion();}
+    else if(p==='liderpub'){mc.innerHTML=pgLiderPub();initLider();}
+    else if(p==='publicas')mc.innerHTML=pgPublicas();
+    else if(p==='trafic'){mc.innerHTML=pgTrafic();initTrafic();}
+    else if(p==='cm'){mc.innerHTML=pgCM();initCM();}
+    else if(p==='boom'){mc.innerHTML=pgBoom();initBoom();}
+    else if(p==='chat'){mc.innerHTML=pgChat();initChat();}
+    else if(p==='proveedores')mc.innerHTML=pgProveedores();
+    else if(p==='kpi'){mc.innerHTML=pgKPI();initKPI();}
+    else if(p==='usuarios')mc.innerHTML=pgUsuarios();
+    else if(p==='perfil'){mc.innerHTML=pgPerfil();initPerfil();}
+  }catch(e){
+    console.error('renderPage error ['+p+']:', e);
+    mc.innerHTML=`<div class="ptitle" style="color:var(--red)">⚠️ Error al cargar módulo</div>
+      <div class="card"><div style="font-size:12px;color:var(--text2);font-family:monospace">${e.message}</div>
+      <button class="btn btnsm" style="margin-top:1rem" onclick="renderPage('${p}')">🔄 Reintentar</button></div>`;
+  }
 }
 
 function updateTopbarAvatar(){
