@@ -28,6 +28,14 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; }
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes boomFloat { 0%,100%{transform:translateY(0) rotate(-2deg);} 50%{transform:translateY(-14px) rotate(2deg);} }
+@keyframes boomGlow  { 0%,100%{filter:drop-shadow(0 0 8px rgba(149,193,31,.35));} 50%{filter:drop-shadow(0 0 28px rgba(149,193,31,.85)) drop-shadow(0 0 50px rgba(149,193,31,.25));} }
+@keyframes bootDot   { 0%,80%,100%{transform:scale(0);opacity:.3} 40%{transform:scale(1);opacity:1} }
+.boot-logo { width:88px;height:88px;animation:boomFloat 2.2s ease-in-out infinite,boomGlow 2.2s ease-in-out infinite; }
+.boot-dots { display:flex;gap:6px; }
+.boot-dot  { width:7px;height:7px;border-radius:50%;background:var(--accent);animation:bootDot 1.3s infinite ease-in-out both; }
+.boot-dot:nth-child(2){animation-delay:.2s}
+.boot-dot:nth-child(3){animation-delay:.4s}
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg2); }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
@@ -113,9 +121,11 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .mv { font-size: 20px; font-weight: 500; }
 .ms { font-size: 11px; color: var(--text3); margin-top: 2px; }
 .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 500; }
-.bok     { background: rgba(58,170,53,.15);  color: var(--green); }
-.bwarn   { background: rgba(245,197,66,.15); color: var(--yellow); }
+.bok     { background: rgba(58,170,53,.15);   color: var(--green); }
+.bwarn   { background: rgba(245,197,66,.15);  color: var(--yellow); }
+.borange { background: rgba(251,146,60,.15);  color: #fb923c; }
 .bdanger { background: rgba(248,113,113,.15); color: var(--red); }
+.binfo   { background: rgba(96,165,250,.12);  color: var(--blue); }
 .binfo   { background: rgba(124,68,196,.1);  color: var(--purple2); }
 .bgray   { background: var(--bg3); color: var(--text2); }
 .bgold   { background: rgba(149,193,31,.12); color: var(--accent); }
@@ -296,6 +306,19 @@ tr:hover td { background: var(--bg3); }
   color: var(--accent); border-radius: 99px; font-size: 10px; margin: 1px;
   border: 1px solid rgba(149,193,31,.18); }
 
+/* ══ PROGRESS BAR ══ */
+.progbg   { height:5px;background:var(--border2);border-radius:3px;overflow:hidden; }
+.progfill { height:100%;border-radius:3px;transition:width .35s; }
+
+/* ══ SAVE TICK ══ */
+.save-tick { color:var(--accent);font-size:12px;font-weight:500;transition:opacity .2s; }
+
+/* ══ BARRA CONFIG ══ */
+.barra-cfg-list { display:flex;flex-direction:column;gap:6px;max-height:55vh;overflow-y:auto; }
+.barra-cfg-row  { display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:8px 10px; }
+.barra-cfg-row .cfg-name { flex:1;font-size:13px;font-weight:500; }
+.barra-cfg-row .cfg-info { font-size:11px;color:var(--text2);min-width:80px; }
+
 /* ══ TRAFIC ══ */
 .tr-loc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: .5rem; }
 .tr-loc-card { background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--r);
@@ -363,7 +386,8 @@ tr:hover td { background: var(--bg3); }
 }
 
 /* ══ MOBILE BOTTOM NAV ══ */
-#mobile-bottom-nav { display: none; }
+/* display:block + height:0 allows position:fixed children (modals) to show on desktop */
+#mobile-bottom-nav { display: block; height: 0; overflow: hidden; }
 @media(max-width: 768px) {
   #mobile-bottom-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0;
     background: rgba(12,14,11,.97); border-top: 1px solid var(--border2); z-index: 200;

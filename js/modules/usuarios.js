@@ -2,6 +2,7 @@
 // USUARIOS — gestión completa con Firebase Auth via REST
 // ═══════════════════════════════════════════════════════════
 const _FB_KEY = 'AIzaSyCJ3JlOH7cWId3t4pe_7WuuyqptWk7VXE0';
+let editUsrIdx = -1;
 
 function pgUsuarios() {
   let h = `<div class="ptitle">👥 Usuarios</div><div class="psub">Gestión de accesos y módulos</div>`;
@@ -9,15 +10,15 @@ function pgUsuarios() {
   USERS.forEach((u, i) => {
     h += `<div class="user-card">
       <div class="av" style="background:${AVC[i%8]}22;color:${AVC[i%8]}">${u.user.slice(0,2)}</div>
-      <div style="flex:1">
+      <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:500">${u.user}
           <span class="badge bgray" style="font-size:10px">${u.role}</span>
         </div>
         <div style="font-size:11px;color:var(--text2);margin-top:1px">${u.chatName}</div>
         <div style="margin-top:4px">${u.pages.map(p=>`<span class="mod-tag">${PAGE_LABELS[p]||p}</span>`).join('')}</div>
       </div>
-      <div style="display:flex;gap:4px;flex-shrink:0">
-        <button class="btn btnsm" onclick="openUserMods(${i})">Módulos</button>
+      <div style="display:flex;gap:4px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end">
+        <button class="btn btnsm btnp" onclick="openUserEdit(${i})">✏️ Editar</button>
         ${u.role !== 'Admin Console' ? `<button class="btn btnsm btnd" onclick="delUser(${i})">Eliminar</button>` : ''}
       </div>
     </div>`;
@@ -37,6 +38,7 @@ function pgUsuarios() {
         <option value="Administración">Administración</option>
         <option value="Producción">Producción</option>
         <option value="Fotografía">Fotografía</option>
+        <option value="Trafic">Trafic</option>
         <option value="Otro">Otro</option>
       </select>
     </div>
@@ -48,12 +50,13 @@ function pgUsuarios() {
 
   h += `<div class="card" style="border-color:var(--border)">
     <div class="ctitle">Módulos disponibles</div>
-    <div style="font-size:12px;color:var(--text2);margin-bottom:.5rem">Usá el botón <strong>Módulos</strong> en cada usuario para asignar accesos.</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:.5rem">Usá el botón <strong>Editar</strong> en cada usuario para asignar módulos y cambiar su rol.</div>
     <div>${ALL_PAGES.map(p=>`<span class="mod-tag">${PAGE_ICONS[p]} ${PAGE_LABELS[p]}</span>`).join('')}</div>
   </div>`;
   return h;
 }
 
+// ─── Agregar usuario ───
 async function addUser() {
   const u    = document.getElementById('nu-u')?.value.trim().toUpperCase();
   const p    = document.getElementById('nu-p')?.value.trim();
@@ -71,14 +74,10 @@ async function addUser() {
   btn.disabled = true;
 
   try {
-    // Crear en Firebase Auth via REST API — no desloguea al admin
     const res = await fetch(
       `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${_FB_KEY}`,
-      {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({email, password: p, returnSecureToken: false})
-      }
+      { method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({email, password:p, returnSecureToken:false}) }
     );
     const data = await res.json();
     if (data.error) {
@@ -91,17 +90,14 @@ async function addUser() {
       throw new Error(errMap[data.error.message] || data.error.message);
     }
 
-    // Agregar al array local
-    USERS.push({user:u, role:r, chatName:cn, photo:'', bio:'', instagram:'', telefono:'', pages:['boom','chat','perfil']});
+    USERS.push({user:u, role:r, chatName:cn, photo:'', bio:'', instagram:'', telefono:'',
+                _pass:p, pages:['boom','chat','perfil']});
     if (window._fbOK) window.fbSave.users?.();
 
-    msg.innerHTML = `<span style="color:var(--accent)">✓ Usuario <strong>${u}</strong> creado correctamente. Ya puede iniciar sesión con su contraseña.</span>`;
-
-    // Limpiar campos
-    document.getElementById('nu-u').value = '';
-    document.getElementById('nu-p').value = '';
+    msg.innerHTML = `<span style="color:var(--accent)">✓ Usuario <strong>${u}</strong> creado correctamente.</span>`;
+    document.getElementById('nu-u').value  = '';
+    document.getElementById('nu-p').value  = '';
     document.getElementById('nu-cn').value = '';
-
     renderPage('usuarios');
   } catch(e) {
     msg.innerHTML = `<span style="color:var(--red)">Error: ${e.message}</span>`;
@@ -110,20 +106,50 @@ async function addUser() {
   }
 }
 
-function openUserMods(idx) {
+// ─── Editar usuario (rol + chatname + módulos + reset pass) ───
+function openUserEdit(idx) {
   editUsrIdx = idx;
   const u = USERS[idx];
-  document.getElementById('m-usr-ttl').textContent = 'Módulos de ' + u.user;
-  document.getElementById('m-usr-body').innerHTML =
-    `<div style="font-size:12px;color:var(--text2);margin-bottom:.75rem">Tildá los módulos a los que tendrá acceso este usuario.</div>` +
-    ALL_PAGES.filter(p => p !== 'usuarios' || u.role === 'Admin Console').map(p => {
-      const on = u.pages.includes(p);
-      return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
-        <button class="chkbtn ${on ? 'on' : ''}" id="umod-${p}" onclick="toggleUmod('${p}')">${on ? '✓' : ''}</button>
-        <span style="font-size:13px">${PAGE_ICONS[p]} ${PAGE_LABELS[p]}</span>
-      </div>`;
-    }).join('');
-  document.getElementById('m-usr').style.display = 'flex';
+  document.getElementById('m-usr-edit-ttl').textContent = '✏️ Editar — ' + u.user;
+  document.getElementById('m-usr-edit-msg').textContent = '';
+
+  const isAdmin = u.role === 'Admin Console';
+  const roles = ['Barra','Públicas','CM','Administración','Producción','Fotografía','Trafic','Otro','Admin Console'];
+
+  document.getElementById('m-usr-edit-body').innerHTML = `
+    <div class="fr" style="margin-bottom:.5rem">
+      <div class="fc" style="flex:1"><span class="fl">Nombre en chat</span>
+        <input type="text" id="ue-cn" style="width:100%" value="${u.chatName||''}"></div>
+      <div class="fc" style="flex:1"><span class="fl">Rol</span>
+        <select id="ue-role" style="width:100%" ${isAdmin?'disabled':''}>
+          ${roles.map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${r}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="ctitle" style="font-size:12px;margin:.75rem 0 .5rem">Módulos</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:1rem">
+      ${ALL_PAGES.filter(p => p !== 'usuarios' || isAdmin).map(p => {
+        const on = u.pages.includes(p);
+        return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
+          <button class="chkbtn ${on?'on':''}" id="umod-${p}" onclick="toggleUmod('${p}')">${on?'✓':''}</button>
+          <span style="font-size:12px">${PAGE_ICONS[p]} ${PAGE_LABELS[p]}</span>
+        </div>`;
+      }).join('')}
+    </div>
+    ${!isAdmin ? `
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:1rem;margin-top:.5rem">
+      <div class="ctitle" style="font-size:12px;margin:0 0 .6rem">🔑 Resetear contraseña</div>
+      <div class="fr">
+        <div class="fc" style="flex:1"><span class="fl">Nueva contraseña</span>
+          <input type="password" id="ue-pass1" style="width:100%" placeholder="Mínimo 6 caracteres"></div>
+        <div class="fc" style="flex:1"><span class="fl">Confirmar</span>
+          <input type="password" id="ue-pass2" style="width:100%" placeholder="Repetir contraseña"></div>
+      </div>
+      <button class="btn btnsm" style="margin-top:.5rem" onclick="resetUserPass(${idx})">🔑 Cambiar contraseña</button>
+      <div id="ue-pass-msg" style="font-size:12px;margin-top:6px;min-height:14px"></div>
+    </div>` : ''}
+  `;
+  document.getElementById('m-usr-edit').style.display = 'flex';
 }
 
 function toggleUmod(p) {
@@ -132,21 +158,81 @@ function toggleUmod(p) {
   btn.textContent = on ? '✓' : '';
 }
 
-function saveUserMods() {
+function saveUserEdit() {
   const u = USERS[editUsrIdx];
+  const cn = document.getElementById('ue-cn')?.value.trim();
+  if (cn) { u.chatName = cn; }
+  const roleEl = document.getElementById('ue-role');
+  if (roleEl && !roleEl.disabled) u.role = roleEl.value;
+
   u.pages = ALL_PAGES.filter(p => {
     const btn = document.getElementById('umod-' + p);
     return btn?.classList.contains('on');
   });
-  // Ensure perfil is always included
   if (!u.pages.includes('perfil')) u.pages.push('perfil');
+
+  // Sync to USERS array and save
+  const idx = USERS.findIndex(x => x.user === u.user);
+  if (idx !== -1) USERS[idx] = u;
   if (window._fbOK) window.fbSave.users?.();
-  document.getElementById('m-usr').style.display = 'none';
+
+  document.getElementById('m-usr-edit').style.display = 'none';
+  document.getElementById('m-usr-edit-msg').textContent = '';
   renderPage('usuarios');
 }
 
+// ─── Reset contraseña ───
+async function resetUserPass(idx) {
+  const u = USERS[idx];
+  const p1 = document.getElementById('ue-pass1')?.value.trim();
+  const p2 = document.getElementById('ue-pass2')?.value.trim();
+  const msg = document.getElementById('ue-pass-msg');
+
+  if (!p1 || p1.length < 6) { msg.innerHTML='<span style="color:var(--red)">Mínimo 6 caracteres.</span>'; return; }
+  if (p1 !== p2) { msg.innerHTML='<span style="color:var(--red)">Las contraseñas no coinciden.</span>'; return; }
+
+  msg.innerHTML = '<span style="color:var(--text2)">⏳ Procesando...</span>';
+
+  const email = u.user.toLowerCase() + '@boom.app';
+  const storedPass = u._pass || '';
+
+  try {
+    // 1. Sign in as the user via REST (using stored password) to get their ID token
+    if (!storedPass) throw new Error('No hay contraseña almacenada. Creá al usuario nuevamente o actualizá en Firebase Console.');
+
+    const signIn = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${_FB_KEY}`,
+      { method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({email, password:storedPass, returnSecureToken:true}) }
+    );
+    const signInData = await signIn.json();
+    if (signInData.error) throw new Error('Error al autenticar usuario: ' + (signInData.error.message || ''));
+
+    // 2. Update password using user's ID token
+    const upd = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${_FB_KEY}`,
+      { method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({idToken:signInData.idToken, password:p1, returnSecureToken:false}) }
+    );
+    const updData = await upd.json();
+    if (updData.error) throw new Error(updData.error.message || 'Error al cambiar contraseña.');
+
+    // 3. Update stored password in Firestore
+    u._pass = p1;
+    const fidx = USERS.findIndex(x => x.user === u.user);
+    if (fidx !== -1) USERS[fidx]._pass = p1;
+    if (window._fbOK) window.fbSave.users?.();
+
+    msg.innerHTML = `<span style="color:var(--accent)">✓ Contraseña de ${u.user} actualizada correctamente.</span>`;
+    document.getElementById('ue-pass1').value = '';
+    document.getElementById('ue-pass2').value = '';
+  } catch(e) {
+    msg.innerHTML = `<span style="color:var(--red)">Error: ${e.message}</span>`;
+  }
+}
+
 function delUser(i) {
-  if (!confirm(`¿Eliminar usuario ${USERS[i].user}?\n\nNota: se eliminará de la app pero su cuenta de Firebase Auth sigue activa hasta que la borres manualmente en Firebase Console.`)) return;
+  if (!confirm(`¿Eliminar usuario ${USERS[i].user}?\n\nNota: se elimina de la app. La cuenta en Firebase Auth sigue activa.`)) return;
   USERS.splice(i, 1);
   if (window._fbOK) window.fbSave.users?.();
   renderPage('usuarios');

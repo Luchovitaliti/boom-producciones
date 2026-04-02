@@ -106,9 +106,14 @@
 </div>
 
 <!-- BOOT LOADER — oculta el flash de login mientras Firebase resuelve la sesión -->
-<div id="boot-loader" style="position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:1.25rem">
-  <div style="width:56px;height:56px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite"></div>
-  <div style="font-size:13px;color:var(--text3);letter-spacing:.04em">Cargando...</div>
+<div id="boot-loader" style="position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:1.5rem">
+  <img src="img/icon.svg" class="boot-logo" alt="BOOM">
+  <div style="font-size:11px;color:var(--text3);letter-spacing:.12em;text-transform:uppercase">BOOM Producciones</div>
+  <div class="boot-dots">
+    <div class="boot-dot"></div>
+    <div class="boot-dot"></div>
+    <div class="boot-dot"></div>
+  </div>
 </div>
 
 <!-- LOGIN -->
@@ -261,6 +266,58 @@
     <div class="fc" style="margin-bottom:8px"><span class="fl">Observaciones</span><textarea id="tr-pas-obs" style="min-height:44px" placeholder="Notas opcionales..."></textarea></div>
     <div style="font-size:12px;color:var(--red);margin-bottom:.5rem;min-height:16px" id="tr-pas-err"></div>
     <div class="mrow"><button class="btn btnp" style="flex:1" onclick="trSavePas()">Agregar pasajero</button><button class="btn" style="flex:1" onclick="document.getElementById('m-tr-pas').style.display='none'">Cancelar</button></div>
+  </div>
+</div>
+
+<!-- MODAL: EDITAR USUARIO (rol + chatname + módulos + reset pass) -->
+<div id="m-usr-edit" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="max-width:520px;max-height:90vh;overflow-y:auto">
+    <div class="mtitle" id="m-usr-edit-ttl">Editar usuario</div>
+    <div id="m-usr-edit-body"></div>
+    <div id="m-usr-edit-msg" style="font-size:12px;min-height:16px;margin-top:6px"></div>
+    <div class="mrow">
+      <button class="btn btnp" style="flex:1" onclick="saveUserEdit()">Guardar cambios</button>
+      <button class="btn" style="flex:1" onclick="document.getElementById('m-usr-edit').style.display='none'">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CONFIGURACIÓN BARRA (lista de productos) -->
+<div id="m-barra-cfg" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="max-width:620px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <div class="mtitle" style="margin:0">⚙️ Configuración de Barra</div>
+      <button class="btn btnp btnsm" onclick="barraOpenProd(-1)">+ Agregar producto</button>
+    </div>
+    <div class="barra-cfg-list" id="barra-cfg-body"></div>
+    <div class="mrow"><button class="btn" style="width:100%" onclick="document.getElementById('m-barra-cfg').style.display='none'">Cerrar</button></div>
+  </div>
+</div>
+
+<!-- MODAL: AGREGAR / EDITAR PRODUCTO DE BARRA -->
+<div id="m-barra-prod" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="max-width:500px">
+    <div class="mtitle" id="m-barra-prod-ttl">Producto</div>
+    <div class="fr">
+      <div class="fc" style="flex:2"><span class="fl">Nombre del producto</span><input type="text" id="bp-nombre" style="width:100%" placeholder="Ej: Cerveza Quilmes 1L"></div>
+      <div class="fc" style="flex:1"><span class="fl">Categoría</span><input type="text" id="bp-cat" style="width:100%" placeholder="Cervezas"></div>
+    </div>
+    <div class="fr">
+      <div class="fc"><span class="fl">Precio venta</span><input type="number" id="bp-pv" style="width:110px" placeholder="0" min="0"></div>
+      <div class="fc"><span class="fl">Precio costo</span><input type="number" id="bp-pc" style="width:110px" placeholder="0" min="0"></div>
+      <div class="fc"><span class="fl">Unid. por caja</span><input type="number" id="bp-uxc" style="width:95px" placeholder="12" min="1"></div>
+    </div>
+    <div style="font-size:12px;font-weight:600;color:var(--text2);margin:.75rem 0 .4rem;text-transform:uppercase;letter-spacing:.05em">Umbrales de stock (unidades)</div>
+    <div class="fr">
+      <div class="fc"><span class="fl">🟢 Bien (≥)</span><input type="number" id="bp-bien" style="width:80px" placeholder="30" min="0"></div>
+      <div class="fc"><span class="fl">🟡 Medio (≥)</span><input type="number" id="bp-medio" style="width:80px" placeholder="12" min="0"></div>
+      <div class="fc"><span class="fl">🟠 Bajo (≥)</span><input type="number" id="bp-bajo" style="width:80px" placeholder="5" min="0"></div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:4px">Por debajo del umbral Bajo se muestra "Muy bajo".</div>
+    <div class="mrow">
+      <button class="btn btnp" style="flex:1" onclick="barraSaveProd()">Guardar producto</button>
+      <button class="btn" style="flex:1" onclick="document.getElementById('m-barra-prod').style.display='none'">Cancelar</button>
+    </div>
   </div>
 </div>
 

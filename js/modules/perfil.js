@@ -104,6 +104,9 @@ async function savePassword(){
     const cred=firebase.auth.EmailAuthProvider.credential(user.email,old);
     await user.reauthenticateWithCredential(cred);
     await user.updatePassword(nw);
+    // Sync _pass en Firestore para que admin pueda resetear si hace falta
+    const idx=USERS.findIndex(u=>u.user===CU.user);
+    if(idx!==-1){ USERS[idx]._pass=nw; CU._pass=nw; if(window._fbOK)window.fbSave.users?.(); }
     msg.innerHTML='<span style="color:var(--green)">Contraseña actualizada correctamente.</span>';
     ['prof-pass-old','prof-pass-new','prof-pass-conf'].forEach(id=>document.getElementById(id).value='');
   }catch(e){

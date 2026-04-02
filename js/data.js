@@ -15,14 +15,14 @@ let EVENTOS=[]; // Se carga desde Firebase o queda vacío
 const EV_DATES=['2025-03-15','2025-03-22','2025-04-05'];
 let EV_FIN=[]; // Se sincroniza con EVENTOS
 const PRODS=[
-  {n:'Cerveza Quilmes 1L',cat:'Cervezas',uxc:12,pv:1500,pc:800},
-  {n:'Cerveza Corona 355ml',cat:'Cervezas',uxc:24,pv:1200,pc:600},
-  {n:'Fernet Branca 750ml',cat:'Fernet/Espirituosas',uxc:6,pv:2500,pc:1200},
-  {n:'Coca-Cola 500ml',cat:'Gaseosas/Aguas',uxc:24,pv:800,pc:300},
-  {n:'Agua sin gas 500ml',cat:'Gaseosas/Aguas',uxc:24,pv:600,pc:200},
-  {n:'Sprite 500ml',cat:'Gaseosas/Aguas',uxc:24,pv:800,pc:300},
-  {n:'Champagne Chandon 750ml',cat:'Vinos/Champagne',uxc:6,pv:3500,pc:1800},
-  {n:'Vino tinto Malbec 750ml',cat:'Vinos/Champagne',uxc:12,pv:2000,pc:900},
+  {n:'Cerveza Quilmes 1L',cat:'Cervezas',uxc:12,pv:1500,pc:800,umbralBien:30,umbralMedio:15,umbralBajo:6},
+  {n:'Cerveza Corona 355ml',cat:'Cervezas',uxc:24,pv:1200,pc:600,umbralBien:30,umbralMedio:15,umbralBajo:6},
+  {n:'Fernet Branca 750ml',cat:'Fernet/Espirituosas',uxc:6,pv:2500,pc:1200,umbralBien:18,umbralMedio:9,umbralBajo:3},
+  {n:'Coca-Cola 500ml',cat:'Gaseosas/Aguas',uxc:24,pv:800,pc:300,umbralBien:36,umbralMedio:18,umbralBajo:6},
+  {n:'Agua sin gas 500ml',cat:'Gaseosas/Aguas',uxc:24,pv:600,pc:200,umbralBien:36,umbralMedio:18,umbralBajo:6},
+  {n:'Sprite 500ml',cat:'Gaseosas/Aguas',uxc:24,pv:800,pc:300,umbralBien:30,umbralMedio:15,umbralBajo:5},
+  {n:'Champagne Chandon 750ml',cat:'Vinos/Champagne',uxc:6,pv:3500,pc:1800,umbralBien:12,umbralMedio:6,umbralBajo:2},
+  {n:'Vino tinto Malbec 750ml',cat:'Vinos/Champagne',uxc:12,pv:2000,pc:900,umbralBien:24,umbralMedio:12,umbralBajo:4},
 ];
 let STOCK_INI=[];
 let STOCK_CIE=[];
