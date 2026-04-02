@@ -185,47 +185,60 @@ function toggleUmod(p) {
   btn.textContent = on ? '✓' : '';
 }
 
-function saveUserEdit() {
+async function saveUserEdit() {
   const u   = USERS[editUsrIdx];
   if(!u) return;
-  const msg = document.getElementById('m-usr-edit-msg');
+  const msg    = document.getElementById('m-usr-edit-msg');
+  const btnOk  = document.querySelector('#m-usr-edit .mrow .btn.btnp');
+  if(btnOk){ btnOk.disabled=true; btnOk.textContent='Guardando...'; }
 
-  // Nombre en chat
-  const cn = document.getElementById('ue-cn')?.value.trim();
-  if (cn) u.chatName = cn;
+  // ── Leer todos los valores del DOM ANTES de cualquier async ──
+  const cn = document.getElementById('ue-cn')?.value.trim() || u.chatName || '';
 
-  // Rol
   const roleEl = document.getElementById('ue-role');
-  if (roleEl && !roleEl.disabled) u.role = roleEl.value;
+  const role   = (roleEl && !roleEl.disabled) ? roleEl.value : u.role;
 
-  // Módulos
-  u.pages = ALL_PAGES.filter(p => {
+  // Leer módulos desde checkboxes del DOM
+  const pages = ALL_PAGES.filter(p => {
     const btn = document.getElementById('umod-' + p);
     return btn?.classList.contains('on');
   });
-  if (!u.pages.includes('perfil')) u.pages.push('perfil');
+  if (!pages.includes('perfil')) pages.push('perfil');
 
-  // Username (solo no-admin)
-  const unameEl = document.getElementById('ue-username');
+  // Leer username
+  const unameEl   = document.getElementById('ue-username');
+  let   newUser   = u.user;
   if (unameEl && !unameEl.readOnly) {
-    const newUser = unameEl.value.trim().toUpperCase();
-    if (newUser && newUser !== u.user) {
-      // Verificar que no exista otro usuario con ese nombre
-      if (USERS.find((x, i) => x.user === newUser && i !== editUsrIdx)) {
+    const val = unameEl.value.trim().toUpperCase();
+    if (val && val !== u.user) {
+      if (USERS.find((x, i) => x.user === val && i !== editUsrIdx)) {
         if(msg) msg.innerHTML = '<span style="color:var(--red)">Ya existe un usuario con ese nombre.</span>';
+        if(btnOk){ btnOk.disabled=false; btnOk.textContent='Guardar cambios'; }
         return;
       }
-      u.user = newUser;
+      newUser = val;
     }
   }
 
-  // Sync to USERS array and save
-  USERS[editUsrIdx] = u;
-  if (window._fbOK) window.fbSave.users?.();
+  // ── Aplicar al objeto USERS (por índice, no por referencia vieja) ──
+  USERS[editUsrIdx].chatName = cn;
+  USERS[editUsrIdx].role     = role;
+  USERS[editUsrIdx].pages    = pages;
+  USERS[editUsrIdx].user     = newUser;
 
-  document.getElementById('m-usr-edit').style.display = 'none';
-  if(msg) msg.textContent = '';
-  renderPage('usuarios');
+  // ── Guardar y ESPERAR confirmación ──
+  try {
+    if (window._fbOK) {
+      await window.fbSave.users?.();
+      if(msg) msg.innerHTML = '<span style="color:var(--accent)">✓ Guardado correctamente.</span>';
+    }
+    document.getElementById('m-usr-edit').style.display = 'none';
+    renderPage('usuarios');
+  } catch(e) {
+    if(msg) msg.innerHTML = `<span style="color:var(--red)">Error al guardar: ${e.message}</span>`;
+  } finally {
+    if(btnOk){ btnOk.disabled=false; btnOk.textContent='Guardar cambios'; }
+  }
 }
 
 // ─── Reset contraseña ───
