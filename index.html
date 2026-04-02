@@ -151,7 +151,8 @@
     <div class="main" id="mc"></div>
   </div>
 </div>
-<div id="mobile-bottom-nav">
+<div id="mobile-bottom-nav"></div>
+
 <div id="m-staff" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
   <div class="modal"><div class="mtitle">Agregar personal</div>
   <div class="fr"><div class="fc" style="flex:1"><span class="fl">Nombre</span><input type="text" id="ms-nombre" style="width:100%" placeholder="Nombre completo"></div></div>
@@ -168,15 +169,121 @@
 </div>
 
 
-<div id="m-gasto" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
-  <div class="modal"><div class="mtitle">Nuevo gasto</div>
-  <div class="fc" style="margin-bottom:8px"><span class="fl">Descripción</span><input type="text" id="mg-desc" style="width:100%" placeholder="Ej: Caché DJ"></div>
-  <div class="fr">
-    <div class="fc" style="flex:1"><span class="fl">Rubro</span><select id="mg-rubro" style="width:100%"><option>Flyer/diseño</option><option>Publicidad en redes</option><option>Cachets artistas/DJ</option><option>Alquiler lugar/equipos</option><option>Staff</option><option>Habilitaciones</option><option>Sonido</option><option>Iluminación</option><option>Seguridad</option><option>Otros gastos</option></select></div>
-    <div class="fc"><span class="fl">Monto</span><input type="number" id="mg-monto" placeholder="0" style="width:120px"></div>
+<!-- MODAL: NUEVO/EDITAR GASTO (Administración) -->
+<div id="m-gasto-adm" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="max-width:560px;max-height:92vh;overflow-y:auto">
+    <div class="mtitle" id="m-gasto-adm-ttl">Nuevo gasto</div>
+    <div class="fr">
+      <div class="fc"><span class="fl">Fecha</span><input type="date" id="gad-fecha" style="width:140px"></div>
+      <div class="fc" style="flex:1"><span class="fl">Categoría</span>
+        <select id="gad-cat" style="width:100%">
+          <option>Sonido</option><option>Catering</option><option>Movilidad</option>
+          <option>Sueldos</option><option>Insumos</option><option>Habilitaciones</option>
+          <option>Diseño / Publicidad</option><option>Cachets artistas / DJ</option>
+          <option>Alquiler lugar / equipos</option><option>Seguridad</option>
+          <option>Iluminación</option><option>Marketing</option><option>Producción</option>
+          <option>Otros</option>
+        </select>
+      </div>
+    </div>
+    <div class="fc" style="margin-bottom:8px"><span class="fl">Tipo de movimiento</span>
+      <select id="gad-tipo" style="width:100%">
+        <option value="compra">Compra / Gasto</option>
+        <option value="pago_proveedor">Pago a proveedor</option>
+        <option value="pago_empleado">Pago a empleado</option>
+      </select>
+    </div>
+    <div class="fc" style="margin-bottom:8px;position:relative"><span class="fl">Proveedor / Empleado / Lugar</span>
+      <input type="text" id="gad-persona" style="width:100%" placeholder="Escribí para buscar o ingresar libre..."
+        oninput="afBuscarPersona(this.value)" autocomplete="off">
+      <input type="hidden" id="gad-persona-id">
+      <div id="gad-persona-list" class="ac-list" style="display:none"></div>
+    </div>
+    <div class="fr">
+      <div class="fc" style="flex:1"><span class="fl">Medio de pago</span>
+        <select id="gad-medio" style="width:100%">
+          <option>Efectivo</option><option>Transferencia bancaria</option>
+          <option>Cuenta bancaria</option><option>Mercado Pago</option>
+          <option>Cheque</option><option>Otro</option>
+        </select>
+      </div>
+      <div class="fc"><span class="fl">Monto (ARS)</span>
+        <input type="number" id="gad-monto" placeholder="0" style="width:130px;font-size:16px;font-weight:600" min="0">
+      </div>
+    </div>
+    <div class="fc" style="margin-bottom:8px"><span class="fl">Descripción / Concepto</span>
+      <input type="text" id="gad-desc" style="width:100%" placeholder="Ej: Caché DJ, Impresión de flyers, etc.">
+    </div>
+    <div class="fr">
+      <div class="fc" style="flex:1"><span class="fl">Evento asociado</span>
+        <select id="gad-ev" style="width:100%"></select>
+      </div>
+      <div class="fc"><span class="fl">Estado</span>
+        <select id="gad-estado" style="width:120px">
+          <option value="pendiente">Pendiente</option>
+          <option value="pagado">Pagado</option>
+        </select>
+      </div>
+    </div>
+    <div class="fc" style="margin-bottom:8px"><span class="fl">Comprobante / Factura (URL o link)</span>
+      <input type="text" id="gad-comp" style="width:100%" placeholder="https://... o dejá vacío">
+    </div>
+    <div class="fc" style="margin-bottom:8px"><span class="fl">Observaciones</span>
+      <textarea id="gad-obs" style="min-height:50px" placeholder="Notas internas..."></textarea>
+    </div>
+    <div class="mrow">
+      <button class="btn btnp" style="flex:1" onclick="afSaveGasto()">Guardar</button>
+      <button class="btn" style="flex:1" onclick="document.getElementById('m-gasto-adm').style.display='none'">Cancelar</button>
+    </div>
   </div>
-  <div class="mrow"><button class="btn btnp" style="flex:1" onclick="afSaveGasto()">Guardar</button><button class="btn" style="flex:1" onclick="document.getElementById('m-gasto').style.display='none'">Cancelar</button></div></div>
 </div>
+
+<!-- MODAL: NUEVA/EDITAR PERSONA (Proveedor/Empleado) -->
+<div id="m-persona-adm" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="max-width:500px">
+    <div class="mtitle" id="m-persona-adm-ttl">Nueva persona</div>
+    <div class="fr">
+      <div class="fc" style="flex:1"><span class="fl">Nombre completo / Razón social</span>
+        <input type="text" id="per-nombre" style="width:100%" placeholder="Nombre...">
+      </div>
+      <div class="fc"><span class="fl">Tipo</span>
+        <select id="per-tipo" style="width:120px">
+          <option value="proveedor">Proveedor</option>
+          <option value="empleado">Empleado</option>
+        </select>
+      </div>
+    </div>
+    <div class="fr">
+      <div class="fc" style="flex:1"><span class="fl">Teléfono</span>
+        <input type="tel" id="per-tel" style="width:100%" placeholder="+54 9 261...">
+      </div>
+      <div class="fc" style="flex:1"><span class="fl">Mail</span>
+        <input type="email" id="per-mail" style="width:100%" placeholder="mail@ejemplo.com">
+      </div>
+    </div>
+    <div class="fr">
+      <div class="fc" style="flex:1"><span class="fl">CBU / Alias</span>
+        <input type="text" id="per-cbu" style="width:100%" placeholder="CBU o alias de MP">
+      </div>
+      <div class="fc" style="flex:1"><span class="fl">CUIT / DNI</span>
+        <input type="text" id="per-cuit" style="width:100%" placeholder="20-12345678-9">
+      </div>
+    </div>
+    <div class="fc" style="margin-bottom:8px"><span class="fl">Dirección</span>
+      <input type="text" id="per-dir" style="width:100%" placeholder="Calle, ciudad...">
+    </div>
+    <div class="fc" style="margin-bottom:8px"><span class="fl">Observaciones</span>
+      <textarea id="per-obs" style="min-height:44px" placeholder="Notas..."></textarea>
+    </div>
+    <div class="mrow">
+      <button class="btn btnp" style="flex:1" onclick="afSavePersona()">Guardar</button>
+      <button class="btn" style="flex:1" onclick="document.getElementById('m-persona-adm').style.display='none'">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- legacy m-gasto alias (por si algún módulo viejo lo llama) -->
+<div id="m-gasto" style="display:none"></div>
 
 
 <div id="m-nueva-publica" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
@@ -220,8 +327,6 @@
     <input type="hidden" id="m-del-prov-id">
     <div class="mrow"><button class="btn btnd" style="flex:1" onclick="confirmDelProv()">Sí, eliminar</button><button class="btn btnp" style="flex:1" onclick="document.getElementById('m-del-prov').style.display='none'">Cancelar</button></div>
   </div>
-</div>
-
 </div>
 
 <!-- MODALS: TRAFIC -->

@@ -42,6 +42,8 @@ try {
     staff:          ev => fbSet('staff',         'ev'+ev,  {items:STAFF_EV[ev]}),
     benef:          ev => fbSet('beneficios',    'ev'+ev,  BENEF_EV[ev]||{}),
     provs:          ()  => fbSet('proveedores',  'lista',  {items:PROVEEDORES}),
+    gastosAdm:      ()  => fbSet('adminfin',     'gastos', {items:GASTOS_ADM}),
+    personasAdm:    ()  => fbSet('adminfin',     'personas',{items:PERSONAS_ADM}),
     eventos:        ()  => fbSet('eventos',      'lista',  {items:EVENTOS, evFin:EV_FIN}),
     customChannels: ()  => fbSet('chat',         'customChannels', {items:CUSTOM_CHANNELS}),
     trafic:         ev => fbSet('trafic',        'ev'+ev, {
@@ -91,6 +93,8 @@ try {
     const ideas = await fbGet('boom','ideas');         if(ideas?.items)  IDEAS      = ideas.items;
     const pub   = await fbGet('publicas','lista');     if(pub?.items)    PUBLICAS   = pub.items;
     const prov  = await fbGet('proveedores','lista');  if(prov?.items)   PROVEEDORES= prov.items;
+    const gadm  = await fbGet('adminfin','gastos');    if(gadm?.items)   GASTOS_ADM  = gadm.items;
+    const padm  = await fbGet('adminfin','personas');  if(padm?.items)   PERSONAS_ADM= padm.items;
     const users = await fbGet('config','users');       if(users?.items)  USERS      = users.items;
 
     // Canales personalizados de chat

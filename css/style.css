@@ -410,3 +410,22 @@ tr:hover td { background: var(--bg3); }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 .card, .met, .pcard { animation: fadeIn .2s ease; }
 .modal { animation: fadeIn .15s ease; }
+
+/* ══ ADMIN FIN — Autocomplete ══ */
+.ac-list {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 500;
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--rs);
+  box-shadow: 0 8px 24px rgba(0,0,0,.5); max-height: 220px; overflow-y: auto;
+  margin-top: 2px;
+}
+.ac-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 12px; cursor: pointer; font-size: 13px;
+  border-bottom: 1px solid var(--border); transition: background .1s;
+}
+.ac-item:last-child { border-bottom: none; }
+.ac-item:hover { background: var(--bg4); }
+
+/* ══ ADMIN FIN — Tabla responsive ══ */
+.adminfin-table-wrap { overflow-x: auto; }
+.adminfin-table-wrap table { min-width: 700px; }

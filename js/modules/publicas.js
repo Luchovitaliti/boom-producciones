@@ -4,7 +4,7 @@
 function pgPublicas(){
   if(!EVENTOS.length||gEv()>=EVENTOS.length)return`<div class="ptitle">📸 Módulo de Públicas</div><div class="empty" style="margin-top:2rem">Creá un evento primero.</div>`;
   const ev=gEv();const cfg=EVENTOS[ev];
-  const stats=PUBLICAS.filter(p=>p.activo).map(p=>({p,a:getAct(ev,p.id)})).sort((a,b)=>tpubs(b.a)-tpubs(a.a));
+  const stats=PUBLICAS.filter(p=>p.activo&&p.evIdx===ev).map(p=>({p,a:getAct(ev,p.id)})).sort((a,b)=>tpubs(b.a)-tpubs(a.a));
   let h=`<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:1.5rem"><div><div class="ptitle">📸 Módulo de Públicas</div><div class="psub">${EVENTOS[ev].nombre}</div></div><button class="btn btnp btnsm" onclick="lpAddPublica()">+ Nueva pública</button></div>`;
   h+=`<div class="mg"><div class="met"><div class="ml">Equipo activo</div><div class="mv">${stats.length}</div></div><div class="met"><div class="ml">Total publicaciones</div><div class="mv">${stats.reduce((a,s)=>a+tpubs(s.a),0)}</div></div><div class="met"><div class="ml">Entradas vendidas</div><div class="mv">${PUB_LOGS[ev].reduce((a,l)=>a+l.ent,0)}</div></div></div>`;
   h+=`<div class="card"><div class="ctitle">Equipo</div>`;
