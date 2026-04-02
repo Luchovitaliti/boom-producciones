@@ -213,6 +213,51 @@
 
 </div>
 
+<!-- MODALS: TRAFIC -->
+<div id="m-tr-loc" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="max-width:360px">
+    <div class="mtitle">Nueva localidad</div>
+    <div class="fc" style="margin-bottom:8px"><span class="fl">Nombre</span><input type="text" id="tr-loc-nombre" style="width:100%" placeholder="Ej: San Carlos, Tupungato, Mendoza"></div>
+    <div class="mrow"><button class="btn btnp" style="flex:1" onclick="trSaveLoc()">Crear</button><button class="btn" style="flex:1" onclick="document.getElementById('m-tr-loc').style.display='none'">Cancelar</button></div>
+  </div>
+</div>
+
+<div id="m-tr-etapa" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="max-width:380px">
+    <div class="mtitle">Nueva etapa de precio</div>
+    <div class="fc" style="margin-bottom:8px"><span class="fl">Nombre de la etapa</span><input type="text" id="tr-eta-nombre" style="width:100%" placeholder="Ej: Preventa 1, Anticipada, General"></div>
+    <div class="fc" style="margin-bottom:8px"><span class="fl">Precio (ARS)</span><input type="number" id="tr-eta-precio" style="width:100%" placeholder="0" min="0"></div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:.75rem">La etapa se crea inactiva. Activala desde el panel cuando esté vigente.</div>
+    <div class="mrow"><button class="btn btnp" style="flex:1" onclick="trSaveEtapa()">Crear</button><button class="btn" style="flex:1" onclick="document.getElementById('m-tr-etapa').style.display='none'">Cancelar</button></div>
+  </div>
+</div>
+
+<div id="m-tr-viaje" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="max-width:360px">
+    <div class="mtitle">Nueva trafic — N° <span id="tr-viaje-num">1</span></div>
+    <div class="fc" style="margin-bottom:8px"><span class="fl">Capacidad (pasajeros)</span><input type="number" id="tr-viaje-cap" style="width:100%" value="15" min="1" max="60"></div>
+    <div class="mrow"><button class="btn btnp" style="flex:1" onclick="trSaveViaje()">Crear trafic</button><button class="btn" style="flex:1" onclick="document.getElementById('m-tr-viaje').style.display='none'">Cancelar</button></div>
+  </div>
+</div>
+
+<div id="m-tr-pas" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="max-width:420px">
+    <div class="mtitle">Nuevo pasajero</div>
+    <div style="font-size:12px;margin-bottom:.75rem"><span class="badge bok" id="tr-pas-etapa"></span></div>
+    <div class="fr">
+      <div class="fc" style="flex:1"><span class="fl">Nombre</span><input type="text" id="tr-pas-nombre" style="width:100%" placeholder="Nombre"></div>
+      <div class="fc" style="flex:1"><span class="fl">Apellido</span><input type="text" id="tr-pas-apellido" style="width:100%" placeholder="Apellido"></div>
+    </div>
+    <div class="fr">
+      <div class="fc" style="flex:1"><span class="fl">DNI</span><input type="text" id="tr-pas-dni" style="width:100%" placeholder="Número de DNI" inputmode="numeric"></div>
+      <div class="fc" style="flex:1"><span class="fl">Teléfono</span><input type="tel" id="tr-pas-tel" style="width:100%" placeholder="+54 9..."></div>
+    </div>
+    <div class="fc" style="margin-bottom:8px"><span class="fl">Observaciones</span><textarea id="tr-pas-obs" style="min-height:44px" placeholder="Notas opcionales..."></textarea></div>
+    <div style="font-size:12px;color:var(--red);margin-bottom:.5rem;min-height:16px" id="tr-pas-err"></div>
+    <div class="mrow"><button class="btn btnp" style="flex:1" onclick="trSavePas()">Agregar pasajero</button><button class="btn" style="flex:1" onclick="document.getElementById('m-tr-pas').style.display='none'">Cancelar</button></div>
+  </div>
+</div>
+
 <!-- MODAL: NUEVO CANAL DE CHAT -->
 <div id="m-chat-channel" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
   <div class="modal" style="max-width:360px">
@@ -242,6 +287,7 @@
 <script src="js/modules/chat.js"></script>
 <script src="js/modules/proveedores.js"></script>
 <script src="js/modules/kpi.js"></script>
+<script src="js/modules/trafic.js"></script>
 <script src="js/modules/usuarios.js"></script>
 <script src="js/modules/perfil.js"></script>
 <script src="js/firebase.js"></script>

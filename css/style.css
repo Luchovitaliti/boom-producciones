@@ -295,6 +295,15 @@ tr:hover td { background: var(--bg3); }
   color: var(--accent); border-radius: 99px; font-size: 10px; margin: 1px;
   border: 1px solid rgba(149,193,31,.18); }
 
+/* ══ TRAFIC ══ */
+.tr-loc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: .5rem; }
+.tr-loc-card { background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--r);
+  padding: 1rem; cursor: pointer; transition: border-color .15s, background .15s; }
+.tr-loc-card:hover { border-color: var(--accent); background: var(--bg4); }
+.tr-viaje-card { background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--r);
+  padding: 1rem; margin-bottom: .6rem; cursor: pointer; transition: border-color .15s, background .15s; }
+.tr-viaje-card:hover { border-color: var(--accent); background: var(--bg4); }
+
 /* ══ RESPONSIVE — MOBILE FIRST ══ */
 @media(max-width: 768px) {
   .layout { flex-direction: column; }

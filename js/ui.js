@@ -33,6 +33,7 @@ function renderPage(p){
   else if(p==='adminfin'){mc.innerHTML=pgAdminFin();initAdminFin();}
   else if(p==='liderpub'){mc.innerHTML=pgLiderPub();initLider();}
   else if(p==='publicas')mc.innerHTML=pgPublicas();
+  else if(p==='trafic'){mc.innerHTML=pgTrafic();initTrafic();}
   else if(p==='cm'){mc.innerHTML=pgCM();initCM();}
   else if(p==='boom'){mc.innerHTML=pgBoom();initBoom();}
   else if(p==='chat'){mc.innerHTML=pgChat();initChat();}

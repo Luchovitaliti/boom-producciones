@@ -44,6 +44,12 @@ try {
     provs:          ()  => fbSet('proveedores',  'lista',  {items:PROVEEDORES}),
     eventos:        ()  => fbSet('eventos',      'lista',  {items:EVENTOS, evFin:EV_FIN}),
     customChannels: ()  => fbSet('chat',         'customChannels', {items:CUSTOM_CHANNELS}),
+    trafic:         ev => fbSet('trafic',        'ev'+ev, {
+      etapas:      TRAFIC_ETAPAS.filter(e=>e.evIdx===ev),
+      localidades: TRAFIC_LOCALIDADES.filter(l=>l.evIdx===ev),
+      viajes:      TRAFIC_VIAJES.filter(v=>v.evIdx===ev),
+      pasajeros:   TRAFIC_PASAJEROS.filter(p=>p.evIdx===ev),
+    }),
   };
 
   // ─── LOAD ───
@@ -70,6 +76,15 @@ try {
     for (let ev=0; ev<n; ev++) { const d=await fbGet('cajas','ev'+ev);     if(d?.items) CAJAS_EV[ev]=d.items; }
     for (let ev=0; ev<n; ev++) { const d=await fbGet('staff','ev'+ev);     if(d?.items) STAFF_EV[ev]=d.items; }
     for (let ev=0; ev<n; ev++) { const d=await fbGet('beneficios','ev'+ev);if(d) BENEF_EV[ev]=d; }
+    for (let ev=0; ev<n; ev++) {
+      const d=await fbGet('trafic','ev'+ev);
+      if(d){
+        if(d.etapas)      TRAFIC_ETAPAS=TRAFIC_ETAPAS.filter(e=>e.evIdx!==ev).concat(d.etapas);
+        if(d.localidades) TRAFIC_LOCALIDADES=TRAFIC_LOCALIDADES.filter(l=>l.evIdx!==ev).concat(d.localidades);
+        if(d.viajes)      TRAFIC_VIAJES=TRAFIC_VIAJES.filter(v=>v.evIdx!==ev).concat(d.viajes);
+        if(d.pasajeros)   TRAFIC_PASAJEROS=TRAFIC_PASAJEROS.filter(p=>p.evIdx!==ev).concat(d.pasajeros);
+      }
+    }
 
     const posts = await fbGet('cm','posts');           if(posts?.items)  POSTS      = posts.items;
     const tasks = await fbGet('cm','tasks');           if(tasks?.items)  TASKS      = tasks.items;
