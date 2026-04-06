@@ -279,6 +279,9 @@ try {
     }
   }
 
+  // ─── Expose for use from usuarios.js ───
+  window.fbReloadUsers = loadUsersFromFirestore;
+
   // ─── SESIÓN PERSISTENTE ───
   _auth.onAuthStateChanged(async function(fbUser) {
     try {

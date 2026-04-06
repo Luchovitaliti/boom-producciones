@@ -33,6 +33,7 @@ module.exports = async function handler(req, res) {
       case 'resetPassword': return await resetPassword(req, res, payload);
       case 'delete': return await deleteUser(req, res, payload);
       case 'updateEmail': return await updateEmail(req, res, payload);
+      case 'cleanOrphans': return await cleanOrphans(req, res);
       default: return res.status(400).json({ error: 'Unknown action: ' + action });
     }
   } catch (e) {
@@ -118,6 +119,33 @@ async function deleteUser(req, res, { uid }) {
   // Mark as inactive in Firestore (soft delete)
   await db.collection('users').doc(uid).update({ active: false, updatedAt: new Date().toISOString() });
   return res.status(200).json({ ok: true });
+}
+
+async function cleanOrphans(req, res) {
+  const snap = await db.collection('users').where('active', '==', true).get();
+  let cleaned = 0;
+  const details = [];
+
+  for (const doc of snap.docs) {
+    const uid = doc.id;
+    try {
+      await auth.getUser(uid);
+      // User exists in Auth — nothing to do
+    } catch (e) {
+      if (e.code === 'auth/user-not-found') {
+        await db.collection('users').doc(uid).update({
+          active: false,
+          updatedAt: new Date().toISOString(),
+          _deactivatedReason: 'orphan-cleanup',
+        });
+        cleaned++;
+        details.push({ uid, username: doc.data().username || '' });
+      }
+      // Other errors: skip silently
+    }
+  }
+
+  return res.status(200).json({ ok: true, cleaned, details });
 }
 
 async function updateEmail(req, res, { uid, newEmail }) {

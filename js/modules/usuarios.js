@@ -74,6 +74,13 @@ function pgUsuarios() {
     <div style="font-size:12px;color:var(--text2);margin-bottom:.5rem">Usá el botón <strong>Editar</strong> en cada usuario para asignar módulos y cambiar su rol.</div>
     <div>${ALL_PAGES.map(p => `<span class="mod-tag">${PAGE_ICONS[p]} ${PAGE_LABELS[p]}</span>`).join('')}</div>
   </div>`;
+
+  h += `<div class="card" style="border-color:var(--border)">
+    <div class="ctitle">🧹 Mantenimiento</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:.5rem">Detecta usuarios en Firestore cuya cuenta de Firebase Auth ya no existe y los desactiva.</div>
+    <button class="btn btnsm" id="orphan-btn" onclick="cleanOrphans()">Limpiar huérfanos</button>
+    <div id="orphan-msg" style="font-size:12px;margin-top:6px;min-height:14px"></div>
+  </div>`;
   return h;
 }
 
@@ -105,7 +112,7 @@ async function addUser() {
   btn.disabled = true;
 
   try {
-    const result = await apiCall({
+    await apiCall({
       action: 'create',
       username: u,
       email: email,
@@ -115,11 +122,8 @@ async function addUser() {
       pages: ['boom', 'chat', 'perfil'],
     });
 
-    // Add to local USERS array
-    if (result.user) {
-      result.user.user = result.user.username; // compatibility
-      USERS.push(result.user);
-    }
+    // Re-sync USERS from Firestore (source of truth)
+    if (window.fbReloadUsers) await window.fbReloadUsers();
 
     msg.innerHTML = `<span style="color:var(--accent)">✓ Usuario <strong>${escapeHtml(u)}</strong> creado correctamente.</span>`;
     document.getElementById('nu-u').value = '';
@@ -298,10 +302,36 @@ async function delUser(i) {
 
   try {
     await apiCall({ action: 'delete', uid: u.uid });
-    USERS.splice(i, 1);
+    // Re-sync USERS from Firestore (source of truth)
+    if (window.fbReloadUsers) await window.fbReloadUsers();
     renderPage('usuarios');
   } catch(e) {
     alert('Error al eliminar: ' + e.message);
+  }
+}
+
+// ─── Limpiar huérfanos via API ───
+async function cleanOrphans() {
+  const msg = document.getElementById('orphan-msg');
+  const btn = document.getElementById('orphan-btn');
+  msg.innerHTML = '<span style="color:var(--text2)">⏳ Buscando huérfanos...</span>';
+  btn.disabled = true;
+
+  try {
+    const result = await apiCall({ action: 'cleanOrphans' });
+    if (result.cleaned === 0) {
+      msg.innerHTML = '<span style="color:var(--accent)">✓ No se encontraron huérfanos.</span>';
+    } else {
+      // Re-sync USERS from Firestore after cleanup
+      if (window.fbReloadUsers) await window.fbReloadUsers();
+      const names = result.details.map(d => d.username || d.uid).join(', ');
+      msg.innerHTML = `<span style="color:var(--accent)">✓ ${result.cleaned} huérfano(s) desactivado(s): ${escapeHtml(names)}</span>`;
+      renderPage('usuarios');
+    }
+  } catch(e) {
+    msg.innerHTML = `<span style="color:var(--red)">Error: ${escapeHtml(e.message)}</span>`;
+  } finally {
+    btn.disabled = false;
   }
 }
 
