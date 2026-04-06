@@ -7,10 +7,11 @@ function showLoginErr(msg) {
 }
 
 async function doLogin() {
-  const input = document.getElementById('l-user').value.trim();
+  const email = document.getElementById('l-user').value.trim().toLowerCase();
   const p = document.getElementById('l-pass').value.trim();
   document.getElementById('l-err').style.display = 'none';
-  if (!input || !p) { showLoginErr('Completá email y contraseña.'); return; }
+  if (!email || !p) { showLoginErr('Completá email y contraseña.'); return; }
+  if (!email.includes('@')) { showLoginErr('Ingresá un email válido.'); return; }
 
   const btn = document.querySelector('.lbtn');
   btn.textContent = 'Ingresando...'; btn.disabled = true;
@@ -22,33 +23,16 @@ async function doLogin() {
       return;
     }
 
-    let email = input;
-
-    // If input doesn't look like an email, treat as username and look up real email
-    if (!input.includes('@')) {
-      const snapshot = await firebase.firestore()
-        .collection('users')
-        .where('username', '==', input.toUpperCase())
-        .limit(1)
-        .get();
-
-      if (snapshot.empty) {
-        showLoginErr('Usuario no encontrado.');
-        btn.textContent = 'Ingresar'; btn.disabled = false;
-        return;
-      }
-      email = snapshot.docs[0].data().email;
-    }
-
-    await firebase.auth().signInWithEmailAndPassword(email.toLowerCase(), p);
+    await firebase.auth().signInWithEmailAndPassword(email, p);
   } catch (e) {
     console.error('Auth error:', e.code, e.message);
     const msgs = {
       'auth/user-not-found': 'No hay una cuenta con ese email.',
       'auth/wrong-password': 'Contraseña incorrecta.',
       'auth/invalid-email': 'Email inválido.',
-      'auth/invalid-credential': 'Email o contraseña incorrectos.',
+      'auth/invalid-credential': 'Credenciales inválidas.',
       'auth/too-many-requests': 'Demasiados intentos. Esperá un momento.',
+      'auth/network-request-failed': 'Error de red. Verificá tu conexión.',
     };
     showLoginErr(msgs[e.code] || ('Error: ' + e.code));
     btn.textContent = 'Ingresar'; btn.disabled = false;
@@ -87,6 +71,17 @@ async function doForgotPassword() {
   btn.textContent = 'Enviando...'; btn.disabled = true;
 
   try {
+    const checkRes = await fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'checkEmail', email }),
+    });
+    const checkData = await checkRes.json();
+    if (!checkRes.ok) throw new Error(checkData.error || 'No se pudo validar el email');
+    if (!checkData.exists) {
+      throw new Error('Usuario no encontrado o no registrado');
+    }
+
     await firebase.auth().sendPasswordResetEmail(email);
     okEl.textContent = 'Te enviamos un email para restablecer tu contraseña. Revisá tu bandeja de entrada.';
     okEl.style.display = 'block';
@@ -95,8 +90,9 @@ async function doForgotPassword() {
       'auth/user-not-found': 'No hay una cuenta con ese email.',
       'auth/invalid-email': 'Email inválido.',
       'auth/too-many-requests': 'Demasiados intentos. Esperá un momento.',
+      'auth/network-request-failed': 'Error de red. Verificá tu conexión.',
     };
-    errEl.textContent = msgs[e.code] || ('Error: ' + e.code);
+    errEl.textContent = msgs[e.code] || e.message || ('Error: ' + e.code);
     errEl.style.display = 'block';
   } finally {
     btn.textContent = 'Enviar enlace'; btn.disabled = false;
