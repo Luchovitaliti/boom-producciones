@@ -49,7 +49,6 @@ function pgUsuarios() {
     <div class="fc" style="flex:1"><span class="fl">Email</span><input type="email" id="nu-email" style="width:100%" placeholder="correo@real.com"></div>
   </div>
   <div class="fr">
-    <div class="fc"><span class="fl">Nombre visible</span><input type="text" id="nu-dn" style="width:170px" placeholder="Opcional"></div>
     <div class="fc"><span class="fl">Contraseña</span><input type="password" id="nu-p" style="width:140px" placeholder="Mínimo 6 caracteres"></div>
     <div class="fc"><span class="fl">Nombre en chat</span><input type="text" id="nu-cn" style="width:150px" placeholder="Ej: Fotógrafo"></div>
     <div class="fc"><span class="fl">Rol</span>
@@ -82,7 +81,6 @@ function pgUsuarios() {
 async function addUser() {
   const u     = document.getElementById('nu-u')?.value.trim().toUpperCase();
   const email = document.getElementById('nu-email')?.value.trim();
-  const displayName = document.getElementById('nu-dn')?.value.trim();
   const p     = document.getElementById('nu-p')?.value.trim();
   const cn    = document.getElementById('nu-cn')?.value.trim() || u;
   const r     = document.getElementById('nu-r')?.value;
@@ -114,7 +112,6 @@ async function addUser() {
       password: p,
       role: r,
       chatName: cn,
-      displayName: displayName || cn,
       pages: ['boom', 'chat', 'perfil'],
     });
 
@@ -127,7 +124,6 @@ async function addUser() {
     msg.innerHTML = `<span style="color:var(--accent)">✓ Usuario <strong>${escapeHtml(u)}</strong> creado correctamente.</span>`;
     document.getElementById('nu-u').value = '';
     document.getElementById('nu-email').value = '';
-    document.getElementById('nu-dn').value = '';
     document.getElementById('nu-p').value = '';
     document.getElementById('nu-cn').value = '';
     renderPage('usuarios');
@@ -162,22 +158,12 @@ function openUserEdit(idx) {
     </div>
     <div class="fr" style="margin-bottom:.5rem">
       <div class="fc" style="flex:1"><span class="fl">Email</span>
-        <input type="email" id="ue-email" style="width:100%" value="${escapeHtml(u.email || '')}">
+        <input type="text" id="ue-email" style="width:100%;color:var(--text2)" value="${escapeHtml(u.email || '')}" readonly>
       </div>
       <div class="fc" style="flex:1"><span class="fl">Username</span>
         <input type="text" id="ue-username" style="width:100%;font-weight:600;letter-spacing:.04em;text-transform:uppercase"
           value="${escapeHtml(u.username || u.user || '')}" ${isAdmin ? 'readonly' : ''}
           oninput="this.value=this.value.toUpperCase()">
-      </div>
-    </div>
-    <div class="fr" style="margin-bottom:.5rem">
-      <div class="fc" style="flex:1"><span class="fl">Nombre visible</span>
-        <input type="text" id="ue-display" style="width:100%" value="${escapeHtml(u.displayName || '')}"></div>
-      <div class="fc" style="flex:1"><span class="fl">Estado</span>
-        <select id="ue-active" style="width:100%">
-          <option value="true" ${u.active !== false ? 'selected' : ''}>Activo</option>
-          <option value="false" ${u.active === false ? 'selected' : ''}>Desactivado</option>
-        </select>
       </div>
     </div>
     <div class="ctitle" style="font-size:12px;margin:.75rem 0 .5rem">Módulos</div>
@@ -221,9 +207,6 @@ async function saveUserEdit() {
   if (btnOk) { btnOk.disabled = true; btnOk.textContent = 'Guardando...'; }
 
   const cn = document.getElementById('ue-cn')?.value.trim() || u.chatName || '';
-  const displayName = document.getElementById('ue-display')?.value.trim() || cn;
-  const email = (document.getElementById('ue-email')?.value || '').trim().toLowerCase();
-  const active = document.getElementById('ue-active')?.value !== 'false';
   const roleEl = document.getElementById('ue-role');
   const role = (roleEl && !roleEl.disabled) ? roleEl.value : u.role;
 
@@ -232,11 +215,6 @@ async function saveUserEdit() {
     return btn?.classList.contains('on');
   });
   if (!pages.includes('perfil')) pages.push('perfil');
-  if (!email || !email.includes('@')) {
-    if (msg) msg.innerHTML = '<span style="color:var(--red)">Ingresá un email válido.</span>';
-    if (btnOk) { btnOk.disabled = false; btnOk.textContent = 'Guardar cambios'; }
-    return;
-  }
 
   // Read username
   const unameEl = document.getElementById('ue-username');
@@ -253,31 +231,27 @@ async function saveUserEdit() {
     }
   }
 
-  try {
-    if (!u.uid) throw new Error('Usuario inválido: no tiene UID');
-    await apiCall({
-      action: 'updateUser',
-      uid: u.uid,
-      chatName: cn,
-      displayName,
-      role,
-      pages,
-      username: newUser,
-      email,
-      active,
-    });
+  // Update local USERS
+  USERS[editUsrIdx].chatName = cn;
+  USERS[editUsrIdx].role = role;
+  USERS[editUsrIdx].pages = pages;
+  USERS[editUsrIdx].username = newUser;
+  USERS[editUsrIdx].user = newUser;
 
-    USERS[editUsrIdx].chatName = cn;
-    USERS[editUsrIdx].displayName = displayName;
-    USERS[editUsrIdx].role = role;
-    USERS[editUsrIdx].pages = pages;
-    USERS[editUsrIdx].username = newUser;
-    USERS[editUsrIdx].user = newUser;
-    USERS[editUsrIdx].email = email;
-    USERS[editUsrIdx].active = active;
+  try {
+    // Save to Firestore users collection
+    if (window._fbOK && u.uid) {
+      await firebase.firestore().collection('users').doc(u.uid).update({
+        chatName: cn,
+        displayName: cn,
+        role: role,
+        pages: pages,
+        username: newUser,
+        updatedAt: new Date().toISOString(),
+      });
+    }
     if (msg) msg.innerHTML = '<span style="color:var(--accent)">✓ Guardado correctamente.</span>';
     document.getElementById('m-usr-edit').style.display = 'none';
-    await window.fbLoad();
     renderPage('usuarios');
   } catch(e) {
     if (msg) msg.innerHTML = `<span style="color:var(--red)">Error al guardar: ${escapeHtml(e.message)}</span>`;
@@ -316,13 +290,15 @@ async function delUser(i) {
   if (!confirm(`¿Eliminar usuario ${u.username || u.user}?\n\nSe eliminará de Firebase Auth y se desactivará en la base de datos.`)) return;
 
   if (!u.uid) {
-    alert('Usuario inválido: no tiene UID. Revisar migración.');
+    // Legacy user without uid - just remove from local
+    USERS.splice(i, 1);
+    renderPage('usuarios');
     return;
   }
 
   try {
     await apiCall({ action: 'delete', uid: u.uid });
-    await window.fbLoad();
+    USERS.splice(i, 1);
     renderPage('usuarios');
   } catch(e) {
     alert('Error al eliminar: ' + e.message);
