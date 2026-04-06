@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// CHAT — Canales dinámicos + emojis + gestión de canales
+// CHAT — Subcollections + XSS-safe rendering + emojis
 // ═══════════════════════════════════════════════════════════
 
 const CHAT_BASE = [
@@ -28,7 +28,7 @@ function getChatChannels() {
 function syncChatEventChannels() {
   getChatChannels().forEach(ch => {
     if (!CHAT_DATA[ch.id]) CHAT_DATA[ch.id] = {l: ch.name, msgs: []};
-    else CHAT_DATA[ch.id].l = ch.name; // Sync name
+    else CHAT_DATA[ch.id].l = ch.name;
   });
 }
 
@@ -39,7 +39,6 @@ function pgChat() {
   const channels = getChatChannels();
   const isAdmin  = CU?.role === 'Admin Console';
 
-  // Build sidebar sections
   const sections = {};
   channels.forEach(ch => {
     if (!sections[ch.sec]) sections[ch.sec] = [];
@@ -65,7 +64,7 @@ function pgChat() {
   return `<div class="ptitle">💬 Chat interno</div>
   <div class="chat-whobox">
     <div class="av" style="background:${col}22;color:${col};width:28px;height:28px;font-size:11px">${ini(cn)}</div>
-    <span>Chateando como <strong>${cn}</strong></span>
+    <span>Chateando como <strong>${_escChat(cn)}</strong></span>
   </div>
   <div class="chat-wrap">
     <div class="chat-sb" id="chat-sb-list">${sbHtml}</div>
@@ -87,11 +86,18 @@ function pgChat() {
   </div>`;
 }
 
+// ─── XSS-safe text escaping ───
+function _escChat(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 function initChat() {
   syncChatEventChannels();
   curCh = 'general';
   renderMsgs();
-  // Highlight active channel
   document.querySelectorAll('.chat-ch').forEach(el => el.classList.remove('active'));
   document.getElementById('ch-general')?.classList.add('active');
 }
@@ -103,50 +109,116 @@ function setCh(ch) {
   const lbl = CHAT_DATA[ch]?.l || '#' + ch;
   document.getElementById('chat-hdr').textContent = lbl;
   renderMsgs();
-  // Close emoji panel
   const ep = document.getElementById('emoji-panel');
   if (ep) ep.classList.remove('open');
 }
 
 function switchChannel(ch) { setCh(ch); }
 
+// ─── XSS-safe rendering using DOM API ───
 function renderMsgs() {
   const msgs = CHAT_DATA[curCh]?.msgs || [];
   const el = document.getElementById('chat-msgs');
   if (!el) return;
   const me = CU?.chatName || 'Anónimo';
-  el.innerHTML = msgs.length ? msgs.map(m => {
-    const isMe = m.u === me;
-    const idx  = USERS.findIndex(u => u.chatName === m.u);
-    const col  = idx >= 0 ? AVC[idx % 8] : '#888';
-    const photo= idx >= 0 ? USERS[idx].photo : '';
-    return `<div class="msg ${isMe ? 'mine' : 'other'}">
-      <div class="msg-av" style="background:${col}22;color:${col}">
-        ${photo ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover">` : ini(m.u)}
-      </div>
-      <div class="msg-body">
-        ${!isMe ? `<div class="msg-sender">${m.u}</div>` : ''}
-        <div class="msg-bub">${m.t}</div>
-        <div class="msg-meta">${m.ts}hs</div>
-      </div>
-    </div>`;
-  }).join('') : `<div class="empty">Sin mensajes en este canal. ¡Sé el primero! 💬</div>`;
+
+  // Clear previous content safely
+  el.innerHTML = '';
+
+  if (!msgs.length) {
+    el.innerHTML = `<div class="empty">Sin mensajes en este canal. ¡Sé el primero! 💬</div>`;
+    return;
+  }
+
+  msgs.forEach(m => {
+    const sender = m.u || 'Anónimo';
+    const isMe = sender === me;
+    const idx = USERS.findIndex(u => u.chatName === sender);
+    const col = idx >= 0 ? AVC[idx % 8] : '#888';
+    const photoSrc = idx >= 0 ? (USERS[idx].photoURL || USERS[idx].photo) : '';
+
+    // Build message using DOM to prevent XSS
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'msg ' + (isMe ? 'mine' : 'other');
+
+    const avDiv = document.createElement('div');
+    avDiv.className = 'msg-av';
+    avDiv.style.cssText = `background:${col}22;color:${col}`;
+    if (photoSrc) {
+      const img = document.createElement('img');
+      img.src = photoSrc;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover';
+      avDiv.appendChild(img);
+    } else {
+      avDiv.textContent = ini(sender);
+    }
+
+    const bodyDiv = document.createElement('div');
+    bodyDiv.className = 'msg-body';
+
+    if (!isMe) {
+      const senderDiv = document.createElement('div');
+      senderDiv.className = 'msg-sender';
+      senderDiv.textContent = sender;
+      bodyDiv.appendChild(senderDiv);
+    }
+
+    const bubDiv = document.createElement('div');
+    bubDiv.className = 'msg-bub';
+    bubDiv.textContent = m.t || m.text || '';
+    bodyDiv.appendChild(bubDiv);
+
+    const metaDiv = document.createElement('div');
+    metaDiv.className = 'msg-meta';
+    // Handle both legacy ts string and Firestore Timestamp
+    let timeStr = m.ts || '';
+    if (m.timestamp && m.timestamp.toDate) {
+      const d = m.timestamp.toDate();
+      timeStr = d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+    }
+    metaDiv.textContent = timeStr + 'hs';
+    bodyDiv.appendChild(metaDiv);
+
+    msgDiv.appendChild(avDiv);
+    msgDiv.appendChild(bodyDiv);
+    el.appendChild(msgDiv);
+  });
+
   el.scrollTop = el.scrollHeight;
 }
 
-function sendMsg() {
+async function sendMsg() {
   const inp = document.getElementById('chat-inp');
   const t = inp.value.trim();
   if (!t) return;
   const now = new Date();
-  const ts = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  const ts = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
   const me = CU?.chatName || 'Anónimo';
-  if (!CHAT_DATA[curCh]) CHAT_DATA[curCh] = {l: '#' + curCh, msgs: []};
-  CHAT_DATA[curCh].msgs.push({u: me, t, ts});
+
   inp.value = '';
-  renderMsgs();
-  if (window._fbOK) window.fbSave.chat?.(curCh);
-  // Close emoji panel
+
+  // Send to Firestore subcollection
+  if (window._fbOK && window.fbSave?.chatMsg) {
+    try {
+      await window.fbSave.chatMsg(curCh, {
+        u: me,
+        t: t,
+        ts: ts,
+        uid: CU?.uid || '',
+      });
+    } catch(e) {
+      console.error('Error sending message:', e);
+      // Fallback: add locally
+      if (!CHAT_DATA[curCh]) CHAT_DATA[curCh] = {l: '#' + curCh, msgs: []};
+      CHAT_DATA[curCh].msgs.push({u: me, t, ts});
+      renderMsgs();
+    }
+  } else {
+    if (!CHAT_DATA[curCh]) CHAT_DATA[curCh] = {l: '#' + curCh, msgs: []};
+    CHAT_DATA[curCh].msgs.push({u: me, t, ts});
+    renderMsgs();
+  }
+
   const ep = document.getElementById('emoji-panel');
   if (ep) ep.classList.remove('open');
 }
@@ -166,7 +238,6 @@ function insertEmoji(e) {
   document.getElementById('emoji-panel')?.classList.remove('open');
 }
 
-// Close emoji panel when clicking outside
 document.addEventListener('click', function(e) {
   if (!e.target.closest('.chat-inp-area')) {
     document.getElementById('emoji-panel')?.classList.remove('open');
@@ -187,7 +258,6 @@ function saveNewChannel() {
   CHAT_DATA[id] = {l: '# ' + name, msgs: []};
   if (window._fbOK) window.fbSave.customChannels?.();
   document.getElementById('m-chat-channel').style.display = 'none';
-  // Setup listener for new channel
   if (window._fbOK && typeof fbListenChannel === 'function') fbListenChannel(id);
   renderPage('chat');
   setTimeout(() => setCh(id), 100);
@@ -197,6 +267,11 @@ function deleteChatChannel(id) {
   if (!confirm('¿Eliminar este canal? Se perderán todos sus mensajes.')) return;
   CUSTOM_CHANNELS = CUSTOM_CHANNELS.filter(c => c.id !== id);
   delete CHAT_DATA[id];
+  // Unsubscribe listener
+  if (window._chatUnsubs && window._chatUnsubs[id]) {
+    window._chatUnsubs[id]();
+    delete window._chatUnsubs[id];
+  }
   if (window._fbOK) window.fbSave.customChannels?.();
   if (curCh === id) curCh = 'general';
   renderPage('chat');

@@ -1,26 +1,39 @@
 // ═══════════════════════════════════════════════════════════
-// USUARIOS — gestión completa con Firebase Auth via REST
+// USUARIOS — gestión segura via API serverless
 // ═══════════════════════════════════════════════════════════
-const _FB_KEY = 'AIzaSyCJ3JlOH7cWId3t4pe_7WuuyqptWk7VXE0';
+
+async function apiCall(body) {
+  const token = await window.fbGetToken();
+  const res = await fetch('/api/users', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Error del servidor');
+  return data;
+}
 
 function pgUsuarios() {
   let h = `<div class="ptitle">👥 Usuarios</div><div class="psub">Gestión de accesos y módulos</div>`;
   h += `<div class="card"><div class="ctitle">Usuarios activos (${USERS.length})</div>`;
   USERS.forEach((u, i) => {
-    if(!u) return;
-    const uid   = u.user   || '??';
-    const role  = u.role   || '—';
-    const cname = u.chatName || '';
-    const pages = Array.isArray(u.pages) ? u.pages : [];
-    const initials = uid.slice(0,2);
+    if (!u) return;
+    const uid    = u.username || u.user || '??';
+    const role   = u.role || '—';
+    const cname  = u.chatName || '';
+    const email  = u.email || '';
+    const pages  = Array.isArray(u.pages) ? u.pages : [];
+    const initials = uid.slice(0, 2);
     h += `<div class="user-card">
       <div class="av" style="background:${AVC[i%8]}22;color:${AVC[i%8]}">${initials}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:500">${uid}
-          <span class="badge bgray" style="font-size:10px">${role}</span>
+        <div style="font-size:13px;font-weight:500">${escapeHtml(uid)}
+          <span class="badge bgray" style="font-size:10px">${escapeHtml(role)}</span>
         </div>
-        <div style="font-size:11px;color:var(--text2);margin-top:1px">${cname}</div>
-        <div style="margin-top:4px">${pages.map(p=>`<span class="mod-tag">${PAGE_LABELS[p]||p}</span>`).join('')}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:1px">${escapeHtml(cname)}</div>
+        ${email ? `<div style="font-size:10px;color:var(--text3);margin-top:2px">📧 ${escapeHtml(email)}</div>` : ''}
+        <div style="margin-top:4px">${pages.map(p => `<span class="mod-tag">${PAGE_LABELS[p] || p}</span>`).join('')}</div>
       </div>
       <div style="display:flex;gap:4px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end">
         <button class="btn btnsm btnp" onclick="openUserEdit(${i})">✏️ Editar</button>
@@ -32,7 +45,10 @@ function pgUsuarios() {
 
   h += `<div class="card"><div class="ctitle">Agregar usuario</div>
   <div class="fr">
-    <div class="fc"><span class="fl">Usuario</span><input type="text" id="nu-u" style="width:130px" placeholder="Ej: FOTO"></div>
+    <div class="fc"><span class="fl">Usuario</span><input type="text" id="nu-u" style="width:130px" placeholder="Ej: FOTO" oninput="this.value=this.value.toUpperCase()"></div>
+    <div class="fc" style="flex:1"><span class="fl">Email</span><input type="email" id="nu-email" style="width:100%" placeholder="correo@real.com"></div>
+  </div>
+  <div class="fr">
     <div class="fc"><span class="fl">Contraseña</span><input type="password" id="nu-p" style="width:140px" placeholder="Mínimo 6 caracteres"></div>
     <div class="fc"><span class="fl">Nombre en chat</span><input type="text" id="nu-cn" style="width:150px" placeholder="Ej: Fotógrafo"></div>
     <div class="fc"><span class="fl">Rol</span>
@@ -56,81 +72,98 @@ function pgUsuarios() {
   h += `<div class="card" style="border-color:var(--border)">
     <div class="ctitle">Módulos disponibles</div>
     <div style="font-size:12px;color:var(--text2);margin-bottom:.5rem">Usá el botón <strong>Editar</strong> en cada usuario para asignar módulos y cambiar su rol.</div>
-    <div>${ALL_PAGES.map(p=>`<span class="mod-tag">${PAGE_ICONS[p]} ${PAGE_LABELS[p]}</span>`).join('')}</div>
+    <div>${ALL_PAGES.map(p => `<span class="mod-tag">${PAGE_ICONS[p]} ${PAGE_LABELS[p]}</span>`).join('')}</div>
   </div>`;
   return h;
 }
 
-// ─── Agregar usuario ───
+// ─── Agregar usuario via API serverless ───
 async function addUser() {
-  const u    = document.getElementById('nu-u')?.value.trim().toUpperCase();
-  const p    = document.getElementById('nu-p')?.value.trim();
-  const cn   = document.getElementById('nu-cn')?.value.trim() || u;
-  const r    = document.getElementById('nu-r')?.value;
-  const msg  = document.getElementById('u-msg');
-  const btn  = document.getElementById('nu-btn');
+  const u     = document.getElementById('nu-u')?.value.trim().toUpperCase();
+  const email = document.getElementById('nu-email')?.value.trim();
+  const p     = document.getElementById('nu-p')?.value.trim();
+  const cn    = document.getElementById('nu-cn')?.value.trim() || u;
+  const r     = document.getElementById('nu-r')?.value;
+  const msg   = document.getElementById('u-msg');
+  const btn   = document.getElementById('nu-btn');
 
-  if (!u || !p) { msg.innerHTML = '<span style="color:var(--red)">Completá usuario y contraseña.</span>'; return; }
-  if (p.length < 6) { msg.innerHTML = '<span style="color:var(--red)">La contraseña debe tener al menos 6 caracteres.</span>'; return; }
-  if (USERS.find(x => x.user === u)) { msg.innerHTML = '<span style="color:var(--red)">Ya existe un usuario con ese nombre.</span>'; return; }
+  if (!u) { msg.innerHTML = '<span style="color:var(--red)">El usuario es obligatorio.</span>'; return; }
+  if (!email || !email.includes('@') || !email.includes('.')) {
+    msg.innerHTML = '<span style="color:var(--red)">Ingresá un email válido.</span>'; return;
+  }
+  if (!p || p.length < 6) { msg.innerHTML = '<span style="color:var(--red)">La contraseña debe tener al menos 6 caracteres.</span>'; return; }
 
-  const email = u.toLowerCase() + '@boom.app';
-  msg.innerHTML = '<span style="color:var(--text2)">⏳ Creando usuario en Firebase...</span>';
+  // Client-side uniqueness check
+  if (USERS.find(x => (x.username || x.user) === u)) {
+    msg.innerHTML = '<span style="color:var(--red)">Ya existe un usuario con ese nombre.</span>'; return;
+  }
+  if (USERS.find(x => x.email === email.toLowerCase())) {
+    msg.innerHTML = '<span style="color:var(--red)">Ya existe un usuario con ese email.</span>'; return;
+  }
+
+  msg.innerHTML = '<span style="color:var(--text2)">⏳ Creando usuario...</span>';
   btn.disabled = true;
 
   try {
-    const res = await fetch(
-      `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${_FB_KEY}`,
-      { method:'POST', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({email, password:p, returnSecureToken:false}) }
-    );
-    const data = await res.json();
-    if (data.error) {
-      const errMap = {
-        'EMAIL_EXISTS':       'Este usuario ya existe en Firebase Auth.',
-        'WEAK_PASSWORD':      'Contraseña muy débil. Usá al menos 6 caracteres.',
-        'INVALID_EMAIL':      'Email inválido.',
-        'TOO_MANY_ATTEMPTS_TRY_LATER': 'Demasiados intentos. Esperá unos minutos.',
-      };
-      throw new Error(errMap[data.error.message] || data.error.message);
+    const result = await apiCall({
+      action: 'create',
+      username: u,
+      email: email,
+      password: p,
+      role: r,
+      chatName: cn,
+      pages: ['boom', 'chat', 'perfil'],
+    });
+
+    // Add to local USERS array
+    if (result.user) {
+      result.user.user = result.user.username; // compatibility
+      USERS.push(result.user);
     }
 
-    USERS.push({user:u, role:r, chatName:cn, photo:'', bio:'', instagram:'', telefono:'',
-                _pass:p, pages:['boom','chat','perfil']});
-    if (window._fbOK) window.fbSave.users?.();
-
-    msg.innerHTML = `<span style="color:var(--accent)">✓ Usuario <strong>${u}</strong> creado correctamente.</span>`;
-    document.getElementById('nu-u').value  = '';
-    document.getElementById('nu-p').value  = '';
+    msg.innerHTML = `<span style="color:var(--accent)">✓ Usuario <strong>${escapeHtml(u)}</strong> creado correctamente.</span>`;
+    document.getElementById('nu-u').value = '';
+    document.getElementById('nu-email').value = '';
+    document.getElementById('nu-p').value = '';
     document.getElementById('nu-cn').value = '';
     renderPage('usuarios');
   } catch(e) {
-    msg.innerHTML = `<span style="color:var(--red)">Error: ${e.message}</span>`;
+    msg.innerHTML = `<span style="color:var(--red)">Error: ${escapeHtml(e.message)}</span>`;
   } finally {
     btn.disabled = false;
   }
 }
 
-// ─── Editar usuario (rol + chatname + módulos + reset pass) ───
+// ─── Editar usuario (rol + chatname + módulos) ───
 function openUserEdit(idx) {
   editUsrIdx = idx;
   const u = USERS[idx];
-  if(!u) return;
-  if(!Array.isArray(u.pages)) u.pages = ['perfil'];
-  document.getElementById('m-usr-edit-ttl').textContent = '✏️ Editar — ' + (u.user||'');
+  if (!u) return;
+  if (!Array.isArray(u.pages)) u.pages = ['perfil'];
+  document.getElementById('m-usr-edit-ttl').textContent = '✏️ Editar — ' + (u.username || u.user || '');
   document.getElementById('m-usr-edit-msg').textContent = '';
 
   const isAdmin = u.role === 'Admin Console';
-  const roles = ['Barra','Públicas','CM','Administración','Producción','Fotografía','Trafic','Otro','Admin Console'];
+  const roles = ['Barra', 'Públicas', 'CM', 'Administración', 'Producción', 'Fotografía', 'Trafic', 'Otro', 'Admin Console'];
 
   document.getElementById('m-usr-edit-body').innerHTML = `
     <div class="fr" style="margin-bottom:.5rem">
       <div class="fc" style="flex:1"><span class="fl">Nombre en chat</span>
-        <input type="text" id="ue-cn" style="width:100%" value="${u.chatName||''}"></div>
+        <input type="text" id="ue-cn" style="width:100%" value="${escapeHtml(u.chatName || '')}"></div>
       <div class="fc" style="flex:1"><span class="fl">Rol</span>
-        <select id="ue-role" style="width:100%" ${isAdmin?'disabled':''}>
-          ${roles.map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${r}</option>`).join('')}
+        <select id="ue-role" style="width:100%" ${isAdmin ? 'disabled' : ''}>
+          ${roles.map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${r}</option>`).join('')}
         </select>
+      </div>
+    </div>
+    <div class="fr" style="margin-bottom:.5rem">
+      <div class="fc" style="flex:1"><span class="fl">Email</span>
+        <input type="text" id="ue-email" style="width:100%;color:var(--text2)" value="${escapeHtml(u.email || '')}" readonly>
+      </div>
+      <div class="fc" style="flex:1"><span class="fl">Username</span>
+        <input type="text" id="ue-username" style="width:100%;font-weight:600;letter-spacing:.04em;text-transform:uppercase"
+          value="${escapeHtml(u.username || u.user || '')}" ${isAdmin ? 'readonly' : ''}
+          oninput="this.value=this.value.toUpperCase()">
       </div>
     </div>
     <div class="ctitle" style="font-size:12px;margin:.75rem 0 .5rem">Módulos</div>
@@ -138,33 +171,15 @@ function openUserEdit(idx) {
       ${ALL_PAGES.filter(p => p !== 'usuarios' || isAdmin).map(p => {
         const on = u.pages.includes(p);
         return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
-          <button class="chkbtn ${on?'on':''}" id="umod-${p}" onclick="toggleUmod('${p}')">${on?'✓':''}</button>
-          <span style="font-size:12px">${PAGE_ICONS[p]||''} ${PAGE_LABELS[p]||p}</span>
+          <button class="chkbtn ${on ? 'on' : ''}" id="umod-${p}" onclick="toggleUmod('${p}')">${on ? '✓' : ''}</button>
+          <span style="font-size:12px">${PAGE_ICONS[p] || ''} ${PAGE_LABELS[p] || p}</span>
         </div>`;
       }).join('')}
     </div>
+    ${!isAdmin ? `
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:1rem;margin-top:.5rem">
-      <div class="ctitle" style="font-size:12px;margin:0 0 .75rem">🔐 Credenciales de acceso</div>
-      <div class="fc" style="margin-bottom:.75rem">
-        <span class="fl">Usuario (login)</span>
-        <div style="display:flex;gap:8px;align-items:center">
-          <input type="text" id="ue-username" style="flex:1;font-weight:600;letter-spacing:.04em;text-transform:uppercase"
-            value="${u.user||''}" ${isAdmin?'readonly':''} placeholder="Nombre de usuario"
-            oninput="this.value=this.value.toUpperCase()"
-            ${isAdmin?`style="flex:1;font-weight:600;background:var(--bg4);color:var(--text2);border-color:var(--border)"`:''}>
-          ${!isAdmin?`<span style="font-size:11px;color:var(--text3)">Email: ${(u.user||'').toLowerCase()}@boom.app</span>`:''}
-        </div>
-        ${!isAdmin?`<div style="font-size:11px;color:var(--text3);margin-top:4px">⚠️ Cambiar el usuario requiere también actualizar la cuenta en Firebase Auth.</div>`:''}
-      </div>
-      ${!isAdmin ? `
-      ${!u._pass ? `
-      <div style="background:rgba(245,197,66,.08);border:1px solid rgba(245,197,66,.25);border-radius:var(--rs);padding:8px 12px;font-size:12px;color:var(--yellow);margin-bottom:.75rem">
-        ⚠️ Este usuario no tiene contraseña guardada en el sistema. Ingresá la contraseña actual para poder cambiarla.
-      </div>
-      <div class="fc" style="margin-bottom:.5rem">
-        <span class="fl">Contraseña actual</span>
-        <input type="password" id="ue-pass-current" style="width:100%" placeholder="Escribí la contraseña actual del usuario">
-      </div>` : ''}
+      <div class="ctitle" style="font-size:12px;margin:0 0 .75rem">🔐 Restablecer contraseña</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:.5rem">Se cambia directamente en Firebase Auth. No se guarda la contraseña en la base de datos.</div>
       <div class="fr">
         <div class="fc" style="flex:1"><span class="fl">Nueva contraseña</span>
           <input type="password" id="ue-pass1" style="width:100%" placeholder="Mínimo 6 caracteres"></div>
@@ -173,127 +188,127 @@ function openUserEdit(idx) {
       </div>
       <button class="btn btnsm" style="margin-top:.5rem" onclick="resetUserPass(${idx})">🔑 Cambiar contraseña</button>
       <div id="ue-pass-msg" style="font-size:12px;margin-top:6px;min-height:14px"></div>
-      ` : ''}
-    </div>
+    </div>` : ''}
   `;
   document.getElementById('m-usr-edit').style.display = 'flex';
 }
 
 function toggleUmod(p) {
   const btn = document.getElementById('umod-' + p);
-  const on  = btn.classList.toggle('on');
+  const on = btn.classList.toggle('on');
   btn.textContent = on ? '✓' : '';
 }
 
 async function saveUserEdit() {
-  const u   = USERS[editUsrIdx];
-  if(!u) return;
-  const msg    = document.getElementById('m-usr-edit-msg');
-  const btnOk  = document.querySelector('#m-usr-edit .mrow .btn.btnp');
-  if(btnOk){ btnOk.disabled=true; btnOk.textContent='Guardando...'; }
+  const u = USERS[editUsrIdx];
+  if (!u) return;
+  const msg   = document.getElementById('m-usr-edit-msg');
+  const btnOk = document.querySelector('#m-usr-edit .mrow .btn.btnp');
+  if (btnOk) { btnOk.disabled = true; btnOk.textContent = 'Guardando...'; }
 
-  // ── Leer todos los valores del DOM ANTES de cualquier async ──
   const cn = document.getElementById('ue-cn')?.value.trim() || u.chatName || '';
-
   const roleEl = document.getElementById('ue-role');
-  const role   = (roleEl && !roleEl.disabled) ? roleEl.value : u.role;
+  const role = (roleEl && !roleEl.disabled) ? roleEl.value : u.role;
 
-  // Leer módulos desde checkboxes del DOM
   const pages = ALL_PAGES.filter(p => {
     const btn = document.getElementById('umod-' + p);
     return btn?.classList.contains('on');
   });
   if (!pages.includes('perfil')) pages.push('perfil');
 
-  // Leer username
-  const unameEl   = document.getElementById('ue-username');
-  let   newUser   = u.user;
+  // Read username
+  const unameEl = document.getElementById('ue-username');
+  let newUser = u.username || u.user;
   if (unameEl && !unameEl.readOnly) {
     const val = unameEl.value.trim().toUpperCase();
-    if (val && val !== u.user) {
-      if (USERS.find((x, i) => x.user === val && i !== editUsrIdx)) {
-        if(msg) msg.innerHTML = '<span style="color:var(--red)">Ya existe un usuario con ese nombre.</span>';
-        if(btnOk){ btnOk.disabled=false; btnOk.textContent='Guardar cambios'; }
+    if (val && val !== (u.username || u.user)) {
+      if (USERS.find((x, i) => (x.username || x.user) === val && i !== editUsrIdx)) {
+        if (msg) msg.innerHTML = '<span style="color:var(--red)">Ya existe un usuario con ese nombre.</span>';
+        if (btnOk) { btnOk.disabled = false; btnOk.textContent = 'Guardar cambios'; }
         return;
       }
       newUser = val;
     }
   }
 
-  // ── Aplicar al objeto USERS (por índice, no por referencia vieja) ──
+  // Update local USERS
   USERS[editUsrIdx].chatName = cn;
-  USERS[editUsrIdx].role     = role;
-  USERS[editUsrIdx].pages    = pages;
-  USERS[editUsrIdx].user     = newUser;
+  USERS[editUsrIdx].role = role;
+  USERS[editUsrIdx].pages = pages;
+  USERS[editUsrIdx].username = newUser;
+  USERS[editUsrIdx].user = newUser;
 
-  // ── Guardar y ESPERAR confirmación ──
   try {
-    if (window._fbOK) {
-      await window.fbSave.users?.();
-      if(msg) msg.innerHTML = '<span style="color:var(--accent)">✓ Guardado correctamente.</span>';
+    // Save to Firestore users collection
+    if (window._fbOK && u.uid) {
+      await firebase.firestore().collection('users').doc(u.uid).update({
+        chatName: cn,
+        displayName: cn,
+        role: role,
+        pages: pages,
+        username: newUser,
+        updatedAt: new Date().toISOString(),
+      });
     }
+    if (msg) msg.innerHTML = '<span style="color:var(--accent)">✓ Guardado correctamente.</span>';
     document.getElementById('m-usr-edit').style.display = 'none';
     renderPage('usuarios');
   } catch(e) {
-    if(msg) msg.innerHTML = `<span style="color:var(--red)">Error al guardar: ${e.message}</span>`;
+    if (msg) msg.innerHTML = `<span style="color:var(--red)">Error al guardar: ${escapeHtml(e.message)}</span>`;
   } finally {
-    if(btnOk){ btnOk.disabled=false; btnOk.textContent='Guardar cambios'; }
+    if (btnOk) { btnOk.disabled = false; btnOk.textContent = 'Guardar cambios'; }
   }
 }
 
-// ─── Reset contraseña ───
+// ─── Reset contraseña via API ───
 async function resetUserPass(idx) {
   const u = USERS[idx];
   const p1 = document.getElementById('ue-pass1')?.value.trim();
   const p2 = document.getElementById('ue-pass2')?.value.trim();
   const msg = document.getElementById('ue-pass-msg');
 
-  if (!p1 || p1.length < 6) { msg.innerHTML='<span style="color:var(--red)">Mínimo 6 caracteres.</span>'; return; }
-  if (p1 !== p2) { msg.innerHTML='<span style="color:var(--red)">Las contraseñas no coinciden.</span>'; return; }
+  if (!p1 || p1.length < 6) { msg.innerHTML = '<span style="color:var(--red)">Mínimo 6 caracteres.</span>'; return; }
+  if (p1 !== p2) { msg.innerHTML = '<span style="color:var(--red)">Las contraseñas no coinciden.</span>'; return; }
+
+  if (!u.uid) { msg.innerHTML = '<span style="color:var(--red)">Este usuario no tiene UID. Necesita ser migrado.</span>'; return; }
 
   msg.innerHTML = '<span style="color:var(--text2)">⏳ Procesando...</span>';
 
-  const email = u.user.toLowerCase() + '@boom.app';
-  // Usar _pass guardado, o si no existe, el campo manual que ingresó el admin
-  const storedPass = u._pass || document.getElementById('ue-pass-current')?.value.trim() || '';
-
   try {
-    if (!storedPass) throw new Error('Ingresá la contraseña actual del usuario para poder cambiarla.');
-
-    const signIn = await fetch(
-      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${_FB_KEY}`,
-      { method:'POST', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({email, password:storedPass, returnSecureToken:true}) }
-    );
-    const signInData = await signIn.json();
-    if (signInData.error) throw new Error('Error al autenticar usuario: ' + (signInData.error.message || ''));
-
-    // 2. Update password using user's ID token
-    const upd = await fetch(
-      `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${_FB_KEY}`,
-      { method:'POST', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({idToken:signInData.idToken, password:p1, returnSecureToken:false}) }
-    );
-    const updData = await upd.json();
-    if (updData.error) throw new Error(updData.error.message || 'Error al cambiar contraseña.');
-
-    // 3. Update stored password in Firestore
-    u._pass = p1;
-    const fidx = USERS.findIndex(x => x.user === u.user);
-    if (fidx !== -1) USERS[fidx]._pass = p1;
-    if (window._fbOK) window.fbSave.users?.();
-
-    msg.innerHTML = `<span style="color:var(--accent)">✓ Contraseña de ${u.user} actualizada correctamente.</span>`;
+    await apiCall({ action: 'resetPassword', uid: u.uid, newPassword: p1 });
+    msg.innerHTML = `<span style="color:var(--accent)">✓ Contraseña de ${escapeHtml(u.username || u.user)} actualizada.</span>`;
     document.getElementById('ue-pass1').value = '';
     document.getElementById('ue-pass2').value = '';
   } catch(e) {
-    msg.innerHTML = `<span style="color:var(--red)">Error: ${e.message}</span>`;
+    msg.innerHTML = `<span style="color:var(--red)">Error: ${escapeHtml(e.message)}</span>`;
   }
 }
 
-function delUser(i) {
-  if (!confirm(`¿Eliminar usuario ${USERS[i].user}?\n\nNota: se elimina de la app. La cuenta en Firebase Auth sigue activa.`)) return;
-  USERS.splice(i, 1);
-  if (window._fbOK) window.fbSave.users?.();
-  renderPage('usuarios');
+// ─── Eliminar usuario via API ───
+async function delUser(i) {
+  const u = USERS[i];
+  if (!confirm(`¿Eliminar usuario ${u.username || u.user}?\n\nSe eliminará de Firebase Auth y se desactivará en la base de datos.`)) return;
+
+  if (!u.uid) {
+    // Legacy user without uid - just remove from local
+    USERS.splice(i, 1);
+    renderPage('usuarios');
+    return;
+  }
+
+  try {
+    await apiCall({ action: 'delete', uid: u.uid });
+    USERS.splice(i, 1);
+    renderPage('usuarios');
+  } catch(e) {
+    alert('Error al eliminar: ' + e.message);
+  }
+}
+
+// ─── HTML escaping helper ───
+function escapeHtml(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
 }

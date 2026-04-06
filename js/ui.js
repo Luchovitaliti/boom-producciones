@@ -64,6 +64,7 @@ function renderPage(p){
 function updateTopbarAvatar(){
   const btn=document.getElementById('tav-btn');if(!btn)return;
   const u=CU;const col=AVC[USERS.indexOf(u)%8];
-  if(u.photo){btn.innerHTML=`<img src="${u.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;border:1.5px solid var(--border2)">`;btn.style.background='transparent';}
+  const photoSrc=u.photoURL||u.photo;
+  if(photoSrc){btn.innerHTML=`<img src="${photoSrc}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;border:1.5px solid var(--border2)">`;btn.style.background='transparent';}
   else{btn.style.cssText=`width:28px;height:28px;border-radius:50%;background:${col}22;color:${col};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;cursor:pointer;flex-shrink:0;border:1.5px solid ${col}44;`;btn.textContent=ini(u.chatName);}
 }

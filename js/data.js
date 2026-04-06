@@ -1,11 +1,6 @@
 // ═══ DATA ═══
-let USERS=[
-  {user:'ADMIN',role:'Admin Console',chatName:'Lu (CEO)',photo:'',bio:'CEO y fundador de BOOM Producciones.',instagram:'',telefono:'',pages:['dashboard','barra','adminfin','recaudacion','liderpub','publicas','trafic','cm','boom','chat','proveedores','kpi','dev','usuarios','perfil']},
-  {user:'BARRA',role:'Barra',chatName:'Líder de Barra',photo:'',bio:'',instagram:'',telefono:'',pages:['barra','chat','perfil']},
-  {user:'PUBLICA',role:'Públicas',chatName:'Líder de Públicas',photo:'',bio:'',instagram:'',telefono:'',pages:['liderpub','publicas','boom','chat','perfil']},
-  {user:'CM',role:'CM',chatName:'Community Manager',photo:'',bio:'',instagram:'',telefono:'',pages:['cm','boom','chat','perfil']},
-  {user:'ADMINFIN',role:'Administración',chatName:'Administración',photo:'',bio:'',instagram:'',telefono:'',pages:['adminfin','recaudacion','proveedores','chat','perfil']},
-];
+// USERS se carga desde Firestore collection 'users'. Este array es fallback vacío.
+let USERS=[];
 const ALL_PAGES=['dashboard','barra','adminfin','recaudacion','liderpub','publicas','trafic','cm','boom','chat','proveedores','kpi','dev','usuarios','perfil'];
 const PAGE_LABELS={dashboard:'Dashboard',barra:'Barra',adminfin:'Administración',recaudacion:'Recaudación',liderpub:'Líder Públicas',publicas:'Públicas',trafic:'Trafic',cm:'CM',boom:'BOOM General',chat:'Chat interno',proveedores:'Proveedores',kpi:'Reportes y KPIs',dev:'🛠 Dev',usuarios:'Usuarios',perfil:'Mi perfil'};
 const PAGE_ICONS={dashboard:'📊',barra:'🍺',adminfin:'📋',recaudacion:'💵',liderpub:'⭐',publicas:'📸',trafic:'🚐',cm:'📅',boom:'🏠',chat:'💬',proveedores:'🤝',kpi:'📈',dev:'🛠',usuarios:'👥',perfil:'👤'};

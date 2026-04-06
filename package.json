@@ -1,0 +1,24 @@
+{
+  "name": "boom-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Luchovitaliti/boom-producciones.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Luchovitaliti/boom-producciones/issues"
+  },
+  "homepage": "https://github.com/Luchovitaliti/boom-producciones#readme",
+  "dependencies": {
+    "firebase-admin": "^13.7.0"
+  }
+}
