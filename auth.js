@@ -66,15 +66,31 @@ async function doForgotPassword() {
     return;
   }
 
-  btn.textContent = 'Enviando...'; btn.disabled = true;
+  btn.textContent = 'Verificando...'; btn.disabled = true;
 
   try {
+    // 1. Verificar que el email existe y está activo en Firestore
+    const check = await fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'checkEmailForRecovery', email }),
+    });
+    const checkData = await check.json();
+
+    if (!check.ok || !checkData.exists) {
+      errEl.textContent = 'Usuario no encontrado o no registrado.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    // 2. Email existe y activo — enviar recovery
+    btn.textContent = 'Enviando...';
     await firebase.auth().sendPasswordResetEmail(email);
     okEl.textContent = 'Te enviamos un email para restablecer tu contraseña. Revisá tu bandeja de entrada.';
     okEl.style.display = 'block';
   } catch (e) {
     const msgs = {
-      'auth/user-not-found': 'No hay una cuenta con ese email.',
+      'auth/user-not-found': 'Usuario no encontrado o no registrado.',
       'auth/invalid-email': 'Email inválido.',
       'auth/too-many-requests': 'Demasiados intentos. Esperá un momento.',
     };
