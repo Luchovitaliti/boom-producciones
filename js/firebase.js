@@ -25,6 +25,28 @@ try {
     return _db.collection(col).doc(id).onSnapshot(s => { if (s.exists) cb(s.data()); });
   }
 
+  function mapFirestoreUser(uid, data = {}) {
+    return {
+      uid,
+      user: data.username || data.user || '',
+      username: data.username || data.user || '',
+      role: data.role || 'Otro',
+      chatName: data.chatName || data.displayName || data.username || '',
+      displayName: data.displayName || data.chatName || data.username || '',
+      photo: data.photoURL || data.photo || '',
+      photoURL: data.photoURL || '',
+      bio: data.bio || '',
+      instagram: data.instagram || '',
+      telefono: data.telefono || '',
+      email: data.email || '',
+      pages: Array.isArray(data.pages) ? data.pages : ['perfil'],
+      active: data.active !== false,
+      createdAt: data.createdAt || '',
+      updatedAt: data.updatedAt || '',
+      createdBy: data.createdBy || '',
+    };
+  }
+
   // ─── Chat: subcollection-based listeners ───
   window._chatUnsubs = {};
 
@@ -211,13 +233,11 @@ try {
     allChannelIds.forEach(ch => {
       if (!CHAT_DATA[ch]) CHAT_DATA[ch] = { l: '#' + ch, msgs: [] };
       window.fbListenChannel(ch);
-      // Also listen legacy for migration period
-      window.fbListenChannelLegacy(ch);
     });
 
     // Re-bind CU to refreshed USERS array
     if (CU) {
-      const refreshed = USERS.find(x => x.username === CU.username || x.user === CU.user);
+      const refreshed = USERS.find(x => x.uid === CU.uid);
       if (refreshed) CU = refreshed;
     }
 
@@ -229,35 +249,10 @@ try {
   // ─── Load users from Firestore 'users' collection ───
   async function loadUsersFromFirestore() {
     const snap = await _db.collection('users').where('active', '==', true).get();
-    if (!snap.empty) {
-      const firestoreUsers = snap.docs.map(d => {
-        const data = d.data();
-        return {
-          uid: d.id,
-          user: data.username || data.user || '',
-          username: data.username || data.user || '',
-          role: data.role || 'Otro',
-          chatName: data.chatName || data.displayName || data.username || '',
-          photo: data.photoURL || data.photo || '',
-          photoURL: data.photoURL || '',
-          bio: data.bio || '',
-          instagram: data.instagram || '',
-          telefono: data.telefono || '',
-          email: data.email || '',
-          pages: data.pages || ['perfil'],
-          active: data.active !== false,
-          createdAt: data.createdAt || '',
-        };
-      });
-      USERS = firestoreUsers;
-    } else {
-      // Fallback: try legacy config/users for migration
-      const legacy = await fbGet('config', 'users');
-      if (legacy?.items) {
-        USERS = legacy.items;
-        console.warn('Using legacy config/users — run migration to move to users collection');
-      }
-    }
+    const firestoreUsers = snap.docs
+      .map(d => mapFirestoreUser(d.id, d.data()))
+      .sort((a, b) => (a.username || '').localeCompare((b.username || ''), 'es', { sensitivity: 'base' }));
+    USERS = firestoreUsers;
 
     // Ensure Admin always has all pages
     let adminPagesUpdated = false;
@@ -283,43 +278,15 @@ try {
   _auth.onAuthStateChanged(async function(fbUser) {
     try {
       if (fbUser) {
-        // Load user from Firestore 'users' collection by UID
-        let userDoc = await _db.collection('users').doc(fbUser.uid).get();
-        let f = null;
-
-        if (userDoc.exists) {
-          const data = userDoc.data();
-          f = {
-            uid: fbUser.uid,
-            user: data.username || data.user || '',
-            username: data.username || '',
-            role: data.role || 'Otro',
-            chatName: data.chatName || data.displayName || '',
-            photo: data.photoURL || data.photo || '',
-            photoURL: data.photoURL || '',
-            bio: data.bio || '',
-            instagram: data.instagram || '',
-            telefono: data.telefono || '',
-            email: data.email || fbUser.email || '',
-            pages: data.pages || ['perfil'],
-            active: data.active !== false,
-          };
-        } else {
-          // Fallback: try legacy config/users matching by email
-          const legacyUsers = await fbGet('config', 'users');
-          if (legacyUsers?.items) {
-            USERS = legacyUsers.items;
-            const username = fbUser.email.replace('@boom.app', '').toUpperCase();
-            f = USERS.find(x => x.user === username);
-            if (f) {
-              f.uid = fbUser.uid;
-              f.email = fbUser.email;
-              f.username = f.user;
-            }
-          }
+        const userDoc = await _db.collection('users').doc(fbUser.uid).get();
+        if (!userDoc.exists) {
+          window._authInvalidReason = 'Tu cuenta existe en autenticación pero no tiene perfil activo en la app.';
+          await _auth.signOut();
+          return;
         }
-
-        if (!f || f.active === false) {
+        const f = mapFirestoreUser(fbUser.uid, userDoc.data());
+        if (f.active === false) {
+          window._authInvalidReason = 'Tu cuenta está desactivada.';
           await _auth.signOut();
           return;
         }
@@ -347,11 +314,19 @@ try {
         renderPage(curPage);
       } else {
         CU = null;
+        window._chatUnsubs = window._chatUnsubs || {};
+        Object.values(window._chatUnsubs).forEach(unsub => { try { unsub(); } catch(_) {} });
+        window._chatUnsubs = {};
         const mc = document.getElementById('mc'); if (mc) mc.innerHTML = '';
         const sb = document.getElementById('sb'); if (sb) sb.innerHTML = '';
         document.getElementById('boot-loader').style.display = 'none';
         document.getElementById('login').style.display = 'flex';
+        document.getElementById('forgot-password').style.display = 'none';
         document.getElementById('app').style.display = 'none';
+        if (window._authInvalidReason && typeof showLoginErr === 'function') {
+          showLoginErr(window._authInvalidReason);
+          window._authInvalidReason = '';
+        }
         const btn = document.querySelector('.lbtn');
         if (btn) { btn.textContent = 'Ingresar'; btn.disabled = false; }
       }
