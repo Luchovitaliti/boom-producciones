@@ -99,18 +99,45 @@ function buildModuleStatuses() {
   // Barra
   const stockOk = STOCK_INI[ev] && STOCK_INI[ev].some(u => u > 0);
   const staffOk = STAFF_EV[ev] && STAFF_EV[ev].length > 0;
-  s.barra = stockOk && staffOk ? {status:'ok',   desc:`${STAFF_EV[ev]?.length||0} staff · stock cargado`} :
+  const staffCount = STAFF_EV[ev]?.length || 0;
+  const staffPag = (STAFF_EV[ev]||[]).filter(x=>x.pagado).length;
+  s.barra = stockOk && staffOk ? {status:'ok',   desc:`${staffCount} staff (${staffPag} pagados) · stock cargado`} :
             stockOk            ? {status:'warn',  desc:'Stock OK · sin staff cargado'} :
                                  {status:'empty', desc:'Stock sin cargar'};
 
-  // Admin Fin
-  const gs = GASTOS_EV[ev] || [];
-  const pend = gs.filter(g => g.e !== 'pagado').length;
-  const aprob = gs.filter(g => g.e === 'aprobacion').length;
-  s.adminfin = aprob > 0   ? {status:'alert', desc:`${aprob} gasto${aprob>1?'s':''} en aprobación`} :
-               pend > 0    ? {status:'warn',  desc:`${pend} gasto${pend>1?'s':''} pendientes`} :
-               gs.length>0 ? {status:'ok',    desc:`${gs.length} gastos registrados`} :
-                             {status:'empty', desc:'Sin gastos registrados'};
+  // Administración — usa GASTOS_ADM (global) + GASTOS_EV (por evento)
+  const gadm = GASTOS_ADM || [];
+  const gadmTotal = gadm.reduce((a,g)=>a+(g.monto||0),0);
+  const gadmPend = gadm.filter(g => g.estado !== 'pagado');
+  const gev = GASTOS_EV[ev] || [];
+  s.adminfin = gadmPend.length > 0
+    ? {status:'warn',  desc:`${gadm.length} gastos · ${fmt(gadmTotal)} · ${gadmPend.length} pendientes`}
+    : gadm.length > 0
+    ? {status:'ok',    desc:`${gadm.length} gastos · ${fmt(gadmTotal)}`}
+    : gev.length > 0
+    ? {status:'ok',    desc:`${gev.length} gastos evento`}
+    : {status:'empty', desc:'Sin gastos registrados'};
+
+  // Recaudación
+  const recLotes = (LOTES_REC||[]).filter(l=>l.evIdx===ev && l.estado!=='anulado');
+  const recTotal = recLotes.reduce((a,l)=>a+(l.total||0),0);
+  const recCajas = (CAJAS_REC||[]).filter(c=>c.evIdx===ev);
+  s.recaudacion = recLotes.length > 0
+    ? {status:'ok',   desc:`${fmt(recTotal)} · ${recLotes.length} lotes · ${recCajas.length} cajas`}
+    : recCajas.length > 0
+    ? {status:'warn', desc:`${recCajas.length} cajas · sin lotes`}
+    : {status:'empty', desc:'Sin datos'};
+
+  // Trafic
+  const trPas = (TRAFIC_PASAJEROS||[]).filter(p=>p.evIdx===ev);
+  const trViajes = (TRAFIC_VIAJES||[]).filter(v=>v.evIdx===ev);
+  const trLocs = (TRAFIC_LOCALIDADES||[]).filter(l=>l.evIdx===ev && l.activa!==false);
+  const trIngresos = trPas.reduce((a,p)=>a+(p.precioCong||0),0);
+  s.trafic = trPas.length > 0
+    ? {status:'ok',   desc:`${trPas.length} pasajeros · ${trViajes.length} trafics · ${fmt(trIngresos)}`}
+    : trLocs.length > 0
+    ? {status:'warn', desc:`${trLocs.length} localidades · sin pasajeros`}
+    : {status:'empty', desc:'Sin datos'};
 
   // Líder Públicas
   const pubA = PUBLICAS.filter(p => p.activo);
@@ -142,9 +169,11 @@ function buildModuleStatuses() {
            IDEAS.length>0  ? {status:'ok',    desc:`${tareasTeam} tareas · ${IDEAS.length} ideas`} :
                              {status:'empty', desc:'Sin tareas ni ideas'};
 
-  // Chat
+  // Chat — con no leídos
+  const unread = typeof chatGetTotalUnread === 'function' ? chatGetTotalUnread() : 0;
   const totalMsgs = Object.values(CHAT_DATA).reduce((a,c) => a+(c.msgs?.length||0), 0);
-  s.chat = totalMsgs > 0 ? {status:'ok', desc:`${totalMsgs} mensajes total`} :
+  s.chat = unread > 0  ? {status:'alert', desc:`${unread} mensaje${unread>1?'s':''} sin leer`} :
+           totalMsgs > 0 ? {status:'ok', desc:`${totalMsgs} mensajes · al día ✓`} :
                            {status:'empty', desc:'Sin mensajes aún'};
 
   // Proveedores
@@ -157,6 +186,11 @@ function buildModuleStatuses() {
   s.kpi = conDatos > 0 ? {status:'ok',   desc:`${conDatos} evento${conDatos>1?'s':''} con datos reales`} :
           EVENTOS.length>0 ? {status:'warn', desc:'Sin datos de cierre aún'} :
                              {status:'empty', desc:'Sin eventos'};
+
+  // Dev
+  const notasPend = (NOTAS_MOD||[]).filter(n=>!n.resuelta).length;
+  s.dev = notasPend > 0 ? {status:'warn', desc:`${notasPend} nota${notasPend>1?'s':''} pendientes`} :
+                          {status:'ok',   desc:'Sin notas pendientes'};
 
   // Usuarios
   s.usuarios = USERS.length > 2 ? {status:'ok',   desc:`${USERS.length} usuarios activos`} :

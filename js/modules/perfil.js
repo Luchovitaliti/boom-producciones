@@ -71,65 +71,66 @@ function initPerfil() {
   ).join('');
 }
 
+// Compress image to dataURL, max 150x150, JPEG quality 0.7, <200KB
+function _compressAvatar(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const size = 150;
+      const canvas = document.createElement('canvas');
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      // Crop to square center
+      const min = Math.min(img.width, img.height);
+      const sx = (img.width - min) / 2, sy = (img.height - min) / 2;
+      ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
+      let q = 0.7;
+      let dataUrl = canvas.toDataURL('image/jpeg', q);
+      // Reduce quality if still too big
+      while (dataUrl.length > 270000 && q > 0.2) { q -= 0.1; dataUrl = canvas.toDataURL('image/jpeg', q); }
+      if (dataUrl.length > 270000) { reject(new Error('Imagen demasiado pesada incluso comprimida.')); return; }
+      resolve(dataUrl);
+    };
+    img.onerror = () => reject(new Error('No se pudo leer la imagen.'));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
 async function handlePhotoUpload(input) {
   const file = input.files[0];
   if (!file) return;
   const msgEl = document.getElementById('prof-msg');
 
-  // Validate file size (max 2MB)
-  if (file.size > 2 * 1024 * 1024) {
-    msgEl.innerHTML = '<span style="color:var(--red)">La imagen no puede superar 2MB.</span>';
-    return;
+  if (!file.type.startsWith('image/')) {
+    msgEl.innerHTML = '<span style="color:var(--red)">Solo se permiten imágenes.</span>'; return;
   }
 
-  // Show preview immediately from local file
-  const reader = new FileReader();
-  reader.onload = e => {
-    const el = document.getElementById('prof-av-preview');
-    if (el) el.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">`;
-  };
-  reader.readAsDataURL(file);
-
-  // Upload to Firebase Storage
-  if (!window._fbStorage || !CU?.uid) {
-    msgEl.innerHTML = '<span style="color:var(--yellow)">Foto cargada localmente. Guardá cambios para aplicar.</span>';
-    // Store as data URL fallback
-    const r2 = new FileReader();
-    r2.onload = e2 => { CU._pendingPhoto = e2.target.result; };
-    r2.readAsDataURL(file);
-    return;
-  }
-
-  msgEl.innerHTML = '<span style="color:var(--text2)">⏳ Subiendo foto...</span>';
+  msgEl.innerHTML = '<span style="color:var(--text2)">⏳ Comprimiendo...</span>';
 
   try {
-    const storageRef = window._fbStorage.ref(`avatars/${CU.uid}`);
-    await storageRef.put(file);
-    const photoURL = await storageRef.getDownloadURL();
+    const dataUrl = await _compressAvatar(file);
 
-    CU.photoURL = photoURL;
-    CU.photo = photoURL;
+    // Preview
+    const el = document.getElementById('prof-av-preview');
+    if (el) { el.innerHTML = ''; const img = document.createElement('img'); img.src = dataUrl; img.style.cssText = 'width:100%;height:100%;object-fit:cover'; el.appendChild(img); }
+
+    // Save dataURL directly to Firestore user doc
+    if (!CU?.uid) { msgEl.innerHTML = '<span style="color:var(--red)">Sin sesión.</span>'; return; }
+
+    msgEl.innerHTML = '<span style="color:var(--text2)">⏳ Guardando...</span>';
+    await firebase.firestore().collection('users').doc(CU.uid).update({
+      photoURL: dataUrl,
+      updatedAt: new Date().toISOString(),
+    });
+
+    CU.photoURL = dataUrl; CU.photo = dataUrl;
+    const idx = USERS.findIndex(u => u.uid === CU.uid);
+    if (idx !== -1) { USERS[idx].photoURL = dataUrl; USERS[idx].photo = dataUrl; }
     updateTopbarAvatar();
-
-    // Save to Firestore
-    if (CU.uid) {
-      await firebase.firestore().collection('users').doc(CU.uid).update({
-        photoURL: photoURL,
-        updatedAt: new Date().toISOString(),
-      });
-    }
-
-    // Update local USERS array
-    const idx = USERS.findIndex(u => (u.uid || u.user) === (CU.uid || CU.user));
-    if (idx !== -1) {
-      USERS[idx].photoURL = photoURL;
-      USERS[idx].photo = photoURL;
-    }
-
-    msgEl.innerHTML = '<span style="color:var(--accent)">✓ Foto actualizada correctamente.</span>';
+    msgEl.innerHTML = `<span style="color:var(--accent)">✓ Foto actualizada (${Math.round(dataUrl.length/1024)} KB).</span>`;
   } catch(e) {
-    console.error('Photo upload error:', e);
-    msgEl.innerHTML = `<span style="color:var(--red)">Error al subir foto: ${e.message}</span>`;
+    console.error('Photo error:', e);
+    msgEl.innerHTML = `<span style="color:var(--red)">Error: ${e.message}</span>`;
   }
 }
 

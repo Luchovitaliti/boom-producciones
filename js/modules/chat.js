@@ -15,6 +15,29 @@ const EMOJIS = ['😀','😂','😍','❤️','🔥','💯','👍','🙌','🎉'
                 '😎','🤩','😭','😅','🤣','🤙','💬','📸','🎵','💥','⚡','🌟','💃','🕺','👏',
                 '🙏','😤','🤔','🥳','😴','🫡','💀','🫶','🤞','✌️','🫠','🔊','📢','🎯','🏆'];
 
+// ─── Unread tracking via localStorage ───
+function _chatLastReadKey(ch) { return 'chat_lr_' + (CU?.uid||'x') + '_' + ch; }
+
+function chatMarkRead(ch) {
+  try { localStorage.setItem(_chatLastReadKey(ch), Date.now().toString()); } catch(e) {}
+}
+
+function chatGetUnread(ch) {
+  const msgs = CHAT_DATA[ch]?.msgs || [];
+  if (!msgs.length) return 0;
+  let lr = 0;
+  try { lr = parseInt(localStorage.getItem(_chatLastReadKey(ch))) || 0; } catch(e) {}
+  if (!lr) return msgs.length; // never opened = all unread
+  return msgs.filter(m => {
+    if (m.timestamp && m.timestamp.toDate) return m.timestamp.toDate().getTime() > lr;
+    return false; // legacy msgs without server timestamp: not counted
+  }).length;
+}
+
+function chatGetTotalUnread() {
+  return Object.keys(CHAT_DATA).reduce((a, ch) => a + chatGetUnread(ch), 0);
+}
+
 function getChatChannels() {
   const evChs = EVENTOS.map((e, i) => ({
     id: 'ev' + i,
@@ -50,8 +73,10 @@ function pgChat() {
     sbHtml += `<div class="chat-sec">${sec}</div>`;
     chs.forEach(ch => {
       const isDel = isAdmin && ch.sec === 'Canales';
+      const unr = chatGetUnread(ch.id);
       sbHtml += `<div class="chat-ch" id="ch-${ch.id}" onclick="setCh('${ch.id}')">
         <span>${ch.name}</span>
+        ${unr > 0 ? `<span class="chat-unread-badge">${unr > 99 ? '99+' : unr}</span>` : ''}
         ${isDel ? `<span class="chat-ch-del" onclick="event.stopPropagation();deleteChatChannel('${ch.id}')" title="Eliminar">✕</span>` : ''}
       </div>`;
     });
@@ -97,7 +122,7 @@ function _escChat(str) {
 function initChat() {
   syncChatEventChannels();
   curCh = 'general';
-  // Listen only to active channel
+  chatMarkRead(curCh);
   if (window.fbListenActiveChannel) window.fbListenActiveChannel(curCh);
   renderMsgs();
   document.querySelectorAll('.chat-ch').forEach(el => el.classList.remove('active'));
@@ -106,6 +131,7 @@ function initChat() {
 
 function setCh(ch) {
   curCh = ch;
+  chatMarkRead(ch);
   // Switch listener to new channel
   if (window.fbListenActiveChannel) window.fbListenActiveChannel(ch);
   document.querySelectorAll('.chat-ch').forEach(el => el.classList.remove('active'));
