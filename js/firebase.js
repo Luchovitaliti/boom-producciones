@@ -250,13 +250,6 @@ try {
         };
       });
       USERS = firestoreUsers;
-    } else {
-      // Fallback: try legacy config/users for migration
-      const legacy = await fbGet('config', 'users');
-      if (legacy?.items) {
-        USERS = legacy.items;
-        console.warn('Using legacy config/users — run migration to move to users collection');
-      }
     }
 
     // Ensure Admin always has all pages
@@ -307,19 +300,6 @@ try {
             pages: data.pages || ['perfil'],
             active: data.active !== false,
           };
-        } else {
-          // Fallback: try legacy config/users matching by email
-          const legacyUsers = await fbGet('config', 'users');
-          if (legacyUsers?.items) {
-            USERS = legacyUsers.items;
-            const username = fbUser.email.replace('@boom.app', '').toUpperCase();
-            f = USERS.find(x => x.user === username);
-            if (f) {
-              f.uid = fbUser.uid;
-              f.email = fbUser.email;
-              f.username = f.user;
-            }
-          }
         }
 
         if (!f || f.active === false) {

@@ -1,5 +1,5 @@
 // ═══ /api/users — Admin user management (create, update, delete) ═══
-const { auth, db } = require('./_admin');
+const { auth, db, _initError } = require('./_admin');
 
 function cors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -11,9 +11,21 @@ async function verifyAdmin(req) {
   const token = (req.headers.authorization || '').replace('Bearer ', '');
   if (!token) throw new Error('No token provided');
   const decoded = await auth.verifyIdToken(token);
-  // Check caller is admin in Firestore
-  const userDoc = await db.collection('users').doc(decoded.uid).get();
-  if (!userDoc.exists || userDoc.data().role !== 'Admin Console') {
+
+  // Try by doc ID = uid first
+  let userDoc = await db.collection('users').doc(decoded.uid).get();
+
+  // Fallback: query by email (covers cases where doc ID ≠ Auth UID)
+  if (!userDoc.exists) {
+    const snap = await db.collection('users')
+      .where('email', '==', decoded.email)
+      .where('active', '==', true)
+      .limit(1)
+      .get();
+    if (!snap.empty) userDoc = snap.docs[0];
+  }
+
+  if (!userDoc || !userDoc.exists || userDoc.data().role !== 'Admin Console') {
     throw new Error('Unauthorized: admin role required');
   }
   return decoded;
@@ -24,9 +36,20 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
+  if (_initError) {
+    return res.status(500).json({ error: 'Firebase Admin no inicializado: ' + _initError.message });
+  }
+
+  const { action, ...payload } = req.body;
+
+  // Public action — no auth required
+  if (action === 'checkEmailForRecovery') {
+    return await checkEmailForRecovery(req, res, payload);
+  }
+
+  // All other actions require admin
   try {
     const caller = await verifyAdmin(req);
-    const { action, ...payload } = req.body;
 
     switch (action) {
       case 'create': return await createUser(req, res, payload, caller);
@@ -146,6 +169,16 @@ async function cleanOrphans(req, res) {
   }
 
   return res.status(200).json({ ok: true, cleaned, details });
+}
+
+async function checkEmailForRecovery(req, res, { email }) {
+  if (!email) return res.status(400).json({ error: 'email is required' });
+  const snap = await db.collection('users')
+    .where('email', '==', email.toLowerCase())
+    .where('active', '==', true)
+    .limit(1)
+    .get();
+  return res.status(200).json({ exists: !snap.empty });
 }
 
 async function updateEmail(req, res, { uid, newEmail }) {
