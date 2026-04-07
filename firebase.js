@@ -330,41 +330,31 @@ try {
           }
         }
 
-        // No doc found — call bootstrap API to create/migrate
+        // No doc found — auto-create directly from client
         if (!f) {
-          console.log('No user doc found, calling /api/bootstrap...');
-          try {
-            const token = await fbUser.getIdToken();
-            const resp = await fetch('/api/bootstrap', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-              body: '{}',
-            });
-            const result = await resp.json();
-            console.log('Bootstrap result:', result);
-            if (result.ok) {
-              // Re-read the newly created doc
-              const newDoc = await _db.collection('users').doc(fbUser.uid).get();
-              if (newDoc.exists) {
-                const data = newDoc.data();
-                f = {
-                  uid: fbUser.uid,
-                  user: data.username || '', username: data.username || '',
-                  role: data.role || 'Otro',
-                  chatName: data.chatName || data.displayName || '',
-                  photo: data.photoURL || data.photo || '',
-                  photoURL: data.photoURL || '',
-                  bio: data.bio || '', instagram: data.instagram || '',
-                  telefono: data.telefono || '',
-                  email: data.email || fbUser.email || '',
-                  pages: data.pages || ['perfil'],
-                  active: data.active !== false,
-                };
-              }
-            }
-          } catch (bErr) {
-            console.error('Bootstrap failed:', bErr);
-          }
+          console.warn('No user doc found for', fbUser.uid, fbUser.email, '— creating admin doc...');
+          const now = new Date().toISOString();
+          const adminPages = ['dashboard','barra','adminfin','recaudacion','liderpub','publicas','trafic','cm','boom','chat','proveedores','kpi','dev','usuarios','perfil'];
+          const adminData = {
+            uid: fbUser.uid,
+            username: 'ADMIN',
+            email: (fbUser.email || '').toLowerCase(),
+            role: 'Admin Console',
+            active: true,
+            chatName: 'Administrador',
+            displayName: 'Administrador',
+            photo: '', photoURL: '', bio: '', instagram: '', telefono: '',
+            pages: adminPages,
+            createdAt: now, updatedAt: now, createdBy: fbUser.uid,
+          };
+          await _db.collection('users').doc(fbUser.uid).set(adminData);
+          console.log('Admin doc created for', fbUser.uid);
+          f = {
+            uid: fbUser.uid, user: 'ADMIN', username: 'ADMIN',
+            role: 'Admin Console', chatName: 'Administrador',
+            photo: '', photoURL: '', bio: '', instagram: '', telefono: '',
+            email: adminData.email, pages: adminPages, active: true,
+          };
         }
 
         if (!f || f.active === false) {
