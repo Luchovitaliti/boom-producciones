@@ -88,7 +88,7 @@ function pgChat() {
 
   return `<div class="ptitle">💬 Chat interno</div>
   <div class="chat-whobox">
-    <div class="av" style="background:${col}22;color:${col};width:28px;height:28px;font-size:11px">${ini(cn)}</div>
+    ${avatarHtml(CU?.photoURL||CU?.photo, cn, USERS.indexOf(CU), 28)}
     <span>Chateando como <strong>${_escChat(cn)}</strong></span>
   </div>
   <div class="chat-wrap">

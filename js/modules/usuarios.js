@@ -24,9 +24,9 @@ function pgUsuarios() {
     const cname  = u.chatName || '';
     const email  = u.email || '';
     const pages  = Array.isArray(u.pages) ? u.pages : [];
-    const initials = uid.slice(0, 2);
+    const photo = u.photoURL || u.photo || '';
     h += `<div class="user-card">
-      <div class="av" style="background:${AVC[i%8]}22;color:${AVC[i%8]}">${initials}</div>
+      ${avatarHtml(photo, uid, i, 36)}
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:500">${escapeHtml(uid)}
           <span class="badge bgray" style="font-size:10px">${escapeHtml(role)}</span>
