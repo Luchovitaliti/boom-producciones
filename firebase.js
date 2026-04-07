@@ -330,6 +330,36 @@ try {
           }
         }
 
+        // No doc found — auto-bootstrap if zero active users (first-time setup)
+        if (!f) {
+          const anyActive = await _db.collection('users').where('active', '==', true).limit(1).get();
+          if (anyActive.empty) {
+            // First user ever → create as Admin
+            const now = new Date().toISOString();
+            const adminData = {
+              uid: fbUser.uid,
+              username: 'ADMIN',
+              email: fbUser.email || '',
+              role: 'Admin Console',
+              active: true,
+              chatName: 'Administrador',
+              displayName: 'Administrador',
+              photo: '', photoURL: '', bio: '', instagram: '', telefono: '',
+              pages: ['dashboard','barra','adminfin','recaudacion','liderpub','publicas','trafic','cm','boom','chat','proveedores','kpi','dev','usuarios','perfil'],
+              createdAt: now, updatedAt: now, createdBy: fbUser.uid,
+            };
+            await _db.collection('users').doc(fbUser.uid).set(adminData);
+            console.log('Auto-bootstrap: created admin doc for', fbUser.uid);
+            f = {
+              uid: fbUser.uid, user: 'ADMIN', username: 'ADMIN',
+              role: 'Admin Console', chatName: 'Administrador',
+              photo: '', photoURL: '', bio: '', instagram: '', telefono: '',
+              email: fbUser.email || '',
+              pages: adminData.pages, active: true,
+            };
+          }
+        }
+
         if (!f || f.active === false) {
           await _auth.signOut();
           return;
