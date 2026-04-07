@@ -278,9 +278,11 @@ try {
   // ─── SESIÓN PERSISTENTE ───
   _auth.onAuthStateChanged(async function(fbUser) {
     try {
+      console.log('🔑 onAuthStateChanged:', fbUser ? fbUser.uid + ' / ' + fbUser.email : 'NO USER');
       if (fbUser) {
         // Load user from Firestore 'users' collection by UID
         let userDoc = await _db.collection('users').doc(fbUser.uid).get();
+        console.log('📄 Doc by UID exists?', userDoc.exists);
         let f = null;
 
         if (userDoc.exists) {
@@ -330,9 +332,9 @@ try {
           }
         }
 
-        // No doc found — auto-create directly from client
+        // No doc found — try to create admin doc
         if (!f) {
-          console.warn('No user doc found for', fbUser.uid, fbUser.email, '— creating admin doc...');
+          console.warn('⚠️ No user doc found for UID:', fbUser.uid, 'Email:', fbUser.email);
           const now = new Date().toISOString();
           const adminPages = ['dashboard','barra','adminfin','recaudacion','liderpub','publicas','trafic','cm','boom','chat','proveedores','kpi','dev','usuarios','perfil'];
           const adminData = {
@@ -347,14 +349,49 @@ try {
             pages: adminPages,
             createdAt: now, updatedAt: now, createdBy: fbUser.uid,
           };
-          await _db.collection('users').doc(fbUser.uid).set(adminData);
-          console.log('Admin doc created for', fbUser.uid);
-          f = {
-            uid: fbUser.uid, user: 'ADMIN', username: 'ADMIN',
-            role: 'Admin Console', chatName: 'Administrador',
-            photo: '', photoURL: '', bio: '', instagram: '', telefono: '',
-            email: adminData.email, pages: adminPages, active: true,
-          };
+
+          // Try 1: write directly to Firestore
+          try {
+            await _db.collection('users').doc(fbUser.uid).set(adminData);
+            console.log('✅ Admin doc created directly in Firestore');
+          } catch (writeErr) {
+            console.warn('❌ Direct write failed:', writeErr.message, '— trying API...');
+            // Try 2: call bootstrap API
+            try {
+              const token = await fbUser.getIdToken();
+              const resp = await fetch('/api/bootstrap', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: '{}',
+              });
+              const result = await resp.json();
+              console.log('API bootstrap result:', result);
+              if (!result.ok) throw new Error(result.error || 'Bootstrap failed');
+            } catch (apiErr) {
+              console.error('❌ API bootstrap also failed:', apiErr.message);
+              alert('Error creando usuario admin: ' + apiErr.message);
+              throw apiErr;
+            }
+          }
+
+          // Re-read the doc
+          const newDoc = await _db.collection('users').doc(fbUser.uid).get();
+          if (newDoc.exists) {
+            const data = newDoc.data();
+            f = {
+              uid: fbUser.uid, user: data.username || 'ADMIN', username: data.username || 'ADMIN',
+              role: data.role || 'Admin Console',
+              chatName: data.chatName || 'Administrador',
+              photo: data.photoURL || '', photoURL: data.photoURL || '',
+              bio: data.bio || '', instagram: data.instagram || '', telefono: data.telefono || '',
+              email: data.email || fbUser.email || '',
+              pages: data.pages || adminPages, active: true,
+            };
+            console.log('✅ User doc loaded after bootstrap');
+          } else {
+            console.error('❌ Doc still not found after bootstrap!');
+            alert('No se pudo crear el documento de usuario. Revisá la consola.');
+          }
         }
 
         if (!f || f.active === false) {
