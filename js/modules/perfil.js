@@ -49,7 +49,11 @@ function initPerfil() {
   const el = document.getElementById('prof-av-preview');
   const photoSrc = u.photoURL || u.photo;
   if (photoSrc) {
-    el.innerHTML = `<img src="${photoSrc}" style="width:100%;height:100%;object-fit:cover">`;
+    const img = document.createElement('img');
+    img.src = photoSrc;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover';
+    el.innerHTML = '';
+    el.appendChild(img);
   } else {
     el.textContent = ini(u.chatName);
     el.style.color = col;

@@ -42,7 +42,11 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ ok: true, status: 'fixed', uid, oldDocId: oldDoc.id, role: oldData.role });
     }
 
-    // No doc at all — create fresh admin doc
+    // No doc at all — only create admin if zero active users (first-time setup)
+    const anyActive = await db.collection('users').where('active', '==', true).limit(1).get();
+    if (!anyActive.empty) {
+      return res.status(403).json({ error: 'No user doc found and other users exist. Contact admin.' });
+    }
     const now = new Date().toISOString();
     await db.collection('users').doc(uid).set({
       uid,

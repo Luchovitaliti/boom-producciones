@@ -54,8 +54,9 @@ module.exports = async function handler(req, res) {
     switch (action) {
       case 'create': return await createUser(req, res, payload, caller);
       case 'resetPassword': return await resetPassword(req, res, payload);
-      case 'delete': return await deleteUser(req, res, payload);
+      case 'delete': return await deleteUser(req, res, payload, caller);
       case 'updateEmail': return await updateEmail(req, res, payload);
+      case 'updateUser': return await updateUser(req, res, payload, caller);
       case 'cleanOrphans': return await cleanOrphans(req, res);
       default: return res.status(400).json({ error: 'Unknown action: ' + action });
     }
@@ -131,8 +132,9 @@ async function resetPassword(req, res, { uid, newPassword }) {
   return res.status(200).json({ ok: true });
 }
 
-async function deleteUser(req, res, { uid }) {
+async function deleteUser(req, res, { uid }, caller) {
   if (!uid) return res.status(400).json({ error: 'uid is required' });
+  if (uid === caller.uid) return res.status(400).json({ error: 'Cannot delete yourself' });
   // Delete from Auth
   try {
     await auth.deleteUser(uid);
@@ -179,6 +181,33 @@ async function checkEmailForRecovery(req, res, { email }) {
     .limit(1)
     .get();
   return res.status(200).json({ exists: !snap.empty });
+}
+
+async function updateUser(req, res, { uid, chatName, role, pages, username }, caller) {
+  if (!uid) return res.status(400).json({ error: 'uid is required' });
+
+  // Prevent non-admins from setting Admin Console role
+  const targetDoc = await db.collection('users').doc(uid).get();
+  if (!targetDoc.exists) return res.status(404).json({ error: 'User not found' });
+
+  // Only existing admins can grant/keep Admin Console role
+  const targetData = targetDoc.data();
+  if (role === 'Admin Console' && targetData.role !== 'Admin Console') {
+    // Verify caller is truly admin (already verified by verifyAdmin, but double-check)
+    const callerDoc = await db.collection('users').doc(caller.uid).get();
+    if (!callerDoc.exists || callerDoc.data().role !== 'Admin Console') {
+      return res.status(403).json({ error: 'Only admins can assign Admin Console role' });
+    }
+  }
+
+  const update = { updatedAt: new Date().toISOString() };
+  if (chatName !== undefined) { update.chatName = chatName; update.displayName = chatName; }
+  if (role !== undefined) update.role = role;
+  if (pages !== undefined) update.pages = pages;
+  if (username !== undefined) update.username = username.toUpperCase();
+
+  await db.collection('users').doc(uid).update(update);
+  return res.status(200).json({ ok: true });
 }
 
 async function updateEmail(req, res, { uid, newEmail }) {

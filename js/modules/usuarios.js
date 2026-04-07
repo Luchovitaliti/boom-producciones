@@ -243,15 +243,15 @@ async function saveUserEdit() {
   USERS[editUsrIdx].user = newUser;
 
   try {
-    // Save to Firestore users collection
-    if (window._fbOK && u.uid) {
-      await firebase.firestore().collection('users').doc(u.uid).update({
+    // Save via API (server validates admin role)
+    if (u.uid) {
+      await apiCall({
+        action: 'updateUser',
+        uid: u.uid,
         chatName: cn,
-        displayName: cn,
         role: role,
         pages: pages,
         username: newUser,
-        updatedAt: new Date().toISOString(),
       });
     }
     if (msg) msg.innerHTML = '<span style="color:var(--accent)">✓ Guardado correctamente.</span>';
