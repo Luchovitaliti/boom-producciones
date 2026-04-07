@@ -300,6 +300,34 @@ try {
             pages: data.pages || ['perfil'],
             active: data.active !== false,
           };
+        } else {
+          // Doc not found by UID — try by email (migration/bootstrap case)
+          const byEmail = await _db.collection('users')
+            .where('email', '==', fbUser.email)
+            .where('active', '==', true)
+            .limit(1).get();
+          if (!byEmail.empty) {
+            const data = byEmail.docs[0].data();
+            f = {
+              uid: fbUser.uid,
+              user: data.username || data.user || '',
+              username: data.username || '',
+              role: data.role || 'Otro',
+              chatName: data.chatName || data.displayName || '',
+              photo: data.photoURL || data.photo || '',
+              photoURL: data.photoURL || '',
+              bio: data.bio || '',
+              instagram: data.instagram || '',
+              telefono: data.telefono || '',
+              email: data.email || fbUser.email || '',
+              pages: data.pages || ['perfil'],
+              active: true,
+            };
+            // Fix: move doc to correct ID
+            await _db.collection('users').doc(fbUser.uid).set({ ...byEmail.docs[0].data(), uid: fbUser.uid });
+            await _db.collection('users').doc(byEmail.docs[0].id).delete();
+            console.log('Migrated user doc from', byEmail.docs[0].id, 'to', fbUser.uid);
+          }
         }
 
         if (!f || f.active === false) {
