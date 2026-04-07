@@ -278,9 +278,11 @@ try {
   // ─── SESIÓN PERSISTENTE ───
   _auth.onAuthStateChanged(async function(fbUser) {
     try {
+      console.log('🔑 onAuthStateChanged:', fbUser ? fbUser.uid + ' / ' + fbUser.email : 'NO USER');
       if (fbUser) {
         // Load user from Firestore 'users' collection by UID
         let userDoc = await _db.collection('users').doc(fbUser.uid).get();
+        console.log('📄 Doc by UID exists?', userDoc.exists);
         let f = null;
 
         if (userDoc.exists) {
@@ -300,6 +302,96 @@ try {
             pages: data.pages || ['perfil'],
             active: data.active !== false,
           };
+        } else {
+          // Doc not found by UID — try by email (migration/bootstrap case)
+          const byEmail = await _db.collection('users')
+            .where('email', '==', fbUser.email)
+            .where('active', '==', true)
+            .limit(1).get();
+          if (!byEmail.empty) {
+            const data = byEmail.docs[0].data();
+            f = {
+              uid: fbUser.uid,
+              user: data.username || data.user || '',
+              username: data.username || '',
+              role: data.role || 'Otro',
+              chatName: data.chatName || data.displayName || '',
+              photo: data.photoURL || data.photo || '',
+              photoURL: data.photoURL || '',
+              bio: data.bio || '',
+              instagram: data.instagram || '',
+              telefono: data.telefono || '',
+              email: data.email || fbUser.email || '',
+              pages: data.pages || ['perfil'],
+              active: true,
+            };
+            // Fix: move doc to correct ID
+            await _db.collection('users').doc(fbUser.uid).set({ ...byEmail.docs[0].data(), uid: fbUser.uid });
+            await _db.collection('users').doc(byEmail.docs[0].id).delete();
+            console.log('Migrated user doc from', byEmail.docs[0].id, 'to', fbUser.uid);
+          }
+        }
+
+        // No doc found — try to create admin doc
+        if (!f) {
+          console.warn('⚠️ No user doc found for UID:', fbUser.uid, 'Email:', fbUser.email);
+          const now = new Date().toISOString();
+          const adminPages = ['dashboard','barra','adminfin','recaudacion','liderpub','publicas','trafic','cm','boom','chat','proveedores','kpi','dev','usuarios','perfil'];
+          const adminData = {
+            uid: fbUser.uid,
+            username: 'ADMIN',
+            email: (fbUser.email || '').toLowerCase(),
+            role: 'Admin Console',
+            active: true,
+            chatName: 'Administrador',
+            displayName: 'Administrador',
+            photo: '', photoURL: '', bio: '', instagram: '', telefono: '',
+            pages: adminPages,
+            createdAt: now, updatedAt: now, createdBy: fbUser.uid,
+          };
+
+          // Try 1: write directly to Firestore
+          try {
+            await _db.collection('users').doc(fbUser.uid).set(adminData);
+            console.log('✅ Admin doc created directly in Firestore');
+          } catch (writeErr) {
+            console.warn('❌ Direct write failed:', writeErr.message, '— trying API...');
+            // Try 2: call bootstrap API
+            try {
+              const token = await fbUser.getIdToken();
+              const resp = await fetch('/api/bootstrap', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: '{}',
+              });
+              const result = await resp.json();
+              console.log('API bootstrap result:', result);
+              if (!result.ok) throw new Error(result.error || 'Bootstrap failed');
+            } catch (apiErr) {
+              console.error('❌ API bootstrap also failed:', apiErr.message);
+              alert('Error creando usuario admin: ' + apiErr.message);
+              throw apiErr;
+            }
+          }
+
+          // Re-read the doc
+          const newDoc = await _db.collection('users').doc(fbUser.uid).get();
+          if (newDoc.exists) {
+            const data = newDoc.data();
+            f = {
+              uid: fbUser.uid, user: data.username || 'ADMIN', username: data.username || 'ADMIN',
+              role: data.role || 'Admin Console',
+              chatName: data.chatName || 'Administrador',
+              photo: data.photoURL || '', photoURL: data.photoURL || '',
+              bio: data.bio || '', instagram: data.instagram || '', telefono: data.telefono || '',
+              email: data.email || fbUser.email || '',
+              pages: data.pages || adminPages, active: true,
+            };
+            console.log('✅ User doc loaded after bootstrap');
+          } else {
+            console.error('❌ Doc still not found after bootstrap!');
+            alert('No se pudo crear el documento de usuario. Revisá la consola.');
+          }
         }
 
         if (!f || f.active === false) {
