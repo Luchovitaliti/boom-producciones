@@ -44,20 +44,6 @@ try {
       });
   };
 
-  // Fallback: listen to legacy chat doc format
-  window.fbListenChannelLegacy = function(ch) {
-    fbListen('chat', ch, data => {
-      if (data?.msgs) {
-        if (!CHAT_DATA[ch]) CHAT_DATA[ch] = { l: '#' + ch, msgs: [] };
-        // Only use legacy if subcollection is empty
-        if (CHAT_DATA[ch].msgs.length === 0) {
-          CHAT_DATA[ch].msgs = data.msgs;
-          if (typeof renderMsgs === 'function' && curCh === ch) renderMsgs();
-        }
-      }
-    });
-  };
-
   // ─── SAVE ───
   window.fbSave = {
     stock:          ev => fbSet('stock',        'ev'+ev,  {ini:STOCK_INI[ev], cie:STOCK_CIE[ev]}),
@@ -85,8 +71,22 @@ try {
       etapas:      TRAFIC_ETAPAS.filter(e => e.evIdx === ev),
       localidades: TRAFIC_LOCALIDADES.filter(l => l.evIdx === ev),
       viajes:      TRAFIC_VIAJES.filter(v => v.evIdx === ev),
-      pasajeros:   TRAFIC_PASAJEROS.filter(p => p.evIdx === ev),
+      // pasajeros migrado a subcollection trafic/ev{N}/pasajeros/{id}
     }),
+    // ─── Trafic pasajeros (subcollection) ───
+    traficPasAdd: (ev, pas) => {
+      return _db.collection('trafic').doc('ev'+ev).collection('pasajeros').doc(String(pas.id)).set(pas);
+    },
+    traficPasDel: (ev, pasId) => {
+      return _db.collection('trafic').doc('ev'+ev).collection('pasajeros').doc(String(pasId)).delete();
+    },
+    traficPasDelBatch: async (ev, pasIds) => {
+      const batch = _db.batch();
+      pasIds.forEach(id => {
+        batch.delete(_db.collection('trafic').doc('ev'+ev).collection('pasajeros').doc(String(id)));
+      });
+      return batch.commit();
+    },
     // Send a single chat message to subcollection
     chatMsg: (ch, msg) => {
       return _db.collection('chatChannels').doc(ch).collection('messages').add({
@@ -171,7 +171,10 @@ try {
         if (td.etapas)      TRAFIC_ETAPAS = TRAFIC_ETAPAS.filter(e => e.evIdx !== ev).concat(td.etapas);
         if (td.localidades) TRAFIC_LOCALIDADES = TRAFIC_LOCALIDADES.filter(l => l.evIdx !== ev).concat(td.localidades);
         if (td.viajes)      TRAFIC_VIAJES = TRAFIC_VIAJES.filter(v => v.evIdx !== ev).concat(td.viajes);
-        if (td.pasajeros)   TRAFIC_PASAJEROS = TRAFIC_PASAJEROS.filter(p => p.evIdx !== ev).concat(td.pasajeros);
+        // Legacy fallback: if pasajeros still in doc, load them (will be migrated on next write)
+        if (td.pasajeros && td.pasajeros.length) {
+          TRAFIC_PASAJEROS = TRAFIC_PASAJEROS.filter(p => p.evIdx !== ev).concat(td.pasajeros);
+        }
       }
 
       const rd = recResults[ev];
@@ -191,6 +194,18 @@ try {
     if (gadm?.items)   GASTOS_ADM  = gadm.items;
     if (padm?.items)   PERSONAS_ADM= padm.items;
 
+    // Load trafic pasajeros from subcollections (in parallel per event)
+    await Promise.all(evIndices.map(async ev => {
+      try {
+        const snap = await _db.collection('trafic').doc('ev'+ev).collection('pasajeros').get();
+        if (!snap.empty) {
+          const subPas = snap.docs.map(d => ({ ...d.data(), id: parseInt(d.id) || d.id }));
+          // Subcollection overrides any legacy array data for this event
+          TRAFIC_PASAJEROS = TRAFIC_PASAJEROS.filter(p => p.evIdx !== ev).concat(subPas);
+        }
+      } catch(e) { /* subcollection may not exist yet — legacy array fallback already loaded */ }
+    }));
+
     // Load users from Firestore collection 'users'
     await loadUsersFromFirestore();
 
@@ -202,18 +217,19 @@ try {
       });
     }
 
-    // Chat listeners — subcollection-based
-    const allChannelIds = [
-      'general', 'ideas', 'barra', 'cm', 'publicas', 'admin',
-      ...EVENTOS.map((_, i) => 'ev' + i),
-      ...CUSTOM_CHANNELS.map(c => c.id),
-    ];
-    allChannelIds.forEach(ch => {
+    // Chat: only listen to the active channel
+    window._activeChatChannel = null;
+    window.fbListenActiveChannel = function(ch) {
+      if (window._activeChatChannel === ch) return;
+      // Unsub previous
+      if (window._activeChatChannel && window._chatUnsubs[window._activeChatChannel]) {
+        window._chatUnsubs[window._activeChatChannel]();
+        delete window._chatUnsubs[window._activeChatChannel];
+      }
+      window._activeChatChannel = ch;
       if (!CHAT_DATA[ch]) CHAT_DATA[ch] = { l: '#' + ch, msgs: [] };
       window.fbListenChannel(ch);
-      // Also listen legacy for migration period
-      window.fbListenChannelLegacy(ch);
-    });
+    };
 
     // Re-bind CU to refreshed USERS array
     if (CU) {
@@ -264,12 +280,7 @@ try {
       if (!Array.isArray(u.pages)) u.pages = ['perfil'];
       else if (!u.pages.includes('perfil')) u.pages.push('perfil');
     });
-    // Save updated admin pages to Firestore if needed
-    if (adminPagesUpdated) {
-      USERS.filter(u => u.role === 'Admin Console' && u.uid).forEach(u => {
-        _db.collection('users').doc(u.uid).update({ pages: u.pages }).catch(() => {});
-      });
-    }
+    // Admin pages ensured locally — Firestore updates go through API
   }
 
   // ─── Expose for use from usuarios.js ───
@@ -325,10 +336,18 @@ try {
               pages: data.pages || ['perfil'],
               active: true,
             };
-            // Fix: move doc to correct ID
-            await _db.collection('users').doc(fbUser.uid).set({ ...byEmail.docs[0].data(), uid: fbUser.uid });
-            await _db.collection('users').doc(byEmail.docs[0].id).delete();
-            console.log('Migrated user doc from', byEmail.docs[0].id, 'to', fbUser.uid);
+            // Migration: use API bootstrap to move doc to correct ID
+            try {
+              const token = await fbUser.getIdToken();
+              await fetch('/api/bootstrap', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: '{}',
+              });
+              console.log('Migrated user doc via API bootstrap');
+            } catch (migErr) {
+              console.warn('Migration via API failed:', migErr.message);
+            }
           }
         }
 

@@ -27,16 +27,7 @@ let GASTOS_EV=[];
 let PUBLICAS=[];
 let ACT_EV=[];
 let BENEF_EV=[];
-let PUB_LOGS=[[
-  {pid:1,tipo:'Story de Instagram',desc:'Cuenta regresiva',ent:3,ts:'20:00'},{pid:1,tipo:'Reel/video',desc:'Teaser',ent:5,ts:'21:00'},
-  {pid:2,tipo:'Story de Instagram',desc:'Flyer',ent:4,ts:'19:30'},{pid:3,tipo:'TikTok',desc:'Video promo',ent:1,ts:'21:30'},
-  {pid:6,tipo:'Reel/video',desc:'Reel lugar',ent:6,ts:'18:00'},{pid:6,tipo:'Story de Instagram',desc:'Cuenta regresiva',ent:3,ts:'20:00'},
-  {pid:4,tipo:'Story de Instagram',desc:'Story',ent:0,ts:'20:00'},{pid:5,tipo:'Story de Instagram',desc:'Story',ent:0,ts:'20:00'},
-  {pid:7,tipo:'Story de Instagram',desc:'Flyer',ent:0,ts:'19:00'},{pid:8,tipo:'Story de Instagram',desc:'Story',ent:0,ts:'20:00'},
-],[
-  {pid:1,tipo:'Story de Instagram',desc:'Promo',ent:2,ts:'19:00'},{pid:2,tipo:'Reel/video',desc:'Reel',ent:7,ts:'20:00'},
-  {pid:6,tipo:'TikTok',desc:'TT viral',ent:8,ts:'21:00'},{pid:3,tipo:'Story de Instagram',desc:'Story',ent:0,ts:'20:00'},
-],[],];
+let PUB_LOGS=[];
 let POSTS=[];
 let TASKS=[];
 let IDEAS=[];

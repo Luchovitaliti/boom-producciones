@@ -307,8 +307,13 @@ function trDelLoc(id,ev){
   if(!pas.length&&!confirm('¿Eliminar esta localidad?')) return;
   TRAFIC_LOCALIDADES=TRAFIC_LOCALIDADES.filter(l=>l.id!==id);
   TRAFIC_VIAJES=TRAFIC_VIAJES.filter(v=>!(v.locId===id&&v.evIdx===ev));
+  // Delete pasajeros from subcollection
+  const delPasIds=TRAFIC_PASAJEROS.filter(p=>p.locId===id&&p.evIdx===ev).map(p=>p.id);
   TRAFIC_PASAJEROS=TRAFIC_PASAJEROS.filter(p=>!(p.locId===id&&p.evIdx===ev));
   trSaveFB(ev); trRender();
+  if(delPasIds.length && window._fbOK && window.fbSave?.traficPasDelBatch) {
+    window.fbSave.traficPasDelBatch(ev, delPasIds).catch(e=>console.error('Error batch delete:',e));
+  }
 }
 
 function trSaveViaje(){
@@ -352,20 +357,28 @@ function trSavePas(){
   const pas=trGetPasViaje(ev,trViajeId);
   if(pas.length>=(viaje.capacidad||0)){ document.getElementById('tr-pas-err').textContent='La trafic está llena.'; return; }
   const id=trNextId(TRAFIC_PASAJEROS);
-  TRAFIC_PASAJEROS.push({
+  const pasData={
     id, evIdx:ev, locId:viaje.locId, viajeId:trViajeId,
     etapaId:eta.id, precioCong:eta.precio,
     nombre, apellido, dni, telefono:tel, obs,
     fechaCarga:new Date().toISOString(), cargadoPor:CU?.chatName||CU?.user||''
-  });
+  };
+  TRAFIC_PASAJEROS.push(pasData);
   document.getElementById('m-tr-pas').style.display='none';
-  trSaveFB(ev); trRender();
+  trRender();
+  // Save to subcollection (not in trafic doc anymore)
+  if(window._fbOK && window.fbSave?.traficPasAdd) {
+    window.fbSave.traficPasAdd(ev, pasData).catch(e=>console.error('Error saving pasajero:',e));
+  }
 }
 
 function trDelPas(id,ev){
   if(!confirm('¿Eliminar este pasajero?')) return;
   TRAFIC_PASAJEROS=TRAFIC_PASAJEROS.filter(p=>p.id!==id);
-  trSaveFB(ev); trRender();
+  trRender();
+  if(window._fbOK && window.fbSave?.traficPasDel) {
+    window.fbSave.traficPasDel(ev, id).catch(e=>console.error('Error deleting pasajero:',e));
+  }
 }
 
 // ═══════════ CSV Export ═══════════

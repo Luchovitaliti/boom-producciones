@@ -97,6 +97,8 @@ function _escChat(str) {
 function initChat() {
   syncChatEventChannels();
   curCh = 'general';
+  // Listen only to active channel
+  if (window.fbListenActiveChannel) window.fbListenActiveChannel(curCh);
   renderMsgs();
   document.querySelectorAll('.chat-ch').forEach(el => el.classList.remove('active'));
   document.getElementById('ch-general')?.classList.add('active');
@@ -104,6 +106,8 @@ function initChat() {
 
 function setCh(ch) {
   curCh = ch;
+  // Switch listener to new channel
+  if (window.fbListenActiveChannel) window.fbListenActiveChannel(ch);
   document.querySelectorAll('.chat-ch').forEach(el => el.classList.remove('active'));
   document.getElementById('ch-' + ch)?.classList.add('active');
   const lbl = CHAT_DATA[ch]?.l || '#' + ch;
@@ -258,7 +262,6 @@ function saveNewChannel() {
   CHAT_DATA[id] = {l: '# ' + name, msgs: []};
   if (window._fbOK) window.fbSave.customChannels?.();
   document.getElementById('m-chat-channel').style.display = 'none';
-  if (window._fbOK && typeof fbListenChannel === 'function') fbListenChannel(id);
   renderPage('chat');
   setTimeout(() => setCh(id), 100);
 }
