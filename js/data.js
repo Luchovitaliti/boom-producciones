@@ -59,7 +59,7 @@ const HOY=new Date();
 let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
 let CU=null,curPage='dashboard',catTarget='',pubTarget=null,actTarget=null,editProvId=null,editUsrIdx=null;
 let curCh='general';
-let npid=10,ntid=7,niid=5,npvid=7;
+let npid=10,ntid=7,niid=5,npvid=7,nPubId=100;
 const RED_LABEL={ig_feed:'IG Feed',ig_story:'Story',reel:'Reel',tiktok:'TikTok',facebook:'Facebook'};
 const RED_CLS={ig_feed:'ce-ig',ig_story:'ce-story',reel:'ce-reel',tiktok:'ce-tiktok',facebook:'ce-ig'};
 const AVC=['#e8d5a3','#4ade80','#60a5fa','#f87171','#a78bfa','#fbbf24','#34d399','#fb7185'];

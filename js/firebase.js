@@ -197,6 +197,13 @@ try {
     if (gadm?.items)   GASTOS_ADM  = gadm.items;
     if (padm?.items)   PERSONAS_ADM= padm.items;
 
+    // Sync ID counters to avoid collisions with loaded data
+    const _maxId = (arr, field='id') => arr.reduce((m, x) => Math.max(m, x[field]||0), 0);
+    npid   = Math.max(npid,   _maxId(POSTS), _maxId(TASKS));
+    nPubId = Math.max(nPubId, _maxId(PUBLICAS));
+    niid   = Math.max(niid,   _maxId(IDEAS));
+    npvid  = Math.max(npvid,  _maxId(PROVEEDORES));
+
     // Load trafic pasajeros from subcollections (in parallel per event)
     await Promise.all(evIndices.map(async ev => {
       try {

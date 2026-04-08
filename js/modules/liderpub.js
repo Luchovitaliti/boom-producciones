@@ -171,7 +171,7 @@ function lpSavePublica(){
     }
   } else {
     PUBLICAS.push({
-      id:++npid,n,
+      id:++nPubId,n,
       ig:document.getElementById('np-ig').value.trim()||'@nuevo',
       tel:document.getElementById('np-tel').value.trim(),
       tipo:document.getElementById('np-tipo').value,
