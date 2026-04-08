@@ -24,12 +24,12 @@ function pgBarra(){
     <button class="btn btnsm" onclick="barraOpenCfg()" title="Configurar productos">⚙️ Configuración</button>
   </div>
   <div class="psub" id="barra-sub"></div>
-  ${makeTabs('b',[{id:'inicio',l:'Inicio'},{id:'cierre',l:'Cierre'},{id:'consumo',l:'Consumo'},{id:'precios',l:'Precios'},{id:'cajas',l:'Cajas'},{id:'staff',l:'Staff'},{id:'compra',l:'Compra'}],'inicio')}`;
+  ${makeTabs('b',[{id:'inicio',l:'Inicio'},{id:'cierre',l:'Cierre'},{id:'consumo',l:'Consumo'},{id:'precios',l:'Precios'},{id:'cajas',l:'Cajas'},{id:'staff',l:'Staff'},{id:'beneficios',l:'Beneficios'},{id:'compra',l:'Compra'}],'inicio')}`;
 }
 function initBarra(){
   document.getElementById('barra-sub').textContent=EVENTOS[gEv()].nombre;
   barraSaved={inicio:false,cierre:false};
-  ensureEvArrays();bLoadInicio();bLoadCierre();bLoadConsumo();bLoadPrecios();bLoadCajas();bLoadStaff();bLoadCompra();
+  ensureEvArrays();bLoadInicio();bLoadCierre();bLoadConsumo();bLoadPrecios();bLoadCajas();bLoadStaff();bLoadBeneficios();bLoadCompra();
 }
 
 // ─── Guardar ───
@@ -217,6 +217,40 @@ function bDelStaff(idx){
   if(!confirm('¿Eliminar personal?'))return;
   STAFF_EV[gEv()].splice(idx,1);
   if(window._fbOK)window.fbSave.staff?.(gEv());bLoadStaff();
+}
+
+// ─── BENEFICIOS (vista barra) ───
+function bLoadBeneficios(){
+  const ev=gEv();const ben=BENEF_EV[ev]||{};
+  const pubs=PUBLICAS.filter(p=>p.activo&&p.evIdx===ev);
+  let h=`<div class="card"><div class="ctitle">Beneficios de públicas</div>`;
+  if(!pubs.length){h+='<div class="empty">Sin públicas para este evento.</div></div>';document.getElementById('b-beneficios').innerHTML=h;return;}
+  h+=`<table><thead><tr><th>Pública</th><th>Entrada</th><th>Consumición</th><th>Extras</th><th>Entrega entrada</th><th>Entrega consumición</th></tr></thead><tbody>`;
+  pubs.forEach(p=>{
+    const b=ben[p.id]||{ent:false,con:'',ex:'',entregado:{}};
+    const entg=b.entregado||{};
+    const entHora=entg.ent?`✓ ${entg.ent}`:'';
+    const conHora=entg.con?`✓ ${entg.con}`:'';
+    h+=`<tr>
+      <td style="font-weight:500">${p.n}</td>
+      <td>${b.ent?'<span class="badge bok">Sí</span>':'<span class="badge bgray">No</span>'}</td>
+      <td style="font-size:12px">${b.con||'—'}</td>
+      <td style="font-size:12px">${b.ex||'—'}</td>
+      <td>${b.ent?`<button class="chkbtn ${entg.ent?'on':''}" onclick="bTogEntrega(${p.id},'ent')">${entHora||''}</button>`:'—'}</td>
+      <td>${b.con?`<button class="chkbtn ${entg.con?'on':''}" onclick="bTogEntrega(${p.id},'con')">${conHora||''}</button>`:'—'}</td>
+    </tr>`;
+  });
+  h+=`</tbody></table></div>`;
+  document.getElementById('b-beneficios').innerHTML=h;
+}
+function bTogEntrega(pid,key){
+  const ev=gEv();if(!BENEF_EV[ev])BENEF_EV[ev]={};
+  if(!BENEF_EV[ev][pid])BENEF_EV[ev][pid]={ent:false,con:'',ex:'',entregado:{}};
+  if(!BENEF_EV[ev][pid].entregado)BENEF_EV[ev][pid].entregado={};
+  const now=new Date();const ts=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  BENEF_EV[ev][pid].entregado[key]=BENEF_EV[ev][pid].entregado[key]?'':ts;
+  if(window._fbOK)window.fbSave.benef?.(ev);
+  bLoadBeneficios();
 }
 
 // ─── COMPRA ───

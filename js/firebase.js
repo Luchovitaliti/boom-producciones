@@ -61,6 +61,7 @@ try {
     gastosAdm:      ()  => fbSet('adminfin',    'gastos', {items:GASTOS_ADM}),
     personasAdm:    ()  => fbSet('adminfin',    'personas',{items:PERSONAS_ADM}),
     notasMod:       ()  => fbSet('config',      'notas',  {items:NOTAS_MOD}),
+    clasificacion:  ()  => fbSet('config',      'clasificacion', CLASIF_CFG),
     recaudacion:    ev  => fbSet('recaudacion', 'ev'+ev, {
       cajas: CAJAS_REC.filter(c => c.evIdx === ev),
       lotes: LOTES_REC.filter(l => l.evIdx === ev),
@@ -130,7 +131,7 @@ try {
       benefResults,
       traficResults,
       recResults,
-      posts, tasks, ideas, pub, prov, notas, gadm, padm,
+      posts, tasks, ideas, pub, prov, notas, clasifCfg, gadm, padm,
       customChs,
     ] = await Promise.all([
       // Event-indexed: batch each type
@@ -150,6 +151,7 @@ try {
       fbGet('publicas', 'lista'),
       fbGet('proveedores', 'lista'),
       fbGet('config', 'notas'),
+      fbGet('config', 'clasificacion'),
       fbGet('adminfin', 'gastos'),
       fbGet('adminfin', 'personas'),
       fbGet('chat', 'customChannels'),
@@ -191,6 +193,7 @@ try {
     if (pub?.items)    PUBLICAS    = pub.items;
     if (prov?.items)   PROVEEDORES = prov.items;
     if (notas?.items)  NOTAS_MOD   = notas.items;
+    if (clasifCfg && clasifCfg.topMinInv !== undefined) CLASIF_CFG = clasifCfg;
     if (gadm?.items)   GASTOS_ADM  = gadm.items;
     if (padm?.items)   PERSONAS_ADM= padm.items;
 

@@ -41,7 +41,7 @@ function lpLoadRanking(){
     const tp=tpubs(a);const pct=mp?Math.min(100,Math.round(tp/mp*100)):0;
     const zona=i<z1?'zona-a':i>=z2?'zona-d':'zona-m';const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1;
     const col=i<z1?'#4ade80':i>=z2?'#f87171':'#fbbf24';
-    h+=`<div class="rkcard ${zona}"><div style="width:24px;text-align:center;font-size:${i<3?'17':'13'}px;font-weight:500;flex-shrink:0">${medal}</div><div class="av" style="${avs(i)}">${ini(p.n)}</div><div style="flex:1"><div style="font-size:13px;font-weight:500">${p.n} <span class="badge ${p.tipo==='vip'?'bvip':'bgray'}" style="font-size:10px">${p.tipo==='vip'?'VIP':'Común'}</span></div><div style="font-size:11px;color:var(--text2)">${p.ig} · ${a.inv} inv · actitud ${a.actitud}</div><div class="progbg" style="width:100px;margin-top:3px"><div class="progfill" style="width:${pct}%;background:${col}"></div></div></div><div style="text-align:right"><div style="font-size:15px;font-weight:500">${tp}</div><span class="badge ${tp>=mp?'bok':'bdanger'}" style="font-size:10px">${tp>=mp?'OK':'Falta '+(mp-tp)}</span></div></div>`;
+    h+=`<div class="rkcard ${zona}"><div style="width:24px;text-align:center;font-size:${i<3?'17':'13'}px;font-weight:500;flex-shrink:0">${medal}</div><div class="av" style="${avs(i)}">${ini(p.n)}</div><div style="flex:1"><div style="font-size:13px;font-weight:500">${p.n} <span class="badge ${p.tipo==='vip'?'bvip':'bgray'}" style="font-size:10px">${p.tipo==='vip'?'VIP':'Común'}</span></div><div style="font-size:11px;color:var(--text2)">${p.ig} · ${a.inv} inv · actitud ${a.actitud}</div><div class="progbg" style="width:100px;margin-top:3px"><div class="progfill" style="width:${pct}%;background:${col}"></div></div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><div style="font-size:15px;font-weight:500">${tp}</div><span class="badge ${tp>=mp?'bok':'bdanger'}" style="font-size:10px">${tp>=mp?'OK':'Falta '+(mp-tp)}</span><div style="display:flex;gap:4px"><button class="btn btnsm" style="font-size:10px;padding:2px 6px" onclick="event.stopPropagation();lpEditPublica(${p.id})">✏️</button><button class="btn btnsm" style="font-size:10px;padding:2px 6px;color:var(--red)" onclick="event.stopPropagation();lpDelPublica(${p.id})">✕</button></div></div></div>`;
   });
   h+=`</div>`;document.getElementById('lp-ranking').innerHTML=h;
 }
@@ -60,7 +60,14 @@ function lpLoadInvitados(){
 }
 function lpLoadClasif(){
   const ev=gEv();const g={top:[],activa:[],floja:[],descartable:[]};lpGetStats(ev).forEach(s=>g[s.nv].push(s));
-  let h='';
+  const cc=CLASIF_CFG;
+  let h=`<div class="card" style="margin-bottom:1rem"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem"><div class="ctitle" style="margin:0">Configuración de clasificación</div></div>
+    <div class="fr">
+      <div class="fc"><span class="fl">TOP: mín. invitados</span><input type="number" id="cc-topInv" value="${cc.topMinInv||10}" style="width:80px" min="0"></div>
+      <div class="fc"><span class="fl">TOP: actitud mínima</span><select id="cc-topAct" style="width:100px"><option value="alta" ${cc.topActitud==='alta'?'selected':''}>Alta 🔥</option><option value="media" ${cc.topActitud==='media'?'selected':''}>Media ⚡</option></select></div>
+      <div class="fc"><span class="fl">Floja: % mín. pubs</span><input type="number" id="cc-flojaPct" value="${cc.flojaPct||60}" style="width:80px" min="0" max="100"></div>
+      <div class="fc" style="justify-content:flex-end"><button class="btn btnp btnsm" onclick="lpSaveClasifCfg()">Guardar config</button></div>
+    </div></div>`;
   [{k:'top',l:'🔥 TOP',d:'Cumplen + llevan gente'},{k:'activa',l:'⚡ Activas',d:'Cumplen justo'},{k:'floja',l:'🟡 Flojas',d:'No llegan al mínimo'},{k:'descartable',l:'❌ Descartables',d:'No suman — evaluar baja'}].forEach(def=>{
     h+=`<div class="card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:.5rem"><span class="badge ${NVC[def.k]}">${def.l}</span><span style="font-size:12px;color:var(--text2)">${g[def.k].length} públicas · ${def.d}</span></div>`;
     if(!g[def.k].length){h+='<div class="empty">Sin públicas.</div>';}
@@ -70,12 +77,37 @@ function lpLoadClasif(){
   document.getElementById('lp-clasificacion').innerHTML=h;
 }
 function lpLoadBeneficios(){
-  const ev=gEv();const ben=BENEF_EV[ev]||{};
-  let h=`<div class="card"><div class="ctitle">Control de beneficios</div><table><thead><tr><th>Pública</th><th>Nivel</th><th>Entrada</th><th>Consumición</th><th>Extras</th></tr></thead><tbody>`;
-  PUBLICAS.filter(p=>p.activo&&p.evIdx===ev).forEach(p=>{const b=ben[p.id]||{ent:false,con:false,ex:''};const nv=nivel(ev,p.id);h+=`<tr><td style="font-weight:500">${p.n}</td><td><span class="badge ${NVC[nv]}" style="font-size:10px">${NVL[nv]}</span></td><td><button class="chkbtn ${b.ent?'on':''}" onclick="lpTogBen(${p.id},'ent')">${b.ent?'✓':''}</button></td><td><button class="chkbtn ${b.con?'on':''}" onclick="lpTogBen(${p.id},'con')">${b.con?'✓':''}</button></td><td style="font-size:12px;color:var(--text2)">${b.ex||'—'}</td></tr>`;});
-  h+=`</tbody></table></div>`;document.getElementById('lp-beneficios').innerHTML=h;
+  const ev=gEv();if(!BENEF_EV[ev])BENEF_EV[ev]={};const ben=BENEF_EV[ev];
+  const pubs=PUBLICAS.filter(p=>p.activo&&p.evIdx===ev);
+  let h=`<div class="card"><div class="ctitle">Control de beneficios</div>`;
+  if(!pubs.length){h+='<div class="empty">Sin públicas.</div>';}
+  pubs.forEach(p=>{
+    const b=ben[p.id]||{ent:false,con:'',ex:'',entregado:{}};
+    const nv=nivel(ev,p.id);
+    h+=`<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div class="av" style="${avs(PUBLICAS.indexOf(p))}">${ini(p.n)}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:500;margin-bottom:4px">${p.n} <span class="badge ${NVC[nv]}" style="font-size:10px">${NVL[nv]}</span></div>
+        <div class="fr" style="gap:8px;align-items:center;flex-wrap:wrap">
+          <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer">
+            <button class="chkbtn ${b.ent?'on':''}" onclick="lpTogBen(${p.id},'ent')">${b.ent?'✓':''}</button> Entrada
+          </label>
+          <div style="font-size:12px;display:flex;align-items:center;gap:4px">
+            <span style="color:var(--text2)">Consumición:</span>
+            <input type="text" value="${(b.con||'').replace(/"/g,'&quot;')}" placeholder="Ej: 2 coronas, 1 fernet" style="width:200px;font-size:12px" onchange="lpSetBen(${p.id},'con',this.value)">
+          </div>
+          <div style="font-size:12px;display:flex;align-items:center;gap:4px">
+            <span style="color:var(--text2)">Extras:</span>
+            <input type="text" value="${(b.ex||'').replace(/"/g,'&quot;')}" placeholder="Texto libre" style="width:160px;font-size:12px" onchange="lpSetBen(${p.id},'ex',this.value)">
+          </div>
+        </div>
+      </div>
+    </div>`;
+  });
+  h+=`</div>`;document.getElementById('lp-beneficios').innerHTML=h;
 }
-function lpTogBen(pid,key){const ev=gEv();if(!BENEF_EV[ev])BENEF_EV[ev]={};if(!BENEF_EV[ev][pid])BENEF_EV[ev][pid]={ent:false,con:false,ex:''};BENEF_EV[ev][pid][key]=!BENEF_EV[ev][pid][key];if(window._fbOK)window.fbSave.benef?.(ev);lpLoadBeneficios();}
+function lpTogBen(pid,key){const ev=gEv();if(!BENEF_EV[ev])BENEF_EV[ev]={};if(!BENEF_EV[ev][pid])BENEF_EV[ev][pid]={ent:false,con:'',ex:'',entregado:{}};BENEF_EV[ev][pid][key]=!BENEF_EV[ev][pid][key];if(window._fbOK)window.fbSave.benef?.(ev);lpLoadBeneficios();}
+function lpSetBen(pid,key,val){const ev=gEv();if(!BENEF_EV[ev])BENEF_EV[ev]={};if(!BENEF_EV[ev][pid])BENEF_EV[ev][pid]={ent:false,con:'',ex:'',entregado:{}};BENEF_EV[ev][pid][key]=val;if(window._fbOK)window.fbSave.benef?.(ev);}
 function lpLoadPost(){
   const ev=gEv();const cfg=EVENTOS[ev];if(!cfg)return;
   const stats=PUBLICAS.filter(p=>p.activo&&p.evIdx===ev).map(p=>{const a=getAct(ev,p.id);const cumple=tpubs(a)>=(cfg.minPubs||0);return{p,a,cumple};}).sort((a,b)=>b.a.ing-a.a.ing);
@@ -96,20 +128,58 @@ function lpOpenAct(pid){
 function saveAct(){
   const ev=gEv();if(!ACT_EV[ev])ACT_EV[ev]={};
   ACT_EV[ev][actTarget]={stories:parseInt(document.getElementById('ma-st').value)||0,reels:parseInt(document.getElementById('ma-re').value)||0,tiktok:parseInt(document.getElementById('ma-tt').value)||0,inv:parseInt(document.getElementById('ma-inv').value)||0,ing:parseInt(document.getElementById('ma-ing').value)||0,actitud:document.getElementById('ma-act').value,obs:document.getElementById('ma-obs').value};
+  if(window._fbOK)window.fbSave.actEv?.(ev);
   document.getElementById('m-act').style.display='none';initLider();
 }
-function lpAddPublica(){document.getElementById('m-nueva-publica').style.display='flex';}
+let lpEditPubId=null;
+function lpAddPublica(){
+  lpEditPubId=null;
+  document.querySelector('#m-nueva-publica .mtitle').textContent='Nueva pública';
+  document.getElementById('np-nombre').value='';document.getElementById('np-ig').value='';
+  document.getElementById('np-tel').value='';document.getElementById('np-tipo').value='comun';
+  document.getElementById('np-com').value='0';document.getElementById('np-obs').value='';
+  document.getElementById('m-nueva-publica').style.display='flex';
+}
+function lpEditPublica(pid){
+  const p=PUBLICAS.find(x=>x.id===pid);if(!p)return;
+  lpEditPubId=pid;
+  document.querySelector('#m-nueva-publica .mtitle').textContent='Editar pública';
+  document.getElementById('np-nombre').value=p.n||'';
+  document.getElementById('np-ig').value=p.ig||'';
+  document.getElementById('np-tel').value=p.tel||'';
+  document.getElementById('np-tipo').value=p.tipo||'comun';
+  document.getElementById('np-com').value=p.com||0;
+  document.getElementById('np-obs').value=p.obs||'';
+  document.getElementById('m-nueva-publica').style.display='flex';
+}
+function lpDelPublica(pid){
+  const p=PUBLICAS.find(x=>x.id===pid);if(!p)return;
+  if(!confirm(`¿Eliminar a ${p.n}? Se desactivará.`))return;
+  p.activo=false;
+  if(window._fbOK)window.fbSave.publicas?.();
+  initLider();
+}
 function lpSavePublica(){
   const n=document.getElementById('np-nombre').value.trim();if(!n){alert('Ingresá el nombre.');return;}
-  PUBLICAS.push({
-    id:++npid,n,
-    ig:document.getElementById('np-ig').value.trim()||'@nuevo',
-    tel:document.getElementById('np-tel').value.trim(),
-    tipo:document.getElementById('np-tipo').value,
-    com:parseFloat(document.getElementById('np-com').value)||0,
-    activo:true,obs:document.getElementById('np-obs').value.trim(),camps:0,
-    evIdx:gEv()
-  });
+  if(lpEditPubId!==null){
+    const p=PUBLICAS.find(x=>x.id===lpEditPubId);if(p){
+      p.n=n;p.ig=document.getElementById('np-ig').value.trim()||'@nuevo';
+      p.tel=document.getElementById('np-tel').value.trim();
+      p.tipo=document.getElementById('np-tipo').value;
+      p.com=parseFloat(document.getElementById('np-com').value)||0;
+      p.obs=document.getElementById('np-obs').value.trim();
+    }
+  } else {
+    PUBLICAS.push({
+      id:++npid,n,
+      ig:document.getElementById('np-ig').value.trim()||'@nuevo',
+      tel:document.getElementById('np-tel').value.trim(),
+      tipo:document.getElementById('np-tipo').value,
+      com:parseFloat(document.getElementById('np-com').value)||0,
+      activo:true,obs:document.getElementById('np-obs').value.trim(),camps:0,
+      evIdx:gEv()
+    });
+  }
   document.getElementById('m-nueva-publica').style.display='none';
   if(window._fbOK)window.fbSave.publicas?.();
   initLider();
@@ -117,3 +187,10 @@ function lpSavePublica(){
 function lpActualizar(){initLider();}
 function lpSaveAct(){saveAct();}
 function lpSaveBeneficios(){if(window._fbOK)window.fbSave.benef?.(gEv());}
+function lpSaveClasifCfg(){
+  CLASIF_CFG.topMinInv=parseInt(document.getElementById('cc-topInv').value)||10;
+  CLASIF_CFG.topActitud=document.getElementById('cc-topAct').value||'alta';
+  CLASIF_CFG.flojaPct=parseInt(document.getElementById('cc-flojaPct').value)||60;
+  if(window._fbOK)window.fbSave.clasificacion?.();
+  initLider();
+}

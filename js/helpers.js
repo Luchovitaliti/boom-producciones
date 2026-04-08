@@ -16,7 +16,15 @@ function diffDias(s){const t=new Date(s.replace(/-/g,'/'));const h=new Date(HOY)
 function diasLabel(d){return d===0?'Hoy':d===1?'Mañana':d===-1?'Ayer':d<0?`Hace ${Math.abs(d)}d`:`En ${d}d`;}
 function getAct(ev,pid){return ACT_EV[ev]?.[pid]||{stories:0,reels:0,tiktok:0,inv:0,ing:0,actitud:'media',obs:''};}
 function tpubs(a){return(a.stories||0)+(a.reels||0)+(a.tiktok||0);}
-function nivel(ev,pid){const a=getAct(ev,pid);const tp=tpubs(a);const cfg=EVENTOS[ev];if(!cfg)return'descartable';const m=cfg.minPubs||0;if(tp>=m&&a.inv>=10&&a.actitud==='alta')return'top';if(tp>=m&&a.actitud!=='baja')return'activa';if(tp>=Math.ceil(m*.6))return'floja';return'descartable';}
+let CLASIF_CFG={topMinInv:10,topActitud:'alta',flojaPct:60};
+function nivel(ev,pid){
+  const a=getAct(ev,pid);const tp=tpubs(a);const cfg=EVENTOS[ev];if(!cfg)return'descartable';
+  const m=cfg.minPubs||0;const cc=CLASIF_CFG;
+  if(tp>=m&&a.inv>=(cc.topMinInv||10)&&a.actitud===(cc.topActitud||'alta'))return'top';
+  if(tp>=m&&a.actitud!=='baja')return'activa';
+  if(tp>=Math.ceil(m*(cc.flojaPct||60)/100))return'floja';
+  return'descartable';
+}
 const NVL={top:'🔥 TOP',activa:'⚡ Activa',floja:'🟡 Floja',descartable:'❌ Descartable'};
 const NVC={top:'bgold',activa:'bok',floja:'bwarn',descartable:'bdanger'};
 function openTab(prefix,id){
