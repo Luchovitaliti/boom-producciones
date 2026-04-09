@@ -154,6 +154,25 @@ function initChat() {
   const h2 = document.getElementById('chat-hdr-label-desk');
   if (h1) h1.textContent = lbl;
   if (h2) h2.textContent = lbl;
+
+  // iOS: resize container to visual viewport when keyboard opens
+  const inp = document.getElementById('chat-inp');
+  if (inp) inp.addEventListener('focus', _chatScrollOnFocus);
+  if (window.visualViewport && !window._chatVVBound) {
+    window._chatVVBound = true;
+    window.visualViewport.addEventListener('resize', _chatVVResize);
+  }
+}
+function _chatScrollOnFocus() {
+  setTimeout(() => {
+    const el = document.getElementById('chat-msgs');
+    if (el) el.scrollTo({top: el.scrollHeight, behavior: 'smooth'});
+  }, 300);
+}
+function _chatVVResize() {
+  const ct = document.querySelector('.chat-container');
+  if (!ct || !document.body.classList.contains('chat-active')) return;
+  ct.style.height = window.visualViewport.height + 'px';
 }
 
 function setCh(ch) {
