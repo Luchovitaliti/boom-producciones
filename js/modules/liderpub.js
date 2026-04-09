@@ -79,7 +79,7 @@ function lpLoadClasif(){
 const CON_TIPOS=['Cerveza','Vaso 500cc','Promo nacional','Promo internacional'];
 let _benDirty=false;
 function lpBenDef(){return{ent:false,conCant:0,conTipo:'',ex:'',entregado:{}};}
-function lpGetBen(ev,pid){
+function _ensureBen(ev,pid){
   if(!BENEF_EV[ev])BENEF_EV[ev]={};
   if(!BENEF_EV[ev][pid])BENEF_EV[ev][pid]=lpBenDef();
   const b=BENEF_EV[ev][pid];
@@ -87,7 +87,13 @@ function lpGetBen(ev,pid){
   if(typeof b.con==='string'&&b.con&&!b.conTipo){b.conCant=1;b.conTipo=b.con;delete b.con;}
   if(b.conCant===undefined)b.conCant=0;
   if(b.conTipo===undefined)b.conTipo='';
+  if(!b.entregado)b.entregado={};
   return b;
+}
+// Read-only copy for display — never leaks a mutable reference
+function lpGetBen(ev,pid){
+  const b=_ensureBen(ev,pid);
+  return{ent:b.ent,conCant:b.conCant,conTipo:b.conTipo,ex:b.ex,entregado:Object.assign({},b.entregado)};
 }
 function lpLoadBeneficios(){
   const ev=gEv();if(!BENEF_EV[ev])BENEF_EV[ev]={};
@@ -129,8 +135,8 @@ function lpLoadBeneficios(){
   </div></div>`;
   document.getElementById('lp-beneficios').innerHTML=h;
 }
-function lpTogBen(pid,key){const ev=gEv();lpGetBen(ev,pid);BENEF_EV[ev][pid][key]=!BENEF_EV[ev][pid][key];_benDirty=true;lpLoadBeneficios();}
-function lpSetBen(pid,key,val){const ev=gEv();lpGetBen(ev,pid);BENEF_EV[ev][pid][key]=val;_benDirty=true;const st=document.getElementById('lp-ben-status');if(st){st.textContent='Cambios sin guardar';st.style.color='var(--red)';}}
+function lpTogBen(pid,key){const ev=gEv();const b=_ensureBen(ev,pid);b[key]=!b[key];_benDirty=true;lpLoadBeneficios();}
+function lpSetBen(pid,key,val){const ev=gEv();const b=_ensureBen(ev,pid);b[key]=val;_benDirty=true;const st=document.getElementById('lp-ben-status');if(st){st.textContent='Cambios sin guardar';st.style.color='var(--red)';}}
 function lpSaveBen(){const ev=gEv();if(window._fbOK)window.fbSave.benef?.(ev);_benDirty=false;const st=document.getElementById('lp-ben-status');if(st){st.textContent='Guardado ✓';st.style.color='var(--green)';}}
 function lpLoadPost(){
   const ev=gEv();const cfg=EVENTOS[ev];if(!cfg)return;

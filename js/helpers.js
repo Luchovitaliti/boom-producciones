@@ -14,7 +14,10 @@ const gEv=()=>{const v=parseInt(document.getElementById('g-ev')?.value);return i
 const dateStr=d=>d.toISOString().split('T')[0];
 function diffDias(s){const t=new Date(s.replace(/-/g,'/'));const h=new Date(HOY);h.setHours(0,0,0,0);t.setHours(0,0,0,0);return Math.round((t-h)/864e5);}
 function diasLabel(d){return d===0?'Hoy':d===1?'Mañana':d===-1?'Ayer':d<0?`Hace ${Math.abs(d)}d`:`En ${d}d`;}
-function getAct(ev,pid){return ACT_EV[ev]?.[pid]||{stories:0,reels:0,tiktok:0,inv:0,ing:0,actitud:'media',obs:''};}
+function getAct(ev,pid){
+  const src=ACT_EV[ev]?.[pid];
+  return src?Object.assign({},src):{stories:0,reels:0,tiktok:0,inv:0,ing:0,actitud:'media',obs:''};
+}
 function tpubs(a){return(a.stories||0)+(a.reels||0)+(a.tiktok||0);}
 let CLASIF_CFG={topMinInv:10,topActitud:'alta',flojaPct:60};
 function nivel(ev,pid){
