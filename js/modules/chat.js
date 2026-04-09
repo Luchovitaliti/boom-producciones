@@ -55,46 +55,49 @@ function syncChatEventChannels() {
   });
 }
 
-function pgChat() {
-  syncChatEventChannels();
-  const cn  = CU?.chatName || 'Anónimo';
-  const col = AVC[USERS.indexOf(CU) % 8];
+function _chatChannelListHtml(forDrawer) {
   const channels = getChatChannels();
   const isAdmin  = CU?.role === 'Admin Console';
-
   const sections = {};
   channels.forEach(ch => {
     if (!sections[ch.sec]) sections[ch.sec] = [];
     sections[ch.sec].push(ch);
   });
-
-  let sbHtml = '';
+  let h = '';
   Object.entries(sections).forEach(([sec, chs]) => {
-    sbHtml += `<div class="chat-sec">${sec}</div>`;
+    h += `<div class="chat-sec">${sec}</div>`;
     chs.forEach(ch => {
       const isDel = isAdmin && ch.sec === 'Canales';
       const unr = chatGetUnread(ch.id);
-      sbHtml += `<div class="chat-ch" id="ch-${ch.id}" onclick="setCh('${ch.id}')">
+      const onclick = forDrawer ? `setCh('${ch.id}');chatCloseDrawer()` : `setCh('${ch.id}')`;
+      h += `<div class="chat-ch" id="${forDrawer?'dch':'ch'}-${ch.id}" onclick="${onclick}">
         <span>${ch.name}</span>
         ${unr > 0 ? `<span class="chat-unread-badge">${unr > 99 ? '99+' : unr}</span>` : ''}
         ${isDel ? `<span class="chat-ch-del" onclick="event.stopPropagation();deleteChatChannel('${ch.id}')" title="Eliminar">✕</span>` : ''}
       </div>`;
     });
   });
-
   if (isAdmin) {
-    sbHtml += `<button class="chat-add-btn" onclick="document.getElementById('m-chat-channel').style.display='flex'">+ Nuevo canal</button>`;
+    h += `<button class="chat-add-btn" onclick="document.getElementById('m-chat-channel').style.display='flex';chatCloseDrawer()">+ Nuevo canal</button>`;
   }
+  return h;
+}
 
-  return `<div class="ptitle">💬 Chat interno</div>
-  <div class="chat-whobox">
-    ${avatarHtml(CU?.photoURL||CU?.photo, cn, USERS.indexOf(CU), 28)}
-    <span>Chateando como <strong>${_escChat(cn)}</strong></span>
-  </div>
+function pgChat() {
+  syncChatEventChannels();
+  const cn = CU?.chatName || 'Anónimo';
+
+  return `<div class="chat-container">
   <div class="chat-wrap">
-    <div class="chat-sb" id="chat-sb-list">${sbHtml}</div>
+    <div class="chat-sb" id="chat-sb-list">${_chatChannelListHtml(false)}</div>
     <div class="chat-main">
-      <div class="chat-hdr" id="chat-hdr"># General</div>
+      <div class="chat-hdr" id="chat-hdr">
+        <button class="chat-drawer-btn" onclick="chatOpenDrawer()" title="Canales">☰</button>
+        <span id="chat-hdr-label"># General</span>
+        <div class="chat-hdr-user">
+          ${avatarHtml(CU?.photoURL||CU?.photo, cn, USERS.indexOf(CU), 22)}
+        </div>
+      </div>
       <div class="chat-msgs" id="chat-msgs"></div>
       <div class="chat-inp-area">
         <div class="emoji-panel" id="emoji-panel">
@@ -102,13 +105,28 @@ function pgChat() {
         </div>
         <div class="chat-inp-row">
           <button class="emoji-btn" onclick="toggleEmojiPanel()" title="Emojis">😊</button>
-          <input class="chat-inp" id="chat-inp" placeholder="Escribí tu mensaje..."
+          <input class="chat-inp" id="chat-inp" placeholder="Mensaje..."
             onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}">
-          <button class="chat-send" onclick="sendMsg()">Enviar</button>
+          <button class="chat-send" onclick="sendMsg()">➤</button>
         </div>
       </div>
     </div>
-  </div>`;
+  </div>
+  <div class="chat-drawer-bg" id="chat-drawer-bg" onclick="chatCloseDrawer()"></div>
+  <div class="chat-drawer" id="chat-drawer">
+    <div class="chat-drawer-head">Canales <button onclick="chatCloseDrawer()" style="background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer">✕</button></div>
+    <div id="chat-drawer-list">${_chatChannelListHtml(true)}</div>
+  </div>
+</div>`;
+}
+
+function chatOpenDrawer() {
+  document.getElementById('chat-drawer')?.classList.add('open');
+  document.getElementById('chat-drawer-bg')?.classList.add('open');
+}
+function chatCloseDrawer() {
+  document.getElementById('chat-drawer')?.classList.remove('open');
+  document.getElementById('chat-drawer-bg')?.classList.remove('open');
 }
 
 // ─── XSS-safe text escaping ───
@@ -127,17 +145,21 @@ function initChat() {
   renderMsgs();
   document.querySelectorAll('.chat-ch').forEach(el => el.classList.remove('active'));
   document.getElementById('ch-general')?.classList.add('active');
+  document.getElementById('dch-general')?.classList.add('active');
+  const hdrLbl = document.getElementById('chat-hdr-label');
+  if (hdrLbl) hdrLbl.textContent = CHAT_DATA[curCh]?.l || '# General';
 }
 
 function setCh(ch) {
   curCh = ch;
   chatMarkRead(ch);
-  // Switch listener to new channel
   if (window.fbListenActiveChannel) window.fbListenActiveChannel(ch);
   document.querySelectorAll('.chat-ch').forEach(el => el.classList.remove('active'));
   document.getElementById('ch-' + ch)?.classList.add('active');
+  document.getElementById('dch-' + ch)?.classList.add('active');
   const lbl = CHAT_DATA[ch]?.l || '#' + ch;
-  document.getElementById('chat-hdr').textContent = lbl;
+  const hdrLbl = document.getElementById('chat-hdr-label');
+  if (hdrLbl) hdrLbl.textContent = lbl;
   renderMsgs();
   const ep = document.getElementById('emoji-panel');
   if (ep) ep.classList.remove('open');
@@ -214,7 +236,7 @@ function renderMsgs() {
     el.appendChild(msgDiv);
   });
 
-  el.scrollTop = el.scrollHeight;
+  requestAnimationFrame(() => el.scrollTo({top: el.scrollHeight, behavior: 'smooth'}));
 }
 
 async function sendMsg() {
