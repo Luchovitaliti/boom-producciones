@@ -77,9 +77,12 @@ function lpLoadClasif(){
   document.getElementById('lp-clasificacion').innerHTML=h;
 }
 const CON_TIPOS=['Cerveza','Vaso 500cc','Promo nacional','Promo internacional'];
+let _benDirty=false;
 function lpBenDef(){return{ent:false,conCant:0,conTipo:'',ex:'',entregado:{}};}
 function lpGetBen(ev,pid){
-  const b=BENEF_EV[ev]?.[pid];if(!b)return lpBenDef();
+  if(!BENEF_EV[ev])BENEF_EV[ev]={};
+  if(!BENEF_EV[ev][pid])BENEF_EV[ev][pid]=lpBenDef();
+  const b=BENEF_EV[ev][pid];
   // migrate old 'con' string → conCant/conTipo
   if(typeof b.con==='string'&&b.con&&!b.conTipo){b.conCant=1;b.conTipo=b.con;delete b.con;}
   if(b.conCant===undefined)b.conCant=0;
@@ -90,39 +93,45 @@ function lpLoadBeneficios(){
   const ev=gEv();if(!BENEF_EV[ev])BENEF_EV[ev]={};
   const pubs=PUBLICAS.filter(p=>p.activo&&p.evIdx===ev);
   let h=`<div class="card"><div class="ctitle">Control de beneficios</div>`;
-  if(!pubs.length){h+='<div class="empty">Sin públicas.</div>';}
+  if(!pubs.length){h+='<div class="empty">Sin públicas.</div></div>';document.getElementById('lp-beneficios').innerHTML=h;return;}
   pubs.forEach(p=>{
     const b=lpGetBen(ev,p.id);
     const nv=nivel(ev,p.id);
     const opts=CON_TIPOS.map(t=>`<option value="${t}" ${b.conTipo===t?'selected':''}>${t}</option>`).join('');
-    h+=`<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+    h+=`<div class="lp-ben-row">
       <div class="av" style="${avs(PUBLICAS.indexOf(p))}">${ini(p.n)}</div>
-      <div style="flex:1">
+      <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:500;margin-bottom:6px">${p.n} <span class="badge ${NVC[nv]}" style="font-size:10px">${NVL[nv]}</span></div>
-        <div style="display:flex;flex-direction:column;gap:6px">
-          <label style="font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer">
+        <div class="lp-ben-fields">
+          <label class="lp-ben-field" style="cursor:pointer">
             <button class="chkbtn ${b.ent?'on':''}" onclick="lpTogBen(${p.id},'ent')">${b.ent?'✓':''}</button> Entrada libre
           </label>
-          <div style="font-size:12px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-            <span style="color:var(--text2);min-width:85px">Consumición:</span>
-            <input type="number" value="${b.conCant||''}" min="0" placeholder="0" style="width:50px;font-size:12px" onchange="lpSetBen(${p.id},'conCant',parseInt(this.value)||0)">
-            <select style="font-size:12px;width:170px" onchange="lpSetBen(${p.id},'conTipo',this.value)">
-              <option value="">— Elegir —</option>${opts}
-            </select>
-            ${b.conCant&&b.conTipo?`<span class="badge binfo" style="font-size:10px">${b.conCant}× ${b.conTipo}</span>`:''}
+          <div class="lp-ben-field">
+            <span class="lp-ben-label">Consumición:</span>
+            <div class="lp-ben-inputs">
+              <input type="number" value="${b.conCant||''}" min="0" placeholder="0" style="width:50px;font-size:12px" onchange="lpSetBen(${p.id},'conCant',parseInt(this.value)||0)">
+              <select style="font-size:12px;min-width:140px;flex:1;max-width:200px" onchange="lpSetBen(${p.id},'conTipo',this.value)">
+                <option value="">— Elegir —</option>${opts}
+              </select>
+            </div>
           </div>
-          <div style="font-size:12px;display:flex;align-items:center;gap:6px">
-            <span style="color:var(--text2);min-width:85px">Extras:</span>
-            <input type="text" value="${(b.ex||'').replace(/"/g,'&quot;')}" placeholder="Texto libre" style="width:220px;font-size:12px" onchange="lpSetBen(${p.id},'ex',this.value)">
+          <div class="lp-ben-field">
+            <span class="lp-ben-label">Extras:</span>
+            <input type="text" value="${(b.ex||'').replace(/"/g,'&quot;')}" placeholder="Texto libre" style="flex:1;min-width:120px;max-width:260px;font-size:12px" onchange="lpSetBen(${p.id},'ex',this.value)">
           </div>
         </div>
       </div>
     </div>`;
   });
-  h+=`</div>`;document.getElementById('lp-beneficios').innerHTML=h;
+  h+=`<div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:.75rem;padding-top:.5rem;border-top:1px solid var(--border)">
+    <span id="lp-ben-status" style="font-size:12px;color:${_benDirty?'var(--red)':'var(--green)'}">${_benDirty?'Cambios sin guardar':'Guardado'}</span>
+    <button class="btn btnp btnsm" onclick="lpSaveBen()">Guardar beneficios</button>
+  </div></div>`;
+  document.getElementById('lp-beneficios').innerHTML=h;
 }
-function lpTogBen(pid,key){const ev=gEv();if(!BENEF_EV[ev])BENEF_EV[ev]={};if(!BENEF_EV[ev][pid])BENEF_EV[ev][pid]=lpBenDef();BENEF_EV[ev][pid][key]=!BENEF_EV[ev][pid][key];if(window._fbOK)window.fbSave.benef?.(ev);lpLoadBeneficios();}
-function lpSetBen(pid,key,val){const ev=gEv();if(!BENEF_EV[ev])BENEF_EV[ev]={};if(!BENEF_EV[ev][pid])BENEF_EV[ev][pid]=lpBenDef();BENEF_EV[ev][pid][key]=val;if(window._fbOK)window.fbSave.benef?.(ev);}
+function lpTogBen(pid,key){const ev=gEv();lpGetBen(ev,pid);BENEF_EV[ev][pid][key]=!BENEF_EV[ev][pid][key];_benDirty=true;lpLoadBeneficios();}
+function lpSetBen(pid,key,val){const ev=gEv();lpGetBen(ev,pid);BENEF_EV[ev][pid][key]=val;_benDirty=true;const st=document.getElementById('lp-ben-status');if(st){st.textContent='Cambios sin guardar';st.style.color='var(--red)';}}
+function lpSaveBen(){const ev=gEv();if(window._fbOK)window.fbSave.benef?.(ev);_benDirty=false;const st=document.getElementById('lp-ben-status');if(st){st.textContent='Guardado ✓';st.style.color='var(--green)';}}
 function lpLoadPost(){
   const ev=gEv();const cfg=EVENTOS[ev];if(!cfg)return;
   const stats=PUBLICAS.filter(p=>p.activo&&p.evIdx===ev).map(p=>{const a=getAct(ev,p.id);const cumple=tpubs(a)>=(cfg.minPubs||0);return{p,a,cumple};}).sort((a,b)=>b.a.ing-a.a.ing);

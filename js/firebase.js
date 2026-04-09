@@ -190,7 +190,11 @@ try {
     if (posts?.items)  POSTS       = posts.items;
     if (tasks?.items)  TASKS       = tasks.items;
     if (ideas?.items)  IDEAS       = ideas.items;
-    if (pub?.items)    PUBLICAS    = pub.items;
+    if (pub?.items) {
+      // Dedup: keep last occurrence of each id to fix legacy collisions
+      const seen = new Set();
+      PUBLICAS = pub.items.filter(p => p.id != null).reverse().filter(p => seen.has(p.id) ? false : (seen.add(p.id), true)).reverse();
+    }
     if (prov?.items)   PROVEEDORES = prov.items;
     if (notas?.items)  NOTAS_MOD   = notas.items;
     if (clasifCfg && clasifCfg.topMinInv !== undefined) CLASIF_CFG = clasifCfg;
