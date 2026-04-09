@@ -92,9 +92,11 @@ function pgChat() {
     <div class="chat-sb" id="chat-sb-list">${_chatChannelListHtml(false)}</div>
     <div class="chat-main">
       <div class="chat-hdr" id="chat-hdr">
-        <button class="chat-back-btn" onclick="renderPage('dashboard')" title="Volver">←</button>
-        <button class="chat-drawer-btn" onclick="chatOpenDrawer()" title="Canales">☰</button>
-        <span id="chat-hdr-label"># General</span>
+        <button class="chat-mob-nav" onclick="chatOpenDrawer()" title="Canales">
+          <span class="chat-mob-arrow" onclick="event.stopPropagation();renderPage('dashboard')">←</span>
+          <span id="chat-hdr-label"># General</span>
+        </button>
+        <div class="chat-hdr-label-desk" id="chat-hdr-label-desk"># General</div>
         <div class="chat-hdr-user">
           ${avatarHtml(CU?.photoURL||CU?.photo, cn, USERS.indexOf(CU), 22)}
         </div>
@@ -147,8 +149,11 @@ function initChat() {
   document.querySelectorAll('.chat-ch').forEach(el => el.classList.remove('active'));
   document.getElementById('ch-general')?.classList.add('active');
   document.getElementById('dch-general')?.classList.add('active');
-  const hdrLbl = document.getElementById('chat-hdr-label');
-  if (hdrLbl) hdrLbl.textContent = CHAT_DATA[curCh]?.l || '# General';
+  const lbl = CHAT_DATA[curCh]?.l || '# General';
+  const h1 = document.getElementById('chat-hdr-label');
+  const h2 = document.getElementById('chat-hdr-label-desk');
+  if (h1) h1.textContent = lbl;
+  if (h2) h2.textContent = lbl;
 }
 
 function setCh(ch) {
@@ -159,8 +164,10 @@ function setCh(ch) {
   document.getElementById('ch-' + ch)?.classList.add('active');
   document.getElementById('dch-' + ch)?.classList.add('active');
   const lbl = CHAT_DATA[ch]?.l || '#' + ch;
-  const hdrLbl = document.getElementById('chat-hdr-label');
-  if (hdrLbl) hdrLbl.textContent = lbl;
+  const h1 = document.getElementById('chat-hdr-label');
+  const h2 = document.getElementById('chat-hdr-label-desk');
+  if (h1) h1.textContent = lbl;
+  if (h2) h2.textContent = lbl;
   renderMsgs();
   const ep = document.getElementById('emoji-panel');
   if (ep) ep.classList.remove('open');
