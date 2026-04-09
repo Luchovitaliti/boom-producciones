@@ -27,7 +27,15 @@ function onEvChange(){renderPage(curPage);}
 
 // ═══ RENDER DISPATCHER ═══
 function renderPage(p){
-  document.body.classList.toggle('chat-active', p==='chat');
+  if(p==='chat'){
+    window._chatScrollY=window.scrollY;
+    document.body.style.top=-window.scrollY+'px';
+    document.body.classList.add('chat-active');
+  } else if(document.body.classList.contains('chat-active')){
+    document.body.classList.remove('chat-active');
+    document.body.style.top='';
+    window.scrollTo(0,window._chatScrollY||0);
+  }
   const mc=document.getElementById('mc');
   try{
     if(p==='dashboard')mc.innerHTML=pgDash();
