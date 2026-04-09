@@ -220,24 +220,37 @@ function bDelStaff(idx){
 }
 
 // ─── BENEFICIOS (vista barra) ───
+function bGetBen(ev,pid){
+  const b=BENEF_EV[ev]?.[pid];if(!b)return{ent:false,conCant:0,conTipo:'',ex:'',entregado:{}};
+  if(typeof b.con==='string'&&b.con&&!b.conTipo){b.conCant=1;b.conTipo=b.con;delete b.con;}
+  if(b.conCant===undefined)b.conCant=0;if(b.conTipo===undefined)b.conTipo='';
+  return b;
+}
+function bEntregaBtn(pid,key,label,active){
+  if(!active)return'<span style="color:var(--text2);font-size:11px">—</span>';
+  const ev=gEv();const entg=BENEF_EV[ev]?.[pid]?.entregado||{};
+  const ts=entg[key];
+  return ts
+    ?`<button class="btn btnsm" style="background:var(--green);color:#fff;font-size:11px;padding:2px 8px;gap:4px" onclick="bTogEntrega(${pid},'${key}')">&#10003; ${ts}</button>`
+    :`<button class="btn btnsm" style="font-size:11px;padding:2px 8px" onclick="bTogEntrega(${pid},'${key}')">Entregar</button>`;
+}
 function bLoadBeneficios(){
   const ev=gEv();const ben=BENEF_EV[ev]||{};
   const pubs=PUBLICAS.filter(p=>p.activo&&p.evIdx===ev);
   let h=`<div class="card"><div class="ctitle">Beneficios de públicas</div>`;
   if(!pubs.length){h+='<div class="empty">Sin públicas para este evento.</div></div>';document.getElementById('b-beneficios').innerHTML=h;return;}
-  h+=`<table><thead><tr><th>Pública</th><th>Entrada</th><th>Consumición</th><th>Extras</th><th>Entrega entrada</th><th>Entrega consumición</th></tr></thead><tbody>`;
+  h+=`<table><thead><tr><th>Pública</th><th>Entrada</th><th>Consumición</th><th>Extras</th><th style="text-align:center">Ent.</th><th style="text-align:center">Con.</th><th style="text-align:center">Ext.</th></tr></thead><tbody>`;
   pubs.forEach(p=>{
-    const b=ben[p.id]||{ent:false,con:'',ex:'',entregado:{}};
-    const entg=b.entregado||{};
-    const entHora=entg.ent?`✓ ${entg.ent}`:'';
-    const conHora=entg.con?`✓ ${entg.con}`:'';
+    const b=bGetBen(ev,p.id);
+    const conTxt=b.conCant&&b.conTipo?`${b.conCant}× ${b.conTipo}`:'—';
     h+=`<tr>
       <td style="font-weight:500">${p.n}</td>
       <td>${b.ent?'<span class="badge bok">Sí</span>':'<span class="badge bgray">No</span>'}</td>
-      <td style="font-size:12px">${b.con||'—'}</td>
+      <td style="font-size:12px">${conTxt}</td>
       <td style="font-size:12px">${b.ex||'—'}</td>
-      <td>${b.ent?`<button class="chkbtn ${entg.ent?'on':''}" onclick="bTogEntrega(${p.id},'ent')">${entHora||''}</button>`:'—'}</td>
-      <td>${b.con?`<button class="chkbtn ${entg.con?'on':''}" onclick="bTogEntrega(${p.id},'con')">${conHora||''}</button>`:'—'}</td>
+      <td style="text-align:center">${bEntregaBtn(p.id,'ent','Ent',b.ent)}</td>
+      <td style="text-align:center">${bEntregaBtn(p.id,'con','Con',b.conCant&&b.conTipo)}</td>
+      <td style="text-align:center">${bEntregaBtn(p.id,'ex','Ext',b.ex)}</td>
     </tr>`;
   });
   h+=`</tbody></table></div>`;
@@ -245,7 +258,7 @@ function bLoadBeneficios(){
 }
 function bTogEntrega(pid,key){
   const ev=gEv();if(!BENEF_EV[ev])BENEF_EV[ev]={};
-  if(!BENEF_EV[ev][pid])BENEF_EV[ev][pid]={ent:false,con:'',ex:'',entregado:{}};
+  if(!BENEF_EV[ev][pid])BENEF_EV[ev][pid]={ent:false,conCant:0,conTipo:'',ex:'',entregado:{}};
   if(!BENEF_EV[ev][pid].entregado)BENEF_EV[ev][pid].entregado={};
   const now=new Date();const ts=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
   BENEF_EV[ev][pid].entregado[key]=BENEF_EV[ev][pid].entregado[key]?'':ts;

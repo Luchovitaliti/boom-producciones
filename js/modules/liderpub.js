@@ -76,29 +76,44 @@ function lpLoadClasif(){
   });
   document.getElementById('lp-clasificacion').innerHTML=h;
 }
+const CON_TIPOS=['Cerveza','Vaso 500cc','Promo nacional','Promo internacional'];
+function lpBenDef(){return{ent:false,conCant:0,conTipo:'',ex:'',entregado:{}};}
+function lpGetBen(ev,pid){
+  const b=BENEF_EV[ev]?.[pid];if(!b)return lpBenDef();
+  // migrate old 'con' string → conCant/conTipo
+  if(typeof b.con==='string'&&b.con&&!b.conTipo){b.conCant=1;b.conTipo=b.con;delete b.con;}
+  if(b.conCant===undefined)b.conCant=0;
+  if(b.conTipo===undefined)b.conTipo='';
+  return b;
+}
 function lpLoadBeneficios(){
-  const ev=gEv();if(!BENEF_EV[ev])BENEF_EV[ev]={};const ben=BENEF_EV[ev];
+  const ev=gEv();if(!BENEF_EV[ev])BENEF_EV[ev]={};
   const pubs=PUBLICAS.filter(p=>p.activo&&p.evIdx===ev);
   let h=`<div class="card"><div class="ctitle">Control de beneficios</div>`;
   if(!pubs.length){h+='<div class="empty">Sin públicas.</div>';}
   pubs.forEach(p=>{
-    const b=ben[p.id]||{ent:false,con:'',ex:'',entregado:{}};
+    const b=lpGetBen(ev,p.id);
     const nv=nivel(ev,p.id);
+    const opts=CON_TIPOS.map(t=>`<option value="${t}" ${b.conTipo===t?'selected':''}>${t}</option>`).join('');
     h+=`<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
       <div class="av" style="${avs(PUBLICAS.indexOf(p))}">${ini(p.n)}</div>
       <div style="flex:1">
-        <div style="font-size:13px;font-weight:500;margin-bottom:4px">${p.n} <span class="badge ${NVC[nv]}" style="font-size:10px">${NVL[nv]}</span></div>
-        <div class="fr" style="gap:8px;align-items:center;flex-wrap:wrap">
-          <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer">
-            <button class="chkbtn ${b.ent?'on':''}" onclick="lpTogBen(${p.id},'ent')">${b.ent?'✓':''}</button> Entrada
+        <div style="font-size:13px;font-weight:500;margin-bottom:6px">${p.n} <span class="badge ${NVC[nv]}" style="font-size:10px">${NVL[nv]}</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <label style="font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer">
+            <button class="chkbtn ${b.ent?'on':''}" onclick="lpTogBen(${p.id},'ent')">${b.ent?'✓':''}</button> Entrada libre
           </label>
-          <div style="font-size:12px;display:flex;align-items:center;gap:4px">
-            <span style="color:var(--text2)">Consumición:</span>
-            <input type="text" value="${(b.con||'').replace(/"/g,'&quot;')}" placeholder="Ej: 2 coronas, 1 fernet" style="width:200px;font-size:12px" onchange="lpSetBen(${p.id},'con',this.value)">
+          <div style="font-size:12px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <span style="color:var(--text2);min-width:85px">Consumición:</span>
+            <input type="number" value="${b.conCant||''}" min="0" placeholder="0" style="width:50px;font-size:12px" onchange="lpSetBen(${p.id},'conCant',parseInt(this.value)||0)">
+            <select style="font-size:12px;width:170px" onchange="lpSetBen(${p.id},'conTipo',this.value)">
+              <option value="">— Elegir —</option>${opts}
+            </select>
+            ${b.conCant&&b.conTipo?`<span class="badge binfo" style="font-size:10px">${b.conCant}× ${b.conTipo}</span>`:''}
           </div>
-          <div style="font-size:12px;display:flex;align-items:center;gap:4px">
-            <span style="color:var(--text2)">Extras:</span>
-            <input type="text" value="${(b.ex||'').replace(/"/g,'&quot;')}" placeholder="Texto libre" style="width:160px;font-size:12px" onchange="lpSetBen(${p.id},'ex',this.value)">
+          <div style="font-size:12px;display:flex;align-items:center;gap:6px">
+            <span style="color:var(--text2);min-width:85px">Extras:</span>
+            <input type="text" value="${(b.ex||'').replace(/"/g,'&quot;')}" placeholder="Texto libre" style="width:220px;font-size:12px" onchange="lpSetBen(${p.id},'ex',this.value)">
           </div>
         </div>
       </div>
@@ -106,8 +121,8 @@ function lpLoadBeneficios(){
   });
   h+=`</div>`;document.getElementById('lp-beneficios').innerHTML=h;
 }
-function lpTogBen(pid,key){const ev=gEv();if(!BENEF_EV[ev])BENEF_EV[ev]={};if(!BENEF_EV[ev][pid])BENEF_EV[ev][pid]={ent:false,con:'',ex:'',entregado:{}};BENEF_EV[ev][pid][key]=!BENEF_EV[ev][pid][key];if(window._fbOK)window.fbSave.benef?.(ev);lpLoadBeneficios();}
-function lpSetBen(pid,key,val){const ev=gEv();if(!BENEF_EV[ev])BENEF_EV[ev]={};if(!BENEF_EV[ev][pid])BENEF_EV[ev][pid]={ent:false,con:'',ex:'',entregado:{}};BENEF_EV[ev][pid][key]=val;if(window._fbOK)window.fbSave.benef?.(ev);}
+function lpTogBen(pid,key){const ev=gEv();if(!BENEF_EV[ev])BENEF_EV[ev]={};if(!BENEF_EV[ev][pid])BENEF_EV[ev][pid]=lpBenDef();BENEF_EV[ev][pid][key]=!BENEF_EV[ev][pid][key];if(window._fbOK)window.fbSave.benef?.(ev);lpLoadBeneficios();}
+function lpSetBen(pid,key,val){const ev=gEv();if(!BENEF_EV[ev])BENEF_EV[ev]={};if(!BENEF_EV[ev][pid])BENEF_EV[ev][pid]=lpBenDef();BENEF_EV[ev][pid][key]=val;if(window._fbOK)window.fbSave.benef?.(ev);}
 function lpLoadPost(){
   const ev=gEv();const cfg=EVENTOS[ev];if(!cfg)return;
   const stats=PUBLICAS.filter(p=>p.activo&&p.evIdx===ev).map(p=>{const a=getAct(ev,p.id);const cumple=tpubs(a)>=(cfg.minPubs||0);return{p,a,cumple};}).sort((a,b)=>b.a.ing-a.a.ing);
