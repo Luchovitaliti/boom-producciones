@@ -27,6 +27,7 @@ function onEvChange(){renderPage(curPage);}
 
 // ═══ RENDER DISPATCHER ═══
 function renderPage(p){
+  document.body.classList.toggle('chat-active', p==='chat');
   const mc=document.getElementById('mc');
   try{
     if(p==='dashboard')mc.innerHTML=pgDash();

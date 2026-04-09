@@ -92,6 +92,7 @@ function pgChat() {
     <div class="chat-sb" id="chat-sb-list">${_chatChannelListHtml(false)}</div>
     <div class="chat-main">
       <div class="chat-hdr" id="chat-hdr">
+        <button class="chat-back-btn" onclick="renderPage('dashboard')" title="Volver">←</button>
         <button class="chat-drawer-btn" onclick="chatOpenDrawer()" title="Canales">☰</button>
         <span id="chat-hdr-label"># General</span>
         <div class="chat-hdr-user">
