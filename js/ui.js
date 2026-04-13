@@ -27,7 +27,10 @@ function onEvChange(){renderPage(curPage);}
 
 // ═══ RENDER DISPATCHER ═══
 function renderPage(p){
-  document.body.classList.toggle('chat-active', p==='chat');
+  const chatOn = p === 'chat';
+  document.body.classList.toggle('chat-active', chatOn);
+  document.documentElement.style.height = chatOn ? '100%' : '';
+  document.documentElement.style.overflow = chatOn ? 'hidden' : '';
   const mc=document.getElementById('mc');
   try{
     if(p==='dashboard')mc.innerHTML=pgDash();

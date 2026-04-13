@@ -2,26 +2,32 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ── Helper functions ──
+    function userRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    function isAdmin() {
+      return request.auth != null && userRole() == 'Admin Console';
+    }
+    function hasRole(r) {
+      return request.auth != null && (userRole() == 'Admin Console' || userRole() == r);
+    }
+
     // ══════════════════════════════════════════
     // USERS — máxima protección
     // ══════════════════════════════════════════
     match /users/{uid} {
-      // Cualquier autenticado puede leer (necesario para cargar USERS, chat avatars, etc.)
       allow read: if request.auth != null;
 
-      // Crear doc propio: solo si es tu UID (bootstrap/migración)
       allow create: if request.auth != null
                     && request.auth.uid == uid;
 
-      // Actualizar doc propio: solo campos de perfil
       allow update: if request.auth != null
                     && request.auth.uid == uid
                     && request.resource.data.diff(resource.data).affectedKeys()
                        .hasOnly(['chatName', 'displayName', 'bio', 'instagram',
                                  'telefono', 'photoURL', 'updatedAt']);
 
-      // Delete y cambio de role/pages/email/active: BLOQUEADO desde cliente
-      // (se hace via API con Admin SDK que bypassa estas reglas)
       allow delete: if false;
     }
 
@@ -30,103 +36,111 @@ service cloud.firestore {
     // ══════════════════════════════════════════
     match /chatChannels/{channelId}/messages/{msgId} {
       allow read: if request.auth != null;
-      // Solo puede crear (no editar/borrar), debe incluir su uid
       allow create: if request.auth != null
                     && request.resource.data.uid == request.auth.uid;
       allow update, delete: if false;
     }
 
-    // Chat config (customChannels)
     match /chat/{docId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow write: if isAdmin();
     }
 
     // ══════════════════════════════════════════
-    // DATOS FINANCIEROS — solo autenticados
+    // FINANCIEROS — solo admin
     // ══════════════════════════════════════════
-    // Idealmente mover a API, pero por ahora restringir a autenticados
     match /adminfin/{docId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow write: if isAdmin();
     }
     match /recaudacion/{docId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow write: if isAdmin();
     }
     match /cajas/{docId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow write: if isAdmin();
     }
 
     // ══════════════════════════════════════════
-    // DATOS OPERATIVOS — autenticados
+    // CONFIG / EVENTOS / PROVEEDORES — solo admin
     // ══════════════════════════════════════════
     match /eventos/{docId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null;
-    }
-    match /stock/{docId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
-    }
-    match /gastos/{docId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
-    }
-    match /staff/{docId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
-    }
-    match /actividad/{docId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
-    }
-    match /publogs/{docId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
-    }
-    match /beneficios/{docId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
-    }
-    match /trafic/{docId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
-
-      // Pasajeros subcollection
-      match /pasajeros/{pasId} {
-        allow read: if request.auth != null;
-        allow write: if request.auth != null;
-      }
-    }
-    match /proveedores/{docId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
-    }
-
-    // ══════════════════════════════════════════
-    // CONTENIDO — autenticados
-    // ══════════════════════════════════════════
-    match /cm/{docId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
-    }
-    match /boom/{docId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
-    }
-    match /publicas/{docId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow write: if isAdmin();
     }
     match /config/{docId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow write: if isAdmin();
+    }
+    match /proveedores/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
     }
 
     // ══════════════════════════════════════════
-    // DENY ALL — cualquier otra collection
+    // PÚBLICAS / ACTIVIDAD / BENEFICIOS — admin o Públicas
+    // ══════════════════════════════════════════
+    match /publicas/{docId} {
+      allow read: if request.auth != null;
+      allow write: if hasRole('Públicas');
+    }
+    match /actividad/{docId} {
+      allow read: if request.auth != null;
+      allow write: if hasRole('Públicas');
+    }
+    match /beneficios/{docId} {
+      allow read: if request.auth != null;
+      allow write: if hasRole('Públicas');
+    }
+    match /publogs/{docId} {
+      allow read: if request.auth != null;
+      allow write: if hasRole('Públicas');
+    }
+
+    // ══════════════════════════════════════════
+    // TRAFIC — admin o Trafic
+    // ══════════════════════════════════════════
+    match /trafic/{docId} {
+      allow read: if request.auth != null;
+      allow write: if hasRole('Trafic');
+
+      match /pasajeros/{pasId} {
+        allow read: if request.auth != null;
+        allow write: if hasRole('Trafic');
+      }
+    }
+
+    // ══════════════════════════════════════════
+    // BARRA — admin o Barra
+    // ══════════════════════════════════════════
+    match /stock/{docId} {
+      allow read: if request.auth != null;
+      allow write: if hasRole('Barra');
+    }
+    match /gastos/{docId} {
+      allow read: if request.auth != null;
+      allow write: if hasRole('Barra');
+    }
+    match /staff/{docId} {
+      allow read: if request.auth != null;
+      allow write: if hasRole('Barra');
+    }
+
+    // ══════════════════════════════════════════
+    // CONTENIDO — admin o CM
+    // ══════════════════════════════════════════
+    match /cm/{docId} {
+      allow read: if request.auth != null;
+      allow write: if hasRole('CM');
+    }
+    match /boom/{docId} {
+      allow read: if request.auth != null;
+      allow write: if hasRole('CM');
+    }
+
+    // ══════════════════════════════════════════
+    // DENY ALL
     // ══════════════════════════════════════════
     match /{document=**} {
       allow read, write: if false;

@@ -386,13 +386,15 @@ body.chat-active .main { display:flex; flex-direction:column; overflow:hidden; }
   .mg { grid-template-columns: repeat(2, 1fr); gap: 6px; }
   .card { padding: 1rem; overflow-x: auto; }
   table { min-width: 460px; }
-  body.chat-active { overflow:hidden; }
+  body.chat-active,
+  body.chat-active html { height:100%; overflow:hidden; }
   body.chat-active .topbar,
   body.chat-active .sidebar,
   body.chat-active #mobile-bottom-nav { display:none!important; }
-  body.chat-active .layout { height:100dvh; overflow:hidden; }
-  body.chat-active .main { padding:0; flex:1; min-height:0; overflow:hidden; display:flex; flex-direction:column; }
-  .chat-container { flex:1; min-height:0; }
+  body.chat-active .layout { height:100%; overflow:hidden; flex:none; }
+  body.chat-active .main { padding:0; height:100%; overflow:hidden; display:flex; flex-direction:column; flex:none; }
+  body.chat-active .chat-container { flex:1; height:100%; min-height:0; }
+  body.chat-active .chat-wrap { height:100%; }
   .chat-wrap { border:none; border-radius:0; }
   .chat-sb { display:none; }
   .chat-mob-nav { display:flex; }
