@@ -29,8 +29,17 @@ function onEvChange(){renderPage(curPage);}
 function renderPage(p){
   const chatOn = p === 'chat';
   document.body.classList.toggle('chat-active', chatOn);
-  document.documentElement.style.height = chatOn ? '100%' : '';
-  document.documentElement.style.overflow = chatOn ? 'hidden' : '';
+  // On mobile, position:fixed on .chat-wrap handles fullscreen —
+  // we just need to prevent body scroll and reset when leaving chat
+  if (chatOn) {
+    document.documentElement.style.height = '100%';
+    document.documentElement.style.overflow = 'hidden';
+    // Scroll to top to prevent any offset issues
+    window.scrollTo(0, 0);
+  } else {
+    document.documentElement.style.height = '';
+    document.documentElement.style.overflow = '';
+  }
   const mc=document.getElementById('mc');
   try{
     if(p==='dashboard')mc.innerHTML=pgDash();
