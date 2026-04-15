@@ -1,26 +1,37 @@
 // ═══ SIDEBAR ═══
 function buildMobileNav(){
   const nav=document.getElementById('mobile-bottom-nav');if(!nav)return;
-  // Priority order: dashboard first, then role modules, perfil last
-  const priority=['dashboard','boomhero','boom','chat','cm','barra','recaudacion','adminfin','heroconfig','trafic','liderpub','publicas','kpi','proveedores','dev'];
-  const all=(CU.pages||[]).filter(p=>p!=='usuarios'&&p!=='perfil');
+  const priority=['home','dashboard','boomhero','boom','chat','cm','barra','recaudacion','adminfin','heroconfig','trafic','liderpub','publicas','kpi','proveedores','dev'];
+  const all=(CU.pages||[]).filter(p=>p!=='perfil');
   const sorted=priority.filter(p=>all.includes(p)).concat(all.filter(p=>!priority.includes(p)));
-  // Build scrollable tabs — show ALL modules, not limited to 4
   nav.innerHTML=`<div class="mbn-fade mbn-fade-l"></div><div class="mbn-scroll" id="mbn-scroll">`+
-    sorted.map(p=>`<div class="mbn-item${curPage===p?' active':''}" data-page="${p}" onclick="navigate('${p}')"><span class="ico">${PAGE_ICONS[p]}</span><span>${(PAGE_LABELS[p]||p).slice(0,10)}</span></div>`).join('')+
-    `<div class="mbn-item${curPage==='perfil'?' active':''}" data-page="perfil" onclick="navigate('perfil')"><span class="ico">👤</span><span>Perfil</span></div>`+
+    sorted.map(p=>`<div class="mbn-item${curPage===p?' active':''}" data-page="${p}" onclick="navigate('${p}',true)"><span class="ico">${PAGE_ICONS[p]}</span><span>${(PAGE_LABELS[p]||p).slice(0,10)}</span></div>`).join('')+
+    `<div class="mbn-item${curPage==='perfil'?' active':''}" data-page="perfil" onclick="navigate('perfil',true)"><span class="ico">👤</span><span>Perfil</span></div>`+
   `</div><div class="mbn-fade mbn-fade-r"></div>`;
-  // Auto-center the active tab
-  requestAnimationFrame(()=>mbnCenterActive());
-  // Update edge fade indicators on scroll
+  // Instant snap on first build — no animation sweep
+  requestAnimationFrame(()=>{
+    const sc=document.getElementById('mbn-scroll');if(!sc)return;
+    const act=sc.querySelector('.mbn-item.active');if(!act)return;
+    sc.scrollLeft=Math.max(0, act.offsetLeft - sc.offsetWidth/2 + act.offsetWidth/2);
+    mbnUpdateFades();
+  });
   const sc=document.getElementById('mbn-scroll');
-  if(sc){ sc.addEventListener('scroll',mbnUpdateFades,{passive:true}); mbnUpdateFades(); }
+  if(sc){ sc.addEventListener('scroll',mbnUpdateFades,{passive:true}); }
+}
+// Update active tab without rebuilding the nav DOM.
+// fromTap=true  → user tapped a visible tab, no scroll needed (it's already on screen).
+// fromTap=false → programmatic nav, snap instantly so the tab is visible.
+function mbnSetActive(page, fromTap){
+  const sc=document.getElementById('mbn-scroll');
+  if(!sc){ buildMobileNav(); return; }
+  sc.querySelectorAll('.mbn-item').forEach(el=>el.classList.toggle('active', el.dataset.page===page));
+  if(!fromTap) mbnCenterActive();
 }
 function mbnCenterActive(){
   const sc=document.getElementById('mbn-scroll');if(!sc)return;
   const act=sc.querySelector('.mbn-item.active');if(!act)return;
-  const sl=act.offsetLeft - sc.offsetWidth/2 + act.offsetWidth/2;
-  sc.scrollTo({left:sl,behavior:'smooth'});
+  // Instant snap — visual feedback comes from the CSS mbnPop icon animation
+  sc.scrollLeft = Math.max(0, act.offsetLeft - sc.offsetWidth/2 + act.offsetWidth/2);
 }
 function mbnUpdateFades(){
   const sc=document.getElementById('mbn-scroll');if(!sc)return;
@@ -39,12 +50,12 @@ function buildSidebar(){
     pages.forEach(p=>sb.innerHTML+=`<div class="si" id="si-${p}" onclick="navigate('${p}')"><span>${PAGE_ICONS[p]}</span>${PAGE_LABELS[p]}</div>`);
   });
 }
-function navigate(page){
+function navigate(page, fromTap){
   curPage=page;
   document.querySelectorAll('.si').forEach(el=>el.classList.remove('active'));
   document.getElementById('si-'+page)?.classList.add('active');
   document.getElementById('mc').innerHTML='';
-  buildMobileNav();
+  mbnSetActive(page, fromTap); // update active class only — no DOM rebuild
   renderPage(page);
 }
 function onEvChange(){renderPage(curPage);}
@@ -66,7 +77,8 @@ function renderPage(p){
   }
   const mc=document.getElementById('mc');
   try{
-    if(p==='boomhero'){mc.innerHTML=pgBoomHero();initBoomHero();}
+    if(p==='home'){mc.innerHTML=pgHome();initHome();}
+    else if(p==='boomhero'){mc.innerHTML=pgBoomHero();initBoomHero();}
     else if(p==='heroconfig'){mc.innerHTML=pgHeroConfig();initHeroConfig();}
     else if(p==='dashboard')mc.innerHTML=pgDash();
     else if(p==='barra'){mc.innerHTML=pgBarra();initBarra();}
@@ -84,7 +96,7 @@ function renderPage(p){
     else if(p==='usuarios')mc.innerHTML=pgUsuarios();
     else if(p==='perfil'){mc.innerHTML=pgPerfil();initPerfil();}
     // Inyectar widget de nota en todos los módulos excepto perfil/usuarios/dev/chat
-    if(!['perfil','usuarios','dev','chat'].includes(p)){
+    if(!['home','perfil','usuarios','dev','chat'].includes(p)){
       const wrap=document.getElementById('mc');
       if(wrap){
         const nb=document.createElement('div');

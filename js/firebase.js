@@ -411,6 +411,7 @@ try {
           ALL_PAGES.forEach(p => { if (!f.pages.includes(p)) f.pages.push(p); });
         }
         if (!f.pages.includes('perfil')) f.pages.push('perfil');
+        if (!f.pages.includes('home')) f.pages.unshift('home');
 
         CU = f;
 
@@ -423,7 +424,7 @@ try {
         syncTopbarEventos();
         buildSidebar();
         buildMobileNav();
-        navigate(CU.pages[0]);
+        navigate('home');
         await window.fbLoad();
         renderPage(curPage);
       } else {

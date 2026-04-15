@@ -439,6 +439,40 @@ body.chat-active .main { display:flex; flex-direction:column; overflow:hidden; }
   color: var(--accent); border-radius: 99px; font-size: 10px; margin: 1px;
   border: 1px solid rgba(149,193,31,.18); }
 
+/* ══ USUARIOS — mobile iOS 26 redesign ══ */
+.usr-card {
+  background: var(--glass2);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: 14px;
+  margin-bottom: 10px;
+  transition: background .15s;
+}
+.usr-card-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.usr-card-info { flex: 1; min-width: 0; }
+.usr-card-name { font-size: 14px; font-weight: 600; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.usr-card-sub  { font-size: 11px; color: var(--text2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.usr-card-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+.usr-card-tag  { padding: 3px 8px; background: rgba(149,193,31,.08); color: var(--accent);
+  border-radius: 99px; font-size: 10px; border: 1px solid rgba(149,193,31,.15); }
+.usr-card-actions { display: flex; gap: 8px; }
+.usr-card-actions .btn { flex: 1; justify-content: center; padding: 9px 0; font-size: 12px; border-radius: 12px; }
+
+/* iOS 26 app icon grid */
+.usr-app-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 4px 0; }
+.usr-app-icon { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: default; }
+.usr-app-icon-box {
+  width: 56px; height: 56px; border-radius: 16px;
+  background: linear-gradient(145deg, rgba(149,193,31,.15) 0%, rgba(149,193,31,.05) 100%);
+  border: 1px solid rgba(149,193,31,.18);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.07);
+  backdrop-filter: blur(8px);
+}
+.usr-app-icon-label { font-size: 10px; color: var(--text2); text-align: center; line-height: 1.2; max-width: 64px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 /* ══ PROGRESS BAR ══ */
 .progbg   { height:5px;background:var(--glass2);border-radius:4px;overflow:hidden; }
 .progfill { height:100%;border-radius:4px;transition:width .45s var(--ease-smooth); }
@@ -608,6 +642,26 @@ body.chat-active .main { display:flex; flex-direction:column; overflow:hidden; }
     45%  { transform: scale(1.32); }
     100% { transform: scale(1.18); }
   }
+}
+
+/* ══ HOME — module cards ══ */
+.hm-mod-card {
+  background: var(--glass2);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 14px 12px;
+  cursor: pointer;
+  transition: transform .15s var(--ease-smooth), background .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.hm-mod-card:active { transform: scale(.94); background: rgba(149,193,31,.08); }
+.hm-mod-locked {
+  background: var(--glass2);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 14px 12px;
+  opacity: .55;
+  cursor: default;
 }
 
 /* ══ BOOM HERO — toggle pills ══ */
