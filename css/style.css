@@ -554,18 +554,60 @@ body.chat-active .main { display:flex; flex-direction:column; overflow:hidden; }
 /* display:block + height:0 allows position:fixed children (modals) to show on desktop */
 #mobile-bottom-nav { display: block; height: 0; overflow: hidden; }
 @media(max-width: 768px) {
-  #mobile-bottom-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0;
-    background: rgba(12,14,11,.6); border-top: 1px solid var(--glass-border); z-index: 200;
-    padding: 8px 0 env(safe-area-inset-bottom, 8px);
-    backdrop-filter: blur(var(--blur-heavy)) saturate(1.5); -webkit-backdrop-filter: blur(var(--blur-heavy)) saturate(1.5);
-    box-shadow: 0 -1px 0 rgba(255,255,255,.03); }
-  .mbn-item { flex: 1; display: flex; flex-direction: column; align-items: center;
-    gap: 3px; padding: 4px; cursor: pointer; color: var(--text3); font-size: 10px;
-    transition: all .2s var(--ease-smooth); -webkit-tap-highlight-color: transparent; }
-  .mbn-item .ico { font-size: 22px; line-height: 1; transition: transform .2s var(--ease-spring); }
-  .mbn-item.active { color: var(--accent); }
-  .mbn-item.active .ico { transform: scale(1.12); }
-  .mbn-item:active { transform: scale(.9); opacity: .7; }
+  #mobile-bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+    display: flex; align-items: stretch; height: auto; overflow: visible;
+    background: linear-gradient(180deg, rgba(12,15,10,.5) 0%, rgba(7,9,6,.76) 100%);
+    border-top: 1px solid rgba(255,255,255,.13);
+    border-radius: 22px 22px 0 0;
+    backdrop-filter: blur(var(--blur-heavy)) saturate(1.9) brightness(.96);
+    -webkit-backdrop-filter: blur(var(--blur-heavy)) saturate(1.9) brightness(.96);
+    box-shadow: 0 -6px 40px rgba(0,0,0,.35),
+                0 -1px 0 rgba(255,255,255,.05),
+                inset 0 1px 0 rgba(255,255,255,.09);
+    padding-bottom: env(safe-area-inset-bottom, 8px); }
+  /* Scrollable track */
+  .mbn-scroll { display: flex; overflow-x: auto; scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    padding: 8px 10px 6px; gap: 2px; flex: 1; min-width: 0; }
+  .mbn-scroll::-webkit-scrollbar { display: none; }
+  /* Each tab — fixed width, no shrink */
+  .mbn-item { flex: 0 0 auto; min-width: 64px; max-width: 80px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; padding: 6px 8px 5px; cursor: pointer;
+    color: var(--text3); font-size: 9px; font-weight: 500; letter-spacing: .02em;
+    border-radius: 14px; scroll-snap-align: center;
+    border: 1px solid transparent;
+    transition: color .2s var(--ease-smooth), background .2s var(--ease-smooth),
+                border-color .2s, box-shadow .2s;
+    -webkit-tap-highlight-color: transparent; position: relative; }
+  .mbn-item .ico { font-size: 20px; line-height: 1;
+    transition: transform .3s var(--ease-spring), filter .25s; }
+  .mbn-item span:last-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 100%; transition: color .2s; }
+  /* Active state — Liquid Glass pill */
+  .mbn-item.active { color: var(--accent);
+    background: rgba(149,193,31,.11);
+    border-color: rgba(149,193,31,.22);
+    box-shadow: 0 2px 14px rgba(149,193,31,.1), inset 0 1px 0 rgba(149,193,31,.18); }
+  .mbn-item.active .ico { transform: scale(1.18);
+    filter: drop-shadow(0 0 8px rgba(149,193,31,.55));
+    animation: mbnPop .32s var(--ease-spring); }
+  /* Tap feedback */
+  .mbn-item:active { transform: scale(.87); opacity: .65;
+    transition: transform .06s, opacity .06s; }
+  /* Edge fade indicators */
+  .mbn-fade { position: absolute; top: 0; bottom: 0; width: 36px; z-index: 1;
+    pointer-events: none; opacity: 0; transition: opacity .3s; }
+  .mbn-fade.visible { opacity: 1; }
+  .mbn-fade-l { left: 0;
+    background: linear-gradient(90deg, rgba(7,9,6,.78) 0%, transparent 100%); }
+  .mbn-fade-r { right: 0;
+    background: linear-gradient(-90deg, rgba(7,9,6,.78) 0%, transparent 100%); }
+  @keyframes mbnPop {
+    0%   { transform: scale(1); }
+    45%  { transform: scale(1.32); }
+    100% { transform: scale(1.18); }
+  }
 }
 
 /* ══ SAFE AREA (iPhone notch/dynamic island) ══ */

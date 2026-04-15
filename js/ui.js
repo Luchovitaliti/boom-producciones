@@ -1,9 +1,33 @@
 // ═══ SIDEBAR ═══
 function buildMobileNav(){
   const nav=document.getElementById('mobile-bottom-nav');if(!nav)return;
-  const show=(CU.pages||[]).filter(p=>p!=='usuarios'&&p!=='perfil').slice(0,4);
-  nav.innerHTML=show.map(p=>`<div class="mbn-item${curPage===p?' active':''}" onclick="navigate('${p}')"><span class="ico">${PAGE_ICONS[p]}</span><span>${(PAGE_LABELS[p]||p).slice(0,8)}</span></div>`).join('')+
-  `<div class="mbn-item${curPage==='perfil'?' active':''}" onclick="navigate('perfil')"><span class="ico">👤</span><span>Perfil</span></div>`;
+  // Priority order: dashboard first, then role modules, perfil last
+  const priority=['dashboard','boom','chat','cm','barra','recaudacion','adminfin','trafic','liderpub','publicas','kpi','proveedores','dev'];
+  const all=(CU.pages||[]).filter(p=>p!=='usuarios'&&p!=='perfil');
+  const sorted=priority.filter(p=>all.includes(p)).concat(all.filter(p=>!priority.includes(p)));
+  // Build scrollable tabs — show ALL modules, not limited to 4
+  nav.innerHTML=`<div class="mbn-fade mbn-fade-l"></div><div class="mbn-scroll" id="mbn-scroll">`+
+    sorted.map(p=>`<div class="mbn-item${curPage===p?' active':''}" data-page="${p}" onclick="navigate('${p}')"><span class="ico">${PAGE_ICONS[p]}</span><span>${(PAGE_LABELS[p]||p).slice(0,10)}</span></div>`).join('')+
+    `<div class="mbn-item${curPage==='perfil'?' active':''}" data-page="perfil" onclick="navigate('perfil')"><span class="ico">👤</span><span>Perfil</span></div>`+
+  `</div><div class="mbn-fade mbn-fade-r"></div>`;
+  // Auto-center the active tab
+  requestAnimationFrame(()=>mbnCenterActive());
+  // Update edge fade indicators on scroll
+  const sc=document.getElementById('mbn-scroll');
+  if(sc){ sc.addEventListener('scroll',mbnUpdateFades,{passive:true}); mbnUpdateFades(); }
+}
+function mbnCenterActive(){
+  const sc=document.getElementById('mbn-scroll');if(!sc)return;
+  const act=sc.querySelector('.mbn-item.active');if(!act)return;
+  const sl=act.offsetLeft - sc.offsetWidth/2 + act.offsetWidth/2;
+  sc.scrollTo({left:sl,behavior:'smooth'});
+}
+function mbnUpdateFades(){
+  const sc=document.getElementById('mbn-scroll');if(!sc)return;
+  const fl=sc.parentElement.querySelector('.mbn-fade-l');
+  const fr=sc.parentElement.querySelector('.mbn-fade-r');
+  if(fl) fl.classList.toggle('visible',sc.scrollLeft>8);
+  if(fr) fr.classList.toggle('visible',sc.scrollLeft<sc.scrollWidth-sc.offsetWidth-8);
 }
 
 function buildSidebar(){
