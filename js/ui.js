@@ -2,7 +2,7 @@
 function buildMobileNav(){
   const nav=document.getElementById('mobile-bottom-nav');if(!nav)return;
   // Priority order: dashboard first, then role modules, perfil last
-  const priority=['dashboard','boom','chat','cm','barra','recaudacion','adminfin','trafic','liderpub','publicas','kpi','proveedores','dev'];
+  const priority=['dashboard','boomhero','boom','chat','cm','barra','recaudacion','adminfin','heroconfig','trafic','liderpub','publicas','kpi','proveedores','dev'];
   const all=(CU.pages||[]).filter(p=>p!=='usuarios'&&p!=='perfil');
   const sorted=priority.filter(p=>all.includes(p)).concat(all.filter(p=>!priority.includes(p)));
   // Build scrollable tabs — show ALL modules, not limited to 4
@@ -66,7 +66,9 @@ function renderPage(p){
   }
   const mc=document.getElementById('mc');
   try{
-    if(p==='dashboard')mc.innerHTML=pgDash();
+    if(p==='boomhero'){mc.innerHTML=pgBoomHero();initBoomHero();}
+    else if(p==='heroconfig'){mc.innerHTML=pgHeroConfig();initHeroConfig();}
+    else if(p==='dashboard')mc.innerHTML=pgDash();
     else if(p==='barra'){mc.innerHTML=pgBarra();initBarra();}
     else if(p==='adminfin'){mc.innerHTML=pgAdminFin();initAdminFin();}
     else if(p==='recaudacion'){mc.innerHTML=pgRecaudacion();initRecaudacion();}

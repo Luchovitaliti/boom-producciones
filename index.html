@@ -500,6 +500,124 @@
   </div>
 </div>
 
+<!-- MODAL: BOOM HERO — Agregar participante -->
+<div id="m-hc-add" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="max-width:360px">
+    <div class="mtitle">Agregar participante</div>
+    <div class="fc" style="margin-bottom:1.25rem">
+      <span class="fl">Usuario</span>
+      <select id="hc-add-uid" style="width:100%"></select>
+    </div>
+    <div class="mrow">
+      <button class="btn btnp" style="flex:1" onclick="hcConfirmAdd()">Agregar</button>
+      <button class="btn"      style="flex:1" onclick="document.getElementById('m-hc-add').style.display='none'">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: BOOM HERO — Evaluación -->
+<div id="m-bh-eval" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="max-width:480px;max-height:92vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+      <div class="mtitle" style="margin:0" id="m-bh-eval-ttl">Evaluar</div>
+      <div id="m-bh-score-preview" style="font-size:24px;font-weight:700;color:var(--accent);min-width:52px;text-align:right;transition:color .2s">0</div>
+    </div>
+
+    <div style="margin-bottom:1rem">
+      <div class="ctitle">📍 Presencia <span style="color:var(--accent);font-size:10px">×1.5</span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <button class="bh-tog" data-key="p_ev"          onclick="bhTog(this)">+10 Evento</button>
+        <button class="bh-tog" data-key="p_armado"      onclick="bhTog(this)">+8 Armado</button>
+        <button class="bh-tog" data-key="p_desarmado"   onclick="bhTog(this)">+6 Desarmado</button>
+        <button class="bh-tog" data-key="p_promo"       onclick="bhTog(this)">+6 Promo</button>
+        <button class="bh-tog neg" data-key="p_falta"       onclick="bhTog(this)">−20 Falta s/aviso</button>
+        <button class="bh-tog neg" data-key="p_falta_promo" onclick="bhTog(this)">−8 Falta promo</button>
+      </div>
+    </div>
+
+    <div style="margin-bottom:1rem">
+      <div class="ctitle">🙋 Participación</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <button class="bh-tog" data-key="pa_meet"    onclick="bhTog(this)">+4 Reunión</button>
+        <button class="bh-tog" data-key="pa_cena"    onclick="bhTog(this)">+6 Cena estratégica</button>
+        <button class="bh-tog" data-key="pa_activa"  onclick="bhTog(this)">+3 Activo</button>
+        <button class="bh-tog neg" data-key="pa_inactivo" onclick="bhTog(this)">−6 Inactivo</button>
+      </div>
+    </div>
+
+    <div style="margin-bottom:1rem">
+      <div class="ctitle">✅ Responsabilidad</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <button class="bh-tog" data-key="r_cumple"    onclick="bhTog(this)">+5 Cumple tarea</button>
+        <button class="bh-tog" data-key="r_antes"     onclick="bhTog(this)">+7 Antes de tiempo</button>
+        <button class="bh-tog neg" data-key="r_no_cumple" onclick="bhTog(this)">−10 No cumple</button>
+      </div>
+    </div>
+
+    <div style="margin-bottom:1rem">
+      <div class="ctitle">🚀 Performance <span style="color:var(--accent);font-size:10px">×2</span></div>
+      <div style="display:flex;gap:6px;margin-bottom:8px" id="bh-perf-group">
+        <button class="bh-tog" data-perf="0"  onclick="bhSetPerf(0)" >😐 Bajo</button>
+        <button class="bh-tog" data-perf="8"  onclick="bhSetPerf(8)" >👍 Bien (+8)</button>
+        <button class="bh-tog" data-perf="15" onclick="bhSetPerf(15)">🔥 Excelente (+15)</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <button class="bh-tog" data-key="perf_resuelve" onclick="bhTog(this)">+10 Resuelve problemas</button>
+        <button class="bh-tog" data-key="perf_ayuda"    onclick="bhTog(this)">+6 Ayuda extra</button>
+        <button class="bh-tog neg" data-key="perf_prob"     onclick="bhTog(this)">−12 Genera problemas</button>
+      </div>
+    </div>
+
+    <div style="margin-bottom:1rem">
+      <div class="ctitle">💪 Actitud</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <button class="bh-tog" data-key="a_energia" onclick="bhTog(this)">+5 Buena energía</button>
+        <button class="bh-tog" data-key="a_lider"   onclick="bhTog(this)">+8 Liderazgo</button>
+        <button class="bh-tog neg" data-key="a_mala"    onclick="bhTog(this)">−10 Mala actitud</button>
+      </div>
+    </div>
+
+    <div style="margin-bottom:1rem">
+      <div class="ctitle">💡 Creatividad</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <button class="bh-tog" data-key="c_impl" onclick="bhTog(this)">+10 Idea implementada</button>
+        <button class="bh-tog" data-key="c_util" onclick="bhTog(this)">+5 Idea útil</button>
+      </div>
+    </div>
+
+    <div style="margin-bottom:1rem">
+      <div class="ctitle">🌟 Impacto</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <button class="bh-tog" data-key="i_cont"       onclick="bhTog(this)">+6 Genera contenido</button>
+        <button class="bh-tog" data-key="i_mejora"     onclick="bhTog(this)">+10 Mejora experiencia</button>
+        <button class="bh-tog" data-key="i_representa" onclick="bhTog(this)">+5 Representa la marca</button>
+      </div>
+    </div>
+
+    <div style="margin-bottom:1rem">
+      <div class="ctitle">⭐ Bonus</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <button class="bh-tog" data-key="bon_equipo" onclick="bhTog(this)">+10 Votación equipo</button>
+        <button class="bh-tog" data-key="bon_dir"    onclick="bhTog(this)">+10 Decisión dirección</button>
+      </div>
+    </div>
+
+    <div style="margin-bottom:1.5rem">
+      <div class="ctitle">⚠️ Penalizaciones</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <button class="bh-tog neg" data-key="pen_conducta"   onclick="bhTog(this)">−10 Mala conducta</button>
+        <button class="bh-tog neg" data-key="pen_conflictos" onclick="bhTog(this)">−8 Genera conflictos</button>
+        <button class="bh-tog neg" data-key="pen_falta"      onclick="bhTog(this)">−20 Falta s/aviso</button>
+      </div>
+    </div>
+
+    <div class="mrow">
+      <button class="btn btnp" style="flex:1" onclick="bhSaveEval()">💾 Guardar</button>
+      <button class="btn"      style="flex:1" onclick="document.getElementById('m-bh-eval').style.display='none'">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Firebase SDK (CDN) -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -523,6 +641,8 @@
 <script src="js/modules/kpi.js"></script>
 <script src="js/modules/trafic.js"></script>
 <script src="js/modules/recaudacion.js"></script>
+<script src="js/modules/boomhero.js"></script>
+<script src="js/modules/heroconfig.js"></script>
 <script src="js/modules/dev.js"></script>
 <script src="js/modules/usuarios.js"></script>
 <script src="js/modules/perfil.js"></script>

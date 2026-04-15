@@ -610,6 +610,15 @@ body.chat-active .main { display:flex; flex-direction:column; overflow:hidden; }
   }
 }
 
+/* ══ BOOM HERO — toggle pills ══ */
+.bh-tog { padding: 5px 11px; border-radius: 99px; font-size: 11px; font-weight: 500; cursor: pointer;
+  background: var(--glass2); border: 1px solid var(--glass-border); color: var(--text3);
+  font-family: 'DM Sans', sans-serif; transition: all .15s var(--ease-smooth);
+  -webkit-tap-highlight-color: transparent; }
+.bh-tog:active { transform: scale(.93); opacity: .75; }
+.bh-tog.on { background: rgba(149,193,31,.14); border-color: rgba(149,193,31,.35); color: var(--accent); }
+.bh-tog.neg.on { background: rgba(248,113,113,.12); border-color: rgba(248,113,113,.3); color: var(--red); }
+
 /* ══ SAFE AREA (iPhone notch/dynamic island) ══ */
 @supports(padding-top: env(safe-area-inset-top)) {
   .topbar { padding-left: max(1.5rem, env(safe-area-inset-left)); padding-right: max(1.5rem, env(safe-area-inset-right)); }

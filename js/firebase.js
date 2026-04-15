@@ -68,6 +68,8 @@ try {
     }),
     eventos:        ()  => fbSet('eventos',     'lista',  {items:EVENTOS, evFin:EV_FIN}),
     customChannels: ()  => fbSet('chat',        'customChannels', {items:CUSTOM_CHANNELS}),
+    boomHero:           ()  => fbSet('boomhero', 'evals',        {items:HERO_EVALS}),
+    heroParticipants:   ()  => fbSet('boomhero', 'participants', {items:HERO_PARTICIPANTS}),
     trafic:         ev => fbSet('trafic',       'ev'+ev, {
       etapas:      TRAFIC_ETAPAS.filter(e => e.evIdx === ev),
       localidades: TRAFIC_LOCALIDADES.filter(l => l.evIdx === ev),
@@ -132,7 +134,7 @@ try {
       traficResults,
       recResults,
       posts, tasks, ideas, pub, prov, notas, clasifCfg, gadm, padm,
-      customChs,
+      customChs, heroEvals, heroParts,
     ] = await Promise.all([
       // Event-indexed: batch each type
       Promise.all(evIndices.map(ev => fbGet('stock', 'ev'+ev))),
@@ -155,6 +157,8 @@ try {
       fbGet('adminfin', 'gastos'),
       fbGet('adminfin', 'personas'),
       fbGet('chat', 'customChannels'),
+      fbGet('boomhero', 'evals'),
+      fbGet('boomhero', 'participants'),
     ]);
 
     // Apply event-indexed results
@@ -200,6 +204,8 @@ try {
     if (clasifCfg && clasifCfg.topMinInv !== undefined) CLASIF_CFG = clasifCfg;
     if (gadm?.items)   GASTOS_ADM  = gadm.items;
     if (padm?.items)   PERSONAS_ADM= padm.items;
+    if (heroEvals?.items)  HERO_EVALS        = heroEvals.items;
+    if (heroParts?.items)  HERO_PARTICIPANTS  = heroParts.items;
 
     // Sync ID counters to avoid collisions with loaded data
     const _maxId = (arr, field='id') => arr.reduce((m, x) => Math.max(m, x[field]||0), 0);
