@@ -139,7 +139,7 @@ function hcConfirmAdd(){
   const maxId = HERO_PARTICIPANTS.reduce((m,p)=>Math.max(m,p.id||0),0);
   HERO_PARTICIPANTS.push({ id:maxId+1, evIdx:hcAddEv, userId:uid, userName:u.chatName||u.username });
   document.getElementById('m-hc-add').style.display='none';
-  if(window._fbOK) window.fbSave.boomHeroEv?.(hcAddEv);
+  bhSaveAll(hcAddEv);
   hcRender();
 }
 
@@ -149,9 +149,21 @@ function hcRemovePart(id){
   if(i>=0){
     const evIdx = HERO_PARTICIPANTS[i].evIdx;
     HERO_PARTICIPANTS.splice(i,1);
-    if(window._fbOK) window.fbSave.boomHeroEv?.(evIdx);
+    bhSaveAll(evIdx);
     hcRender();
   }
+}
+
+// ── Guarda participantes y evals por dos rutas — per-event Y legacy ──
+// La ruta legacy (boomhero/participants + boomhero/evals) es la garantizada.
+// La ruta per-event (boomhero/ev{N}) agrega status y finalScores.
+function bhSaveAll(evIdx){
+  if(!window._fbOK) return;
+  // Ruta legacy — siempre funciona (docs que ya existían)
+  window.fbSave.heroParticipants();
+  window.fbSave.boomHero();
+  // Ruta per-event — agrega status/finalScores por evento
+  window.fbSave.boomHeroEv(evIdx);
 }
 
 // ── Eval Modal Logic ───────────────────────────────────────────
@@ -270,7 +282,7 @@ function bhSaveEval(){
     HERO_EVALS.push(entry);
   }
   document.getElementById('m-bh-eval').style.display='none';
-  if(window._fbOK) window.fbSave.boomHeroEv?.(entry.evIdx);
+  bhSaveAll(entry.evIdx);
   hcRender();
 }
 

@@ -15,7 +15,7 @@ try {
 
   async function fbSet(col, id, data) {
     try { await _db.collection(col).doc(id).set(data, {merge:true}); }
-    catch(e) { console.warn('fbSet:', e.message); }
+    catch(e) { console.error('fbSet ERROR ['+col+'/'+id+']:', e.code, e.message); }
   }
   async function fbGet(col, id) {
     try { const d = await _db.collection(col).doc(id).get(); return d.exists ? d.data() : null; }
@@ -251,22 +251,37 @@ try {
     if (heroEvals?.items)  HERO_EVALS        = heroEvals.items;
     if (heroParts?.items)  HERO_PARTICIPANTS  = heroParts.items;
 
-    // ─── Load per-event boomhero docs (override legacy arrays) ───
+    // ─── Load per-event boomhero docs ───
+    // Estos docs tienen SOLO status y finalScores. Participants y liveScores
+    // vienen del legacy (boomhero/participants y boomhero/evals) que ya fueron
+    // cargados arriba — son la fuente garantizada.
     const bhEvDocs = await Promise.all(evIndices.map(ev => fbGet('boomhero', 'ev'+ev)));
     evIndices.forEach((ev, i) => {
-      const bh = bhEvDocs[i]; if (!bh) return;
+      const bh  = bhEvDocs[i];
       const key = 'ev'+ev;
-      if (bh.participants?.length)
-        HERO_PARTICIPANTS = HERO_PARTICIPANTS.filter(p=>p.evIdx!==ev).concat(bh.participants.map(p=>({...p,evIdx:ev})));
-      if (bh.liveScores?.length)
-        HERO_EVALS = HERO_EVALS.filter(e=>e.evIdx!==ev).concat(bh.liveScores.map(s=>({...s,evIdx:ev})));
-      // Solo aceptar valores válidos — evitar defaults incorrectos
-      if (bh.status === 'live' || bh.status === 'finalized') HERO_STATUS[key] = bh.status;
-      if (Array.isArray(bh.finalScores) && bh.finalScores.length) HERO_FINAL_SCORES[key] = bh.finalScores;
-      if (Array.isArray(bh.scoreLogs))   HERO_SCORE_LOGS[key]   = bh.scoreLogs;
-      console.log('[fbLoad] boomhero %s → status=%s finalScores=%d parts=%d liveScores=%d',
-        key, bh.status??'none', bh.finalScores?.length??0,
-        bh.participants?.length??0, bh.liveScores?.length??0);
+
+      if (bh) {
+        // Solo sobreescribir participants/liveScores si el per-event doc los tiene
+        // y si son más recientes que el legacy (tienen más entradas).
+        const legacyParts  = HERO_PARTICIPANTS.filter(p=>p.evIdx===ev).length;
+        const legacyEvals  = HERO_EVALS.filter(e=>e.evIdx===ev).length;
+        if ((bh.participants?.length||0) > legacyParts)
+          HERO_PARTICIPANTS = HERO_PARTICIPANTS.filter(p=>p.evIdx!==ev)
+            .concat(bh.participants.map(p=>({...p,evIdx:ev})));
+        if ((bh.liveScores?.length||0) > legacyEvals)
+          HERO_EVALS = HERO_EVALS.filter(e=>e.evIdx!==ev)
+            .concat(bh.liveScores.map(s=>({...s,evIdx:ev})));
+        // Status y finalScores — solo en per-event doc
+        if (bh.status === 'live' || bh.status === 'finalized') HERO_STATUS[key] = bh.status;
+        if (Array.isArray(bh.finalScores) && bh.finalScores.length) HERO_FINAL_SCORES[key] = bh.finalScores;
+        if (Array.isArray(bh.scoreLogs))   HERO_SCORE_LOGS[key]   = bh.scoreLogs;
+      }
+
+      console.log('[fbLoad] ev%d → status=%s parts=%d evals=%d finalScores=%d',
+        ev, HERO_STATUS[key]??'live',
+        HERO_PARTICIPANTS.filter(p=>p.evIdx===ev).length,
+        HERO_EVALS.filter(e=>e.evIdx===ev).length,
+        HERO_FINAL_SCORES[key]?.length??0);
     });
     // ─── Load boomhero history ───
     const bhHistDocs = await Promise.all(evIndices.map(ev => fbGet('boomHeroHistory', 'ev'+ev)));
