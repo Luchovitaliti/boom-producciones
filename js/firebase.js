@@ -70,6 +70,50 @@ try {
     customChannels: ()  => fbSet('chat',        'customChannels', {items:CUSTOM_CHANNELS}),
     boomHero:           ()  => fbSet('boomhero', 'evals',        {items:HERO_EVALS}),
     heroParticipants:   ()  => fbSet('boomhero', 'participants', {items:HERO_PARTICIPANTS}),
+    // ─── Per-event BoomHero (nueva estructura) ───
+    boomHeroEv: (ev) => {
+      const key = 'ev'+ev;
+      return fbSet('boomhero', key, {
+        participants: HERO_PARTICIPANTS.filter(p=>p.evIdx===ev),
+        liveScores:   HERO_EVALS.filter(e=>e.evIdx===ev),
+        scoreLogs:    HERO_SCORE_LOGS[key]||[],
+        status:       HERO_STATUS[key]||'live',
+      });
+    },
+    boomHeroFinalize: async (ev) => {
+      const key    = 'ev'+ev;
+      const ranked = [...HERO_EVALS.filter(e=>e.evIdx===ev)].sort((a,b)=>b.totalScore-a.totalScore);
+      const top3   = ranked.slice(0,3).map((e,i) => {
+        const s    = (typeof bhCalc==='function') ? bhCalc(e) : {};
+        const logs = [];
+        [['presencia','Presencia'],['participacion','Participación'],
+         ['responsabilidad','Responsabilidad'],['performance','Performance ×2'],
+         ['actitud','Actitud'],['creatividad','Creatividad'],
+         ['impacto','Impacto'],['bonus','Bonus']].forEach(([k,l])=>{
+          if(s[k]) logs.push({type:s[k]>0?'sum':'rest', value:Math.abs(s[k]), reason:l});
+        });
+        if(s.penalizaciones) logs.push({type:'rest', value:s.penalizaciones, reason:'Penalizaciones'});
+        return { rank:i+1, userId:e.userId, userName:e.userName, totalScore:e.totalScore, logs };
+      });
+      HERO_FINAL_SCORES[key] = top3;
+      HERO_STATUS[key]       = 'finalized';
+      await fbSet('boomhero', key, {
+        participants: HERO_PARTICIPANTS.filter(p=>p.evIdx===ev),
+        liveScores:   HERO_EVALS.filter(e=>e.evIdx===ev),
+        scoreLogs:    HERO_SCORE_LOGS[key]||[],
+        finalScores:  top3,
+        status:       'finalized',
+      });
+      const evData   = EVENTOS[ev]||{};
+      const histEntry = {
+        eventId:   key,
+        eventName: evData.nombre||`Evento #${ev+1}`,
+        date:      evData.fecha||new Date().toISOString().slice(0,10),
+        top3, ts: Date.now(),
+      };
+      HERO_HISTORY = HERO_HISTORY.filter(h=>h.eventId!==key).concat(histEntry);
+      await fbSet('boomHeroHistory', key, histEntry);
+    },
     trafic:         ev => fbSet('trafic',       'ev'+ev, {
       etapas:      TRAFIC_ETAPAS.filter(e => e.evIdx === ev),
       localidades: TRAFIC_LOCALIDADES.filter(l => l.evIdx === ev),
@@ -206,6 +250,29 @@ try {
     if (padm?.items)   PERSONAS_ADM= padm.items;
     if (heroEvals?.items)  HERO_EVALS        = heroEvals.items;
     if (heroParts?.items)  HERO_PARTICIPANTS  = heroParts.items;
+
+    // ─── Load per-event boomhero docs (override legacy arrays) ───
+    const bhEvDocs = await Promise.all(evIndices.map(ev => fbGet('boomhero', 'ev'+ev)));
+    evIndices.forEach((ev, i) => {
+      const bh = bhEvDocs[i]; if (!bh) return;
+      const key = 'ev'+ev;
+      if (bh.participants?.length)
+        HERO_PARTICIPANTS = HERO_PARTICIPANTS.filter(p=>p.evIdx!==ev).concat(bh.participants.map(p=>({...p,evIdx:ev})));
+      if (bh.liveScores?.length)
+        HERO_EVALS = HERO_EVALS.filter(e=>e.evIdx!==ev).concat(bh.liveScores.map(s=>({...s,evIdx:ev})));
+      // Solo aceptar valores válidos — evitar defaults incorrectos
+      if (bh.status === 'live' || bh.status === 'finalized') HERO_STATUS[key] = bh.status;
+      if (Array.isArray(bh.finalScores) && bh.finalScores.length) HERO_FINAL_SCORES[key] = bh.finalScores;
+      if (Array.isArray(bh.scoreLogs))   HERO_SCORE_LOGS[key]   = bh.scoreLogs;
+      console.log('[fbLoad] boomhero %s → status=%s finalScores=%d parts=%d liveScores=%d',
+        key, bh.status??'none', bh.finalScores?.length??0,
+        bh.participants?.length??0, bh.liveScores?.length??0);
+    });
+    // ─── Load boomhero history ───
+    const bhHistDocs = await Promise.all(evIndices.map(ev => fbGet('boomHeroHistory', 'ev'+ev)));
+    bhHistDocs.forEach((h, i) => {
+      if (h) HERO_HISTORY = HERO_HISTORY.filter(x=>x.eventId!=='ev'+i).concat(h);
+    });
 
     // Sync ID counters to avoid collisions with loaded data
     const _maxId = (arr, field='id') => arr.reduce((m, x) => Math.max(m, x[field]||0), 0);

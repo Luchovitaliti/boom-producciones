@@ -656,17 +656,19 @@ body.chat-active .main { display:flex; flex-direction:column; overflow:hidden; }
   border-radius: 16px;
   padding: 14px 12px;
   cursor: pointer;
-  transition: transform .15s var(--ease-smooth), background .15s;
+  transition: transform .15s var(--ease-smooth), background .15s, border-color .15s, box-shadow .15s;
   -webkit-tap-highlight-color: transparent;
 }
+.hm-mod-card:hover { background: var(--glass3); border-color: rgba(149,193,31,.25); box-shadow: 0 4px 16px rgba(149,193,31,.08); }
 .hm-mod-card:active { transform: scale(.94); background: rgba(149,193,31,.08); }
 .hm-mod-locked {
   background: var(--glass2);
   border: 1px solid var(--glass-border);
   border-radius: 16px;
   padding: 14px 12px;
-  opacity: .55;
+  opacity: .45;
   cursor: default;
+  pointer-events: none;
 }
 
 /* ══ BOOM HERO — toggle pills ══ */
@@ -787,3 +789,58 @@ body.chat-active .main { display:flex; flex-direction:column; overflow:hidden; }
 /* ══ ADMIN FIN — Tabla responsive ══ */
 .adminfin-table-wrap { overflow-x: auto; }
 .adminfin-table-wrap table { min-width: 700px; }
+
+/* ══ iOS PWA — BACK BUTTON + TRANSITIONS + BOTTOM SHEETS ══ */
+
+/* Back chevron */
+.tb-back-btn {
+  width: 40px; height: 44px;
+  align-items: center; justify-content: center;
+  background: none; border: none; padding: 0;
+  color: var(--accent); cursor: pointer;
+  border-radius: 10px; flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity .1s;
+}
+.tb-back-btn:active { opacity: .4; transform: scale(.88); }
+
+/* Page slide transitions — mobile only */
+@media(max-width: 768px) {
+  @keyframes navFwd  { from { opacity:0; transform:translateX(22px);  } to { opacity:1; transform:translateX(0); } }
+  @keyframes navBack { from { opacity:0; transform:translateX(-22px); } to { opacity:1; transform:translateX(0); } }
+  #mc.nav-fwd  { animation: navFwd  .19s var(--ease-smooth) both; }
+  #mc.nav-back { animation: navBack .19s var(--ease-smooth) both; }
+
+  /* Bottom sheet modals */
+  .modal-bg { align-items: flex-end !important; padding: 0 !important; }
+  .modal {
+    max-width: 100% !important;
+    width: 100% !important;
+    border-radius: 24px 24px 0 0 !important;
+    max-height: 90vh;
+    padding-top: 1.5rem !important;
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 1rem)) !important;
+    animation: sheetUp .3s var(--ease-spring) !important;
+  }
+  /* iOS drag indicator pill */
+  .modal::before {
+    content: '';
+    display: block;
+    width: 36px; height: 4px;
+    background: rgba(255,255,255,.15);
+    border-radius: 2px;
+    margin: -8px auto 1.25rem;
+    flex-shrink: 0;
+  }
+  @keyframes sheetUp {
+    from { transform: translateY(50%); opacity: .5; }
+    to   { transform: translateY(0);   opacity: 1; }
+  }
+
+  /* Instant touch response */
+  .btn:active, .hm-mod-card:active { transition-duration: .06s !important; }
+  .btnsm { min-height: 36px; }
+
+  /* Hardware acceleration for #mc to smooth swipe */
+  #mc { will-change: transform; }
+}

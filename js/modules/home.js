@@ -113,11 +113,35 @@ function hmHtml(){
     statusBg='rgba(96,165,250,.1)';
   }
 
+  // ── Next upcoming event ──
+  const now = new Date();
+  const nextEv = EVENTOS.filter(e=>e.fecha && new Date(e.fecha+'T00:00:00') >= now)
+    .sort((a,b)=>new Date(a.fecha)-new Date(b.fecha))[0] || null;
+  let nextEvHtml = '';
+  if(nextEv){
+    const evDate   = new Date(nextEv.fecha+'T00:00:00');
+    const diffMs   = evDate - now;
+    const diffDays = Math.ceil(diffMs / 86400000);
+    const dateStr  = evDate.toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'});
+    const urgency  = diffDays<=3 ? 'rgba(248,113,113,.12)' : diffDays<=7 ? 'rgba(251,191,36,.09)' : 'rgba(149,193,31,.07)';
+    const urgencyB = diffDays<=3 ? 'rgba(248,113,113,.3)'  : diffDays<=7 ? 'rgba(251,191,36,.25)'  : 'rgba(149,193,31,.2)';
+    const urgencyC = diffDays<=3 ? 'var(--red)'            : diffDays<=7 ? 'var(--yellow)'          : 'var(--accent)';
+    nextEvHtml = `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:${urgency};border:1px solid ${urgencyB};border-radius:12px;margin-top:10px;cursor:pointer" onclick="navigate('dashboard',true)">
+      <span style="font-size:20px">📅</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600;color:${urgencyC};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nextEv.nombre}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:1px">${dateStr} · ${diffDays===0?'¡Hoy!':diffDays===1?'Mañana':`en ${diffDays} días`}</div>
+      </div>
+      <span style="font-size:11px;color:${urgencyC};font-weight:600;white-space:nowrap">${nextEv.venue||''}</span>
+    </div>`;
+  }
+
   // ── Last BOOM HERO ──
   const hero = hmLastHero();
 
   // ── Modules list ──
   const mods = ALL_PAGES.filter(p=>p!=='home'&&p!=='usuarios');
+  const activeMods = (CU?.pages||[]).filter(p=>p!=='home'&&p!=='perfil'&&p!=='usuarios');
 
   let h = '';
 
@@ -126,7 +150,7 @@ function hmHtml(){
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:1rem">
       <div>
         <div style="font-size:19px;font-weight:700;letter-spacing:-.02em;line-height:1.2">${saludo},<br>${nombre} 👋</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:3px">BOOM Producciones</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:3px">BOOM Producciones · ${activeMods.length} módulo${activeMods.length!==1?'s':''}</div>
       </div>
       ${avatarHtml(CU?.photo||CU?.photoURL, CU?.chatName||CU?.username||'?', cuIdx, 46)}
     </div>
@@ -137,12 +161,17 @@ function hmHtml(){
       <span style="font-size:13px;font-weight:600;color:${statusColor}">${statusLabel}</span>
       ${myEvals.length?`<span style="font-size:11px;color:var(--text3);margin-left:auto">${myEvals.length} evento${myEvals.length!==1?'s':''} evaluado${myEvals.length!==1?'s':''}</span>`:''}
     </div>
+    ${nextEvHtml}
   </div>`;
 
   // ── 2. Last BOOM HERO ────────────────────────────────────────
+  const hasHeroAccess = (CU?.pages||[]).includes('boomhero');
   if(hero){
-    h+=`<div class="card" style="background:linear-gradient(135deg,rgba(149,193,31,.11) 0%,transparent 65%);margin-bottom:1rem;border-color:rgba(149,193,31,.2)">
-      <div class="ctitle">🏆 Último BOOM HERO</div>
+    h+=`<div class="card" style="background:linear-gradient(135deg,rgba(149,193,31,.11) 0%,transparent 65%);margin-bottom:1rem;border-color:rgba(149,193,31,.2);${hasHeroAccess?'cursor:pointer':''}" ${hasHeroAccess?`onclick="navigate('boomhero',true)"`:''}>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="ctitle" style="margin:0">🏆 Último BOOM HERO</div>
+        ${hasHeroAccess?`<span style="font-size:11px;color:var(--accent);opacity:.7">Ver ranking →</span>`:''}
+      </div>
       <div style="display:flex;align-items:center;gap:14px">
         <div style="font-size:48px;line-height:1;filter:drop-shadow(0 0 16px rgba(149,193,31,.55))">🥇</div>
         <div>

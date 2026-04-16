@@ -91,6 +91,30 @@ function hcHtmlMain(ev){
   if(evals.length) h+=`<div style="text-align:center;margin-top:8px">
     <button class="btn btnsm" onclick="bhShowHist(${ev})">📊 Detalle completo</button>
   </div>`;
+
+  // ── Status banner + finalize button ──
+  const key         = 'ev'+ev;
+  const isFinalized = HERO_STATUS[key]==='finalized';
+
+  console.log('[HeroConfig] ev=%d key=%s status=%s parts=%d evals=%d',
+    ev, key, HERO_STATUS[key]??'undefined', parts.length, evals.length);
+
+  if(isFinalized){
+    h+=`<div style="margin-top:12px;padding:12px 14px;background:rgba(149,193,31,.07);border:1px solid rgba(149,193,31,.2);border-radius:14px;text-align:center">
+      <div style="font-size:13px;font-weight:600;color:var(--accent)">✅ Ranking publicado al equipo</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:3px">Visible en BOOM HERO</div>
+    </div>`;
+  } else if(parts.length){
+    // Mostrar botón cuando hay participantes, sin importar si hay evals o no
+    h+=`<div style="margin-top:12px">
+      <button class="btn btnp" style="width:100%;padding:13px;font-size:14px;font-weight:600" onclick="bhFinalize(${ev})">
+        🎯 MOSTRAR PUNTAJES AL TEAM
+      </button>
+      <div style="text-align:center;font-size:11px;color:var(--text3);margin-top:6px">
+        ${evals.length ? `${evals.length}/${parts.length} evaluados — ` : ''}El equipo verá el ranking en BOOM HERO
+      </div>
+    </div>`;
+  }
   return h;
 }
 
@@ -115,14 +139,19 @@ function hcConfirmAdd(){
   const maxId = HERO_PARTICIPANTS.reduce((m,p)=>Math.max(m,p.id||0),0);
   HERO_PARTICIPANTS.push({ id:maxId+1, evIdx:hcAddEv, userId:uid, userName:u.chatName||u.username });
   document.getElementById('m-hc-add').style.display='none';
-  if(window._fbOK) window.fbSave.heroParticipants?.();
+  if(window._fbOK) window.fbSave.boomHeroEv?.(hcAddEv);
   hcRender();
 }
 
 function hcRemovePart(id){
   if(!confirm('¿Quitar este participante de la lista?')) return;
   const i = HERO_PARTICIPANTS.findIndex(p=>p.id===id);
-  if(i>=0){ HERO_PARTICIPANTS.splice(i,1); if(window._fbOK) window.fbSave.heroParticipants?.(); hcRender(); }
+  if(i>=0){
+    const evIdx = HERO_PARTICIPANTS[i].evIdx;
+    HERO_PARTICIPANTS.splice(i,1);
+    if(window._fbOK) window.fbSave.boomHeroEv?.(evIdx);
+    hcRender();
+  }
 }
 
 // ── Eval Modal Logic ───────────────────────────────────────────
@@ -241,8 +270,27 @@ function bhSaveEval(){
     HERO_EVALS.push(entry);
   }
   document.getElementById('m-bh-eval').style.display='none';
-  if(window._fbOK) window.fbSave.boomHero?.();
+  if(window._fbOK) window.fbSave.boomHeroEv?.(entry.evIdx);
   hcRender();
+}
+
+// ── Finalizar evento: publicar ranking al equipo ───────────────
+async function bhFinalize(ev){
+  if(!confirm('¿Publicar el ranking final al equipo?\n\nEl equipo podrá ver los puntajes en BOOM HERO. Esta acción no se puede deshacer.')) return;
+  const key = 'ev'+ev;
+  if(window._fbOK){
+    try {
+      await window.fbSave.boomHeroFinalize(ev);
+      hcRender();
+      setTimeout(()=>alert('✅ ¡Ranking publicado! El equipo ya puede ver los puntajes en BOOM HERO.'), 80);
+    } catch(e) { alert('Error al publicar: '+e.message); }
+  } else {
+    // Offline: calcular y guardar local
+    const ranked=[...HERO_EVALS.filter(e=>e.evIdx===ev)].sort((a,b)=>b.totalScore-a.totalScore);
+    HERO_FINAL_SCORES[key]=ranked.slice(0,3).map((e,i)=>({rank:i+1,userId:e.userId,userName:e.userName,totalScore:e.totalScore,logs:[]}));
+    HERO_STATUS[key]='finalized';
+    hcRender();
+  }
 }
 
 // ── Detail / history ──────────────────────────────────────────
