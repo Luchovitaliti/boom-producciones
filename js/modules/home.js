@@ -164,9 +164,14 @@ function hmHtml(){
     ${nextEvHtml}
   </div>`;
 
-  // ── 2. Last BOOM HERO ────────────────────────────────────────
+  // ── 2. BOOM HERO card ───────────────────────────────────────
   const hasHeroAccess = (CU?.pages||[]).includes('boomhero');
+  // ¿Hay algún evento live con participantes?
+  const liveEvIdx = EVENTOS.findIndex((_,i)=>
+    HERO_STATUS['ev'+i]==='live' && HERO_PARTICIPANTS.filter(p=>p.evIdx===i).length>0
+  );
   if(hero){
+    // Evento finalizado — mostrar ganador
     h+=`<div class="card" style="background:linear-gradient(135deg,rgba(149,193,31,.11) 0%,transparent 65%);margin-bottom:1rem;border-color:rgba(149,193,31,.2);${hasHeroAccess?'cursor:pointer':''}" ${hasHeroAccess?`onclick="navigate('boomhero',true)"`:''}>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <div class="ctitle" style="margin:0">🏆 Último BOOM HERO</div>
@@ -179,6 +184,22 @@ function hmHtml(){
           <div style="font-size:11px;color:var(--text2);margin-top:3px">📅 ${hero.eventName}</div>
           <div style="font-size:11px;color:var(--text3);margin-top:2px">⚡ ${hero.totalScore} pts</div>
         </div>
+      </div>
+    </div>`;
+  } else if(liveEvIdx>=0){
+    // Evento en curso — modo misterio, sin puntajes
+    h+=`<div class="card" style="background:linear-gradient(135deg,rgba(149,193,31,.07) 0%,transparent 70%);margin-bottom:1rem;${hasHeroAccess?'cursor:pointer':''}" ${hasHeroAccess?`onclick="navigate('boomhero',true)"`:''}>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="font-size:42px;line-height:1;filter:drop-shadow(0 0 12px rgba(149,193,31,.35))">⚡</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:700;color:var(--accent)">BOOM HERO en juego</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">El ganador se revela al final del evento</div>
+          <div style="display:inline-flex;align-items:center;gap:5px;margin-top:7px;padding:3px 10px;background:rgba(149,193,31,.08);border:1px solid rgba(149,193,31,.2);border-radius:99px">
+            <span style="width:5px;height:5px;border-radius:50%;background:var(--accent);animation:bootDot 1.3s infinite ease-in-out both;display:inline-block"></span>
+            <span style="font-size:10px;color:var(--accent);font-weight:600">EN VIVO</span>
+          </div>
+        </div>
+        ${hasHeroAccess?`<span style="font-size:18px;color:var(--text3)">›</span>`:''}
       </div>
     </div>`;
   }
@@ -213,14 +234,17 @@ function hmHtml(){
 }
 
 function hmLastHero(){
-  if(!HERO_EVALS.length) return null;
+  // Solo muestra ganadores de eventos finalizados — nunca datos en vivo
   const indices = [...new Set(HERO_EVALS.map(e=>e.evIdx))].sort((a,b)=>b-a);
   for(const evIdx of indices){
-    const ranked = HERO_EVALS.filter(e=>e.evIdx===evIdx).sort((a,b)=>b.totalScore-a.totalScore);
-    if(ranked.length) return {
-      userName:  ranked[0].userName,
+    const key = 'ev'+evIdx;
+    if(HERO_STATUS[key] !== 'finalized') continue;          // ← evento en curso: ignorar
+    const fs = HERO_FINAL_SCORES[key];
+    if(fs?.length) return {                                  // ← usar finalScores congelados
+      userName:  fs[0].userName,
       eventName: EVENTOS[evIdx]?.nombre||`Evento #${evIdx+1}`,
-      totalScore:ranked[0].totalScore,
+      totalScore:fs[0].totalScore,
+      evIdx,
     };
   }
   return null;
