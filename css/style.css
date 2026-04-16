@@ -108,31 +108,31 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 
 /* ══ LAYOUT ══ */
 #app { display: none; height: 100%; flex-direction: column; overflow: hidden; }
-.topbar { background: rgba(12,14,11,.65); border-bottom: 1px solid var(--glass-border);
-  display: flex; align-items: center; padding: 0 1.5rem; gap: 1rem;
+/* ── Topbar: 3-col grid — logo | event | avatar ── */
+.topbar {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  padding: env(safe-area-inset-top, 0px) 14px 0;
+  min-height: calc(52px + env(safe-area-inset-top, 0px));
   flex-shrink: 0; z-index: 100;
-  /* Safe area: top padding pushes content below notch/DI; align-items centers in remaining 54px */
-  padding-top: env(safe-area-inset-top, 0px);
-  min-height: calc(54px + env(safe-area-inset-top, 0px));
-  backdrop-filter: blur(var(--blur-heavy)) saturate(1.4); -webkit-backdrop-filter: blur(var(--blur-heavy)) saturate(1.4);
-  box-shadow: 0 1px 0 rgba(255,255,255,.03); }
-.tbrand { display: flex; align-items: center; gap: 8px; }
-.tbrand-logo { height: 28px; width: auto; display: block; filter: drop-shadow(0 0 6px rgba(149,193,31,.3)); }
-.tbrand-text { font-size: 15px; font-weight: 700; color: var(--accent); letter-spacing: .03em; }
-.tsep { width: 1px; height: 20px; background: var(--border2); }
-.tev { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text2); }
-.tev select { background: var(--glass2); border: 1px solid var(--glass-border); color: var(--text);
-  padding: 6px 10px; border-radius: 10px; font-size: 12px; font-family: 'DM Sans', sans-serif;
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
-.tright { margin-left: auto; display: flex; align-items: center; gap: 10px; }
-.rpill { padding: 4px 12px; background: rgba(149,193,31,.1); border: 1px solid rgba(149,193,31,.2);
-  border-radius: 99px; font-size: 11px; color: var(--accent3); font-weight: 500;
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
-.logout { font-size: 12px; cursor: pointer; padding: 6px 12px; border-radius: 10px;
-  border: 1px solid var(--glass-border); background: var(--glass); color: var(--text2);
-  transition: all .2s var(--ease-smooth); -webkit-tap-highlight-color: transparent; }
-.logout:hover { border-color: var(--red); color: var(--red); background: rgba(248,113,113,.06); }
-.logout:active { transform: scale(.95); }
+  background: rgba(10,12,9,.9);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  backdrop-filter: blur(var(--blur-heavy)) saturate(1.5); -webkit-backdrop-filter: blur(var(--blur-heavy)) saturate(1.5);
+  box-shadow: 0 1px 0 rgba(255,255,255,.03);
+}
+.tb-left  { display: flex; align-items: center; }
+.tb-center { display: flex; align-items: center; justify-content: center; }
+.tb-right { display: flex; align-items: center; justify-content: flex-end; }
+.tbrand-logo { height: 26px; width: auto; display: block; filter: drop-shadow(0 0 6px rgba(149,193,31,.35)); }
+#g-ev {
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.08);
+  color: var(--text); padding: 6px 10px; border-radius: 10px;
+  font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif;
+  max-width: 180px; width: 100%;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  -webkit-appearance: none; appearance: none;
+}
 .layout { display: flex; flex: 1; min-height: 0; overflow: hidden; }
 .sidebar { width: 200px; flex-shrink: 0; background: rgba(14,18,13,.55); border-right: 1px solid var(--glass-border);
   padding: 1rem 0; height: 100%; overflow-y: auto;
@@ -518,11 +518,9 @@ body.chat-active .main { display:flex; flex-direction:column; overflow:hidden; }
   .si span { font-size: 20px; }
   .si.active { border-left: none; border-bottom-color: var(--accent); background: rgba(149,193,31,.06); }
   .main { padding: 1rem; padding-bottom: 88px; }
-  .topbar { padding: 0 1rem; gap: .75rem; height: 50px; }
+  .topbar { padding: env(safe-area-inset-top, 0px) 12px 0; grid-template-columns: 40px 1fr 40px; }
   .tbrand-logo { height: 22px; }
-  .tbrand-text { font-size: 13px; }
-  .tev span { display: none; }
-  .tev select { max-width: 115px; font-size: 11px; }
+  #g-ev { font-size: 12px; max-width: 140px; padding: 5px 8px; }
   .mg { grid-template-columns: repeat(2, 1fr); gap: 6px; }
   .card { padding: 1rem; overflow-x: auto; }
   table { min-width: 460px; }
@@ -598,15 +596,14 @@ body.chat-active .main { display:flex; flex-direction:column; overflow:hidden; }
 @media(max-width: 768px) {
   #mobile-bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
     display: flex; align-items: stretch; height: auto; overflow: visible;
-    background: linear-gradient(180deg, rgba(12,15,10,.5) 0%, rgba(7,9,6,.76) 100%);
-    border-top: 1px solid rgba(255,255,255,.13);
-    border-radius: 22px 22px 0 0;
-    backdrop-filter: blur(var(--blur-heavy)) saturate(1.9) brightness(.96);
-    -webkit-backdrop-filter: blur(var(--blur-heavy)) saturate(1.9) brightness(.96);
-    box-shadow: 0 -6px 40px rgba(0,0,0,.35),
-                0 -1px 0 rgba(255,255,255,.05),
-                inset 0 1px 0 rgba(255,255,255,.09);
-    padding-bottom: env(safe-area-inset-bottom, 8px); }
+    background: rgba(10,12,9,.92);
+    border-top: 1px solid rgba(255,255,255,.08);
+    border-radius: 0;
+    backdrop-filter: blur(var(--blur-heavy)) saturate(1.8);
+    -webkit-backdrop-filter: blur(var(--blur-heavy)) saturate(1.8);
+    box-shadow: 0 -1px 0 rgba(255,255,255,.05);
+    /* padding-bottom = safe area home indicator; never less than 0 */
+    padding-bottom: env(safe-area-inset-bottom, 0px); }
   /* Scrollable track */
   .mbn-scroll { display: flex; overflow-x: auto; scroll-snap-type: x proximity;
     -webkit-overflow-scrolling: touch; scrollbar-width: none;
@@ -683,18 +680,18 @@ body.chat-active .main { display:flex; flex-direction:column; overflow:hidden; }
 
 /* ══ SAFE AREA (iPhone notch / Dynamic Island) ══ */
 @supports(padding-top: env(safe-area-inset-top)) {
+  /* Topbar side safe areas (landscape iPhone) */
   .topbar {
-    padding-left: max(1.5rem, env(safe-area-inset-left));
-    padding-right: max(1.5rem, env(safe-area-inset-right));
+    padding-left: max(14px, env(safe-area-inset-left));
+    padding-right: max(14px, env(safe-area-inset-right));
   }
   @media(max-width: 768px) {
     .topbar {
-      padding-left: max(1rem, env(safe-area-inset-left));
-      padding-right: max(1rem, env(safe-area-inset-right));
+      padding-left: max(12px, env(safe-area-inset-left));
+      padding-right: max(12px, env(safe-area-inset-right));
     }
-    /* Bottom nav safe area already handled inline with env(safe-area-inset-bottom) */
-    /* Main area: clear bottom nav + home indicator */
-    .main { padding-bottom: max(88px, calc(60px + env(safe-area-inset-bottom, 0px))); }
+    /* Main: clear bottom nav height + home indicator */
+    .main { padding-bottom: max(72px, calc(56px + env(safe-area-inset-bottom, 0px))); }
   }
 }
 

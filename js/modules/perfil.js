@@ -40,6 +40,11 @@ function pgPerfil() {
   <div class="card"><div class="ctitle">Mis módulos</div>
     <div style="font-size:12px;color:var(--text2);margin-bottom:.5rem">Módulos a los que tenés acceso. Si necesitás más, pedíselos al Admin.</div>
     <div id="prof-mods"></div>
+  </div>
+  <div style="margin-top:8px;margin-bottom:1.5rem">
+    <button onclick="doLogout()" style="width:100%;padding:14px;background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.18);border-radius:16px;color:var(--red);font-size:15px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:-.01em;-webkit-tap-highlight-color:transparent;transition:background .15s">
+      Cerrar sesión
+    </button>
   </div>`;
 }
 
