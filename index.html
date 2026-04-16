@@ -531,6 +531,7 @@
         <button class="bh-tog" data-key="p_armado"      onclick="bhTog(this)">+8 Armado</button>
         <button class="bh-tog" data-key="p_desarmado"   onclick="bhTog(this)">+6 Desarmado</button>
         <button class="bh-tog" data-key="p_promo"       onclick="bhTog(this)">+6 Promo</button>
+        <button class="bh-tog" data-key="p_meet_org"    onclick="bhTog(this)">+5 Meet organización</button>
         <button class="bh-tog neg" data-key="p_falta"       onclick="bhTog(this)">−20 Falta s/aviso</button>
         <button class="bh-tog neg" data-key="p_falta_promo" onclick="bhTog(this)">−8 Falta promo</button>
       </div>
@@ -612,9 +613,65 @@
       </div>
     </div>
 
+    <!-- Ítems custom agregados en este eval -->
+    <div id="bh-custom-items" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.5rem"></div>
+
+    <!-- Puntaje personalizado -->
+    <div style="margin-bottom:1.5rem;padding:10px 12px;background:var(--glass2);border:1px solid var(--glass-border);border-radius:12px">
+      <div class="ctitle" style="margin-bottom:8px">✏️ Puntaje personalizado</div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <input id="bh-custom-label" type="text"   placeholder="Motivo"  style="flex:1;min-width:110px;font-size:13px">
+        <input id="bh-custom-value" type="number" placeholder="+/− pts" style="width:80px;font-size:13px">
+        <button class="btn btnsm btnp" onclick="bhAddCustom()">+ Agregar</button>
+      </div>
+    </div>
+
     <div class="mrow">
       <button class="btn btnp" style="flex:1" onclick="bhSaveEval()">💾 Guardar</button>
       <button class="btn"      style="flex:1" onclick="document.getElementById('m-bh-eval').style.display='none'">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DECO -->
+<div id="m-deco" style="display:none" class="modal-bg" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal">
+    <div class="mtitle" id="m-deco-ttl">Nuevo item</div>
+    <!-- Stock fields -->
+    <div id="deco-f-stock">
+      <div class="fc" style="margin-bottom:8px"><span class="fl">Nombre</span><input type="text" id="m-deco-name" style="width:100%" placeholder="Ej: Guirnalda LED"></div>
+      <div class="fr">
+        <div class="fc"><span class="fl">Cantidad</span><input type="number" id="m-deco-cantidad" style="width:90px" value="1" min="1"></div>
+        <div class="fc" style="flex:1"><span class="fl">Estado</span>
+          <select id="m-deco-estado" style="width:100%">
+            <option value="ok">Ok</option>
+            <option value="falta">Falta</option>
+            <option value="dañado">Dañado</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <!-- Shopping fields -->
+    <div id="deco-f-shopping" style="display:none">
+      <div class="fc" style="margin-bottom:8px"><span class="fl">Nombre</span><input type="text" id="m-deco-name-sh" style="width:100%" placeholder="Ej: Flores blancas"></div>
+      <div class="fr">
+        <div class="fc" style="flex:1"><span class="fl">Prioridad</span>
+          <select id="m-deco-prioridad" style="width:100%">
+            <option value="alta">Alta</option>
+            <option value="media">Media</option>
+            <option value="baja">Baja</option>
+          </select>
+        </div>
+        <div class="fc"><span class="fl">Precio est.</span><input type="number" id="m-deco-precio" style="width:100px" placeholder="0"></div>
+      </div>
+    </div>
+    <!-- Checklist fields -->
+    <div id="deco-f-checklist" style="display:none">
+      <div class="fc" style="margin-bottom:8px"><span class="fl">Tarea</span><input type="text" id="m-deco-text" style="width:100%" placeholder="Ej: Colocar luces en el escenario"></div>
+    </div>
+    <div class="mrow">
+      <button class="btn btnp" style="flex:1" onclick="decoSaveModal()">Guardar</button>
+      <button class="btn" style="flex:1" onclick="document.getElementById('m-deco').style.display='none'">Cancelar</button>
     </div>
   </div>
 </div>
@@ -645,6 +702,7 @@
 <script src="js/modules/recaudacion.js"></script>
 <script src="js/modules/boomhero.js"></script>
 <script src="js/modules/heroconfig.js"></script>
+<script src="js/modules/deco.js"></script>
 <script src="js/modules/dev.js"></script>
 <script src="js/modules/usuarios.js"></script>
 <script src="js/modules/perfil.js"></script>
