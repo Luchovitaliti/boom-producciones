@@ -2,11 +2,14 @@
   "name": "BOOM Producciones",
   "short_name": "BOOM",
   "description": "App interna de gestión — BOOM Producciones · Valle de Uco",
+  "id": "/",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#0c0e0b",
-  "theme_color": "#95c11f",
-  "orientation": "any",
+  "display_override": ["standalone", "fullscreen"],
+  "background_color": "#0a0c09",
+  "theme_color": "#0a0c09",
+  "orientation": "portrait-primary",
   "icons": [
     { "src": "img/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
   ]

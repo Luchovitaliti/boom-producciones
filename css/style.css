@@ -39,7 +39,8 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px;
+html { height: 100%; overflow: hidden; overscroll-behavior: none; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); height: 100%; overflow: hidden; overscroll-behavior: none; font-size: 14px;
   background-image: radial-gradient(ellipse at 20% 80%, rgba(149,193,31,.04) 0%, transparent 50%),
                     radial-gradient(ellipse at 80% 20%, rgba(124,68,196,.03) 0%, transparent 50%); }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -106,10 +107,13 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .tav:hover { opacity: .85; }
 
 /* ══ LAYOUT ══ */
-#app { display: none; min-height: 100vh; flex-direction: column; }
-.topbar { height: 54px; background: rgba(12,14,11,.65); border-bottom: 1px solid var(--glass-border);
+#app { display: none; height: 100%; flex-direction: column; overflow: hidden; }
+.topbar { background: rgba(12,14,11,.65); border-bottom: 1px solid var(--glass-border);
   display: flex; align-items: center; padding: 0 1.5rem; gap: 1rem;
-  position: sticky; top: 0; z-index: 100;
+  flex-shrink: 0; z-index: 100;
+  /* Safe area: top padding pushes content below notch/DI; align-items centers in remaining 54px */
+  padding-top: env(safe-area-inset-top, 0px);
+  min-height: calc(54px + env(safe-area-inset-top, 0px));
   backdrop-filter: blur(var(--blur-heavy)) saturate(1.4); -webkit-backdrop-filter: blur(var(--blur-heavy)) saturate(1.4);
   box-shadow: 0 1px 0 rgba(255,255,255,.03); }
 .tbrand { display: flex; align-items: center; gap: 8px; }
@@ -129,9 +133,9 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
   transition: all .2s var(--ease-smooth); -webkit-tap-highlight-color: transparent; }
 .logout:hover { border-color: var(--red); color: var(--red); background: rgba(248,113,113,.06); }
 .logout:active { transform: scale(.95); }
-.layout { display: flex; flex: 1; }
+.layout { display: flex; flex: 1; min-height: 0; overflow: hidden; }
 .sidebar { width: 200px; flex-shrink: 0; background: rgba(14,18,13,.55); border-right: 1px solid var(--glass-border);
-  padding: 1rem 0; position: sticky; top: 54px; height: calc(100vh - 54px); overflow-y: auto;
+  padding: 1rem 0; height: 100%; overflow-y: auto;
   backdrop-filter: blur(var(--blur)) saturate(1.3); -webkit-backdrop-filter: blur(var(--blur)) saturate(1.3); }
 .ss { font-size: 9px; color: var(--purple2); padding: 8px 16px 4px; text-transform: uppercase;
   letter-spacing: .1em; font-weight: 500; }
@@ -141,7 +145,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .si:hover { color: var(--text); background: var(--glass2); }
 .si.active { color: var(--accent); border-left-color: var(--accent); background: rgba(149,193,31,.1);
   box-shadow: inset 0 0 12px rgba(149,193,31,.06); }
-.main { flex: 1; overflow-y: auto; padding: 1.5rem; }
+.main { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; padding: 1.5rem; }
 
 /* ══ COMPONENTS ══ */
 .ptitle { font-size: 22px; font-weight: 700; margin-bottom: .25rem; letter-spacing: -.02em; }
@@ -568,6 +572,10 @@ body.chat-active .main { display:flex; flex-direction:column; overflow:hidden; }
   .calevt { font-size: 9px; }
   .lbox { padding: 2rem 1.5rem; }
   .logo-login-wrap img { width: 130px; }
+  /* Prevent iOS auto-zoom on input focus (requires font-size >= 16px) */
+  input:not([type="checkbox"]):not([type="radio"]), select, textarea { font-size: 16px !important; }
+  /* Tap highlight off globally on mobile */
+  * { -webkit-tap-highlight-color: transparent; }
   .bar-lbl { width: 90px; font-size: 11px; }
   .event-countdown-card { padding:1.1rem 1.25rem; border-radius:18px; }
   .dcard { min-width:140px; max-width:180px; padding:.85rem 1rem; border-radius:16px; }
@@ -673,11 +681,20 @@ body.chat-active .main { display:flex; flex-direction:column; overflow:hidden; }
 .bh-tog.on { background: rgba(149,193,31,.14); border-color: rgba(149,193,31,.35); color: var(--accent); }
 .bh-tog.neg.on { background: rgba(248,113,113,.12); border-color: rgba(248,113,113,.3); color: var(--red); }
 
-/* ══ SAFE AREA (iPhone notch/dynamic island) ══ */
+/* ══ SAFE AREA (iPhone notch / Dynamic Island) ══ */
 @supports(padding-top: env(safe-area-inset-top)) {
-  .topbar { padding-left: max(1.5rem, env(safe-area-inset-left)); padding-right: max(1.5rem, env(safe-area-inset-right)); }
+  .topbar {
+    padding-left: max(1.5rem, env(safe-area-inset-left));
+    padding-right: max(1.5rem, env(safe-area-inset-right));
+  }
   @media(max-width: 768px) {
-    .topbar { padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right)); }
+    .topbar {
+      padding-left: max(1rem, env(safe-area-inset-left));
+      padding-right: max(1rem, env(safe-area-inset-right));
+    }
+    /* Bottom nav safe area already handled inline with env(safe-area-inset-bottom) */
+    /* Main area: clear bottom nav + home indicator */
+    .main { padding-bottom: max(88px, calc(60px + env(safe-area-inset-bottom, 0px))); }
   }
 }
 
