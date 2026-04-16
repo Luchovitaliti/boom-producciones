@@ -154,16 +154,15 @@ function hcRemovePart(id){
   }
 }
 
-// ── Guarda participantes y evals por dos rutas — per-event Y legacy ──
-// La ruta legacy (boomhero/participants + boomhero/evals) es la garantizada.
-// La ruta per-event (boomhero/ev{N}) agrega status y finalScores.
+// ── Persiste en Firestore: per-event (primario) + legacy (backup) ──
 function bhSaveAll(evIdx){
-  if(!window._fbOK) return;
-  // Ruta legacy — siempre funciona (docs que ya existían)
+  if(!window._fbOK){ console.warn('[bhSaveAll] Firebase no disponible'); return; }
+  if(evIdx == null || isNaN(Number(evIdx))){ console.error('[bhSaveAll] evIdx inválido:', evIdx); return; }
+  // Per-event: fuente primaria — objetos por userId, merge seguro
+  window.fbSave.boomHeroEv(evIdx);
+  // Legacy: backup para compatibilidad con carga anterior
   window.fbSave.heroParticipants();
   window.fbSave.boomHero();
-  // Ruta per-event — agrega status/finalScores por evento
-  window.fbSave.boomHeroEv(evIdx);
 }
 
 // ── Eval Modal Logic ───────────────────────────────────────────

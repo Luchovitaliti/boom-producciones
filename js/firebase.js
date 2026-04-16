@@ -70,15 +70,28 @@ try {
     customChannels: ()  => fbSet('chat',        'customChannels', {items:CUSTOM_CHANNELS}),
     boomHero:           ()  => fbSet('boomhero', 'evals',        {items:HERO_EVALS}),
     heroParticipants:   ()  => fbSet('boomhero', 'participants', {items:HERO_PARTICIPANTS}),
-    // ─── Per-event BoomHero (nueva estructura) ───
+    // ─── Per-event BoomHero — objetos keyed por userId ───
+    // Los objetos se mergean correctamente en Firestore (no se reemplazan como los arrays).
     boomHeroEv: (ev) => {
+      if (ev == null || isNaN(Number(ev))) {
+        console.error('[boomHeroEv] evIdx inválido:', ev); return Promise.resolve();
+      }
       const key = 'ev'+ev;
-      return fbSet('boomhero', key, {
-        participants: HERO_PARTICIPANTS.filter(p=>p.evIdx===ev),
-        liveScores:   HERO_EVALS.filter(e=>e.evIdx===ev),
-        scoreLogs:    HERO_SCORE_LOGS[key]||[],
+      // Convertir arrays → objetos keyed por userId
+      const partsObj  = {};
+      HERO_PARTICIPANTS.filter(p=>p.evIdx===ev).forEach(p=>{ partsObj[String(p.userId)] = p; });
+      const scoresObj = {};
+      HERO_EVALS.filter(e=>e.evIdx===ev).forEach(e=>{ scoresObj[String(e.userId)] = e; });
+      console.log('[boomHeroEv] guardando ev%d | parts=%d scores=%d',
+        ev, Object.keys(partsObj).length, Object.keys(scoresObj).length);
+      return _db.collection('boomhero').doc(key).set({
+        participants: partsObj,
+        liveScores:   scoresObj,
         status:       HERO_STATUS[key]||'live',
-      });
+        updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
+      }, { merge: true })
+        .then(()=>console.log('[boomHeroEv] ✓ guardado en boomhero/'+key))
+        .catch(e=>console.error('[boomHeroEv] ERROR boomhero/'+key+':', e.code, e.message));
     },
     boomHeroFinalize: async (ev) => {
       const key    = 'ev'+ev;
@@ -97,13 +110,17 @@ try {
       });
       HERO_FINAL_SCORES[key] = top3;
       HERO_STATUS[key]       = 'finalized';
-      await fbSet('boomhero', key, {
-        participants: HERO_PARTICIPANTS.filter(p=>p.evIdx===ev),
-        liveScores:   HERO_EVALS.filter(e=>e.evIdx===ev),
-        scoreLogs:    HERO_SCORE_LOGS[key]||[],
+      const partsObj  = {};
+      HERO_PARTICIPANTS.filter(p=>p.evIdx===ev).forEach(p=>{ partsObj[String(p.userId)] = p; });
+      const scoresObj = {};
+      HERO_EVALS.filter(e=>e.evIdx===ev).forEach(e=>{ scoresObj[String(e.userId)] = e; });
+      await _db.collection('boomhero').doc(key).set({
+        participants: partsObj,
+        liveScores:   scoresObj,
         finalScores:  top3,
         status:       'finalized',
-      });
+        updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
+      }, { merge: true });
       const evData   = EVENTOS[ev]||{};
       const histEntry = {
         eventId:   key,
@@ -251,34 +268,46 @@ try {
     if (heroEvals?.items)  HERO_EVALS        = heroEvals.items;
     if (heroParts?.items)  HERO_PARTICIPANTS  = heroParts.items;
 
-    // ─── Load per-event boomhero docs ───
-    // Estos docs tienen SOLO status y finalScores. Participants y liveScores
-    // vienen del legacy (boomhero/participants y boomhero/evals) que ya fueron
-    // cargados arriba — son la fuente garantizada.
+    // ─── Load per-event boomhero docs (fuente primaria) ───
+    // Formato nuevo: participants y liveScores son objetos keyed por userId.
+    // Fallback: arrays (formato viejo), o docs legacy boomhero/participants+evals.
     const bhEvDocs = await Promise.all(evIndices.map(ev => fbGet('boomhero', 'ev'+ev)));
     evIndices.forEach((ev, i) => {
       const bh  = bhEvDocs[i];
       const key = 'ev'+ev;
 
       if (bh) {
-        // Solo sobreescribir participants/liveScores si el per-event doc los tiene
-        // y si son más recientes que el legacy (tienen más entradas).
-        const legacyParts  = HERO_PARTICIPANTS.filter(p=>p.evIdx===ev).length;
-        const legacyEvals  = HERO_EVALS.filter(e=>e.evIdx===ev).length;
-        if ((bh.participants?.length||0) > legacyParts)
+        // ── participants ──
+        if (bh.participants && !Array.isArray(bh.participants)) {
+          // Formato nuevo: objeto { userId: {...} }
+          const fromDoc = Object.values(bh.participants).map(p=>({...p, evIdx:ev}));
+          if (fromDoc.length > 0)
+            HERO_PARTICIPANTS = HERO_PARTICIPANTS.filter(p=>p.evIdx!==ev).concat(fromDoc);
+        } else if (Array.isArray(bh.participants) && bh.participants.length) {
+          // Formato viejo: array
           HERO_PARTICIPANTS = HERO_PARTICIPANTS.filter(p=>p.evIdx!==ev)
-            .concat(bh.participants.map(p=>({...p,evIdx:ev})));
-        if ((bh.liveScores?.length||0) > legacyEvals)
+            .concat(bh.participants.map(p=>({...p, evIdx:ev})));
+        }
+
+        // ── liveScores ──
+        if (bh.liveScores && !Array.isArray(bh.liveScores)) {
+          // Formato nuevo: objeto { userId: evalObj }
+          const fromDoc = Object.values(bh.liveScores).map(s=>({...s, evIdx:ev}));
+          if (fromDoc.length > 0)
+            HERO_EVALS = HERO_EVALS.filter(e=>e.evIdx!==ev).concat(fromDoc);
+        } else if (Array.isArray(bh.liveScores) && bh.liveScores.length) {
+          // Formato viejo: array
           HERO_EVALS = HERO_EVALS.filter(e=>e.evIdx!==ev)
-            .concat(bh.liveScores.map(s=>({...s,evIdx:ev})));
-        // Status y finalScores — solo en per-event doc
+            .concat(bh.liveScores.map(s=>({...s, evIdx:ev})));
+        }
+
+        // ── status y finalScores ──
         if (bh.status === 'live' || bh.status === 'finalized') HERO_STATUS[key] = bh.status;
         if (Array.isArray(bh.finalScores) && bh.finalScores.length) HERO_FINAL_SCORES[key] = bh.finalScores;
-        if (Array.isArray(bh.scoreLogs))   HERO_SCORE_LOGS[key]   = bh.scoreLogs;
       }
 
-      console.log('[fbLoad] ev%d → status=%s parts=%d evals=%d finalScores=%d',
-        ev, HERO_STATUS[key]??'live',
+      console.log('[fbLoad] boomhero/ev%d → status=%s parts=%d evals=%d finalScores=%d',
+        ev, HERO_STATUS[key]??'(sin doc)',
         HERO_PARTICIPANTS.filter(p=>p.evIdx===ev).length,
         HERO_EVALS.filter(e=>e.evIdx===ev).length,
         HERO_FINAL_SCORES[key]?.length??0);
