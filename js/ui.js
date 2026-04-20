@@ -118,6 +118,7 @@ function renderPage(p){
     else if(p==='heroconfig'){mc.innerHTML=pgHeroConfig();initHeroConfig();}
     else if(p==='dashboard')mc.innerHTML=pgDash();
     else if(p==='barra'){mc.innerHTML=pgBarra();initBarra();}
+    else if(p==='deco'){mc.innerHTML=pgDeco();initDeco();}
     else if(p==='adminfin'){mc.innerHTML=pgAdminFin();initAdminFin();}
     else if(p==='recaudacion'){mc.innerHTML=pgRecaudacion();initRecaudacion();}
     else if(p==='liderpub'){mc.innerHTML=pgLiderPub();initLider();}

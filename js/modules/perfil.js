@@ -37,6 +37,10 @@ function pgPerfil() {
     <button class="btn" onclick="savePassword()">Cambiar contraseña</button>
     <div id="prof-pass-msg" style="font-size:12px;margin-top:8px"></div>
   </div>
+  <div class="card">
+    <div class="ctitle">🏅 Mis medallas</div>
+    <div id="prof-medals" style="display:flex;gap:0;padding:4px 0"></div>
+  </div>
   <div class="card"><div class="ctitle">Mis módulos</div>
     <div style="font-size:12px;color:var(--text2);margin-bottom:.5rem">Módulos a los que tenés acceso. Si necesitás más, pedíselos al Admin.</div>
     <div id="prof-mods"></div>
@@ -71,6 +75,20 @@ function initPerfil() {
   document.getElementById('prof-tel').value = u.telefono || '';
   document.getElementById('prof-email').value = u.email || '';
   document.getElementById('prof-bio').value = u.bio || '';
+  // Medallas
+  const medals = u.medals || { hero:0, warrior:0, player:0 };
+  const medalDefs = [
+    { icon:'🥇', count:medals.hero||0,    label:'BOOM HERO',    col:'var(--accent)' },
+    { icon:'🥈', count:medals.warrior||0, label:'BOOM WARRIOR', col:'#a8b8a0' },
+    { icon:'🥉', count:medals.player||0,  label:'BOOM PLAYER',  col:'#c07840' },
+  ];
+  document.getElementById('prof-medals').innerHTML = medalDefs.map(m=>`
+    <div style="flex:1;text-align:center;padding:8px 4px">
+      <div style="font-size:38px;margin-bottom:6px;${m.count>0?'filter:drop-shadow(0 0 10px '+m.col+'55)':'filter:grayscale(.7);opacity:.5'}">${m.icon}</div>
+      <div style="font-size:24px;font-weight:700;color:${m.count>0?m.col:'var(--text3)'};line-height:1">${m.count}</div>
+      <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:4px">${m.label}</div>
+    </div>`).join('');
+
   document.getElementById('prof-mods').innerHTML = u.pages.filter(p => p !== 'perfil').map(p =>
     `<span class="mod-tag">${PAGE_ICONS[p]} ${PAGE_LABELS[p] || p}</span>`
   ).join('');

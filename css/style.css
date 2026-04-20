@@ -844,3 +844,23 @@ body.chat-active .main { display:flex; flex-direction:column; overflow:hidden; }
   /* Hardware acceleration for #mc to smooth swipe */
   #mc { will-change: transform; }
 }
+
+/* ══ BOOM HERO FIRE EFFECT ══ */
+@keyframes bhFire {
+  0%,100% { opacity:.75; transform:scaleX(1); }
+  33%     { opacity:.95; transform:scaleX(1.015); }
+  66%     { opacity:.55; transform:scaleX(.985); }
+}
+#bh-hero-fire {
+  position:fixed;
+  bottom:0; left:0; right:0;
+  height:80px;
+  pointer-events:none;
+  z-index:0;
+  background:linear-gradient(to top,
+    rgba(149,193,31,.20) 0%,
+    rgba(149,193,31,.08) 45%,
+    transparent 100%);
+  filter:blur(10px);
+  animation:bhFire 3.2s ease-in-out infinite;
+}

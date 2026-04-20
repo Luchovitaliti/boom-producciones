@@ -1,4 +1,4 @@
-const CACHE = 'boom-v2';
+const CACHE = 'boom-v4';
 const PRECACHE = [
   '/', '/index.html', '/css/style.css',
   '/js/data.js', '/js/helpers.js', '/js/auth.js',
@@ -18,6 +18,7 @@ const PRECACHE = [
   '/js/modules/recaudacion.js',
   '/js/modules/boomhero.js',
   '/js/modules/heroconfig.js',
+  '/js/modules/deco.js',
   '/js/modules/dev.js',
   '/js/modules/usuarios.js',
   '/js/modules/perfil.js',

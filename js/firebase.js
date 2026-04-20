@@ -21,6 +21,7 @@ try {
     try { const d = await _db.collection(col).doc(id).get(); return d.exists ? d.data() : null; }
     catch(e) { return null; }
   }
+  window.fbGet = fbGet;
   function fbListen(col, id, cb) {
     return _db.collection(col).doc(id).onSnapshot(s => { if (s.exists) cb(s.data()); });
   }
@@ -70,6 +71,7 @@ try {
     customChannels: ()  => fbSet('chat',        'customChannels', {items:CUSTOM_CHANNELS}),
     boomHero:           ()  => fbSet('boomhero', 'evals',        {items:HERO_EVALS}),
     heroParticipants:   ()  => fbSet('boomhero', 'participants', {items:HERO_PARTICIPANTS}),
+    bhConfig:           ()  => fbSet('boomHeroConfig', 'default', BH_CONFIG),
     // ─── Per-event BoomHero — objetos keyed por userId ───
     // Los objetos se mergean correctamente en Firestore (no se reemplazan como los arrays).
     boomHeroEv: (ev) => {
@@ -130,6 +132,22 @@ try {
       };
       HERO_HISTORY = HERO_HISTORY.filter(h=>h.eventId!==key).concat(histEntry);
       await fbSet('boomHeroHistory', key, histEntry);
+
+      // ── Actualizar medallas de los ganadores ──
+      const medalTypes=['hero','warrior','player'];
+      await Promise.all(top3.map(async(entry,i)=>{
+        const u=USERS.find(u=>(u.uid||u.username)===entry.userId);
+        if(!u||!u.uid) return;
+        if(!u.medals) u.medals={hero:0,warrior:0,player:0};
+        const mk=medalTypes[i];
+        u.medals[mk]=(u.medals[mk]||0)+1;
+        if(CU&&(CU.uid||CU.username)===entry.userId){
+          if(!CU.medals) CU.medals={hero:0,warrior:0,player:0};
+          CU.medals[mk]=u.medals[mk];
+        }
+        try{ await _db.collection('users').doc(u.uid).update({medals:u.medals}); }
+        catch(e){ console.warn('[medals] Error actualizando medalla:',e.message); }
+      }));
     },
     trafic:         ev => fbSet('trafic',       'ev'+ev, {
       etapas:      TRAFIC_ETAPAS.filter(e => e.evIdx === ev),
@@ -151,6 +169,7 @@ try {
       });
       return batch.commit();
     },
+    deco: ev => fbSet('deco', 'ev'+ev, DECO_DATA[ev]||{stock:[],shopping:[],budget:{total:0,gastado:0},checklist:[]}),
     // Send a single chat message to subcollection
     chatMsg: (ch, msg) => {
       return _db.collection('chatChannels').doc(ch).collection('messages').add({
@@ -194,8 +213,9 @@ try {
       benefResults,
       traficResults,
       recResults,
+      decoResults,
       posts, tasks, ideas, pub, prov, notas, clasifCfg, gadm, padm,
-      customChs, heroEvals, heroParts,
+      customChs, heroEvals, heroParts, bhConfigDoc,
     ] = await Promise.all([
       // Event-indexed: batch each type
       Promise.all(evIndices.map(ev => fbGet('stock', 'ev'+ev))),
@@ -207,6 +227,7 @@ try {
       Promise.all(evIndices.map(ev => fbGet('beneficios', 'ev'+ev))),
       Promise.all(evIndices.map(ev => fbGet('trafic', 'ev'+ev))),
       Promise.all(evIndices.map(ev => fbGet('recaudacion', 'ev'+ev))),
+      Promise.all(evIndices.map(ev => fbGet('deco', 'ev'+ev))),
       // Singletons
       fbGet('cm', 'posts'),
       fbGet('cm', 'tasks'),
@@ -220,6 +241,7 @@ try {
       fbGet('chat', 'customChannels'),
       fbGet('boomhero', 'evals'),
       fbGet('boomhero', 'participants'),
+      fbGet('boomHeroConfig', 'default'),
     ]);
 
     // Apply event-indexed results
@@ -249,6 +271,9 @@ try {
         if (rd.cajas) CAJAS_REC = CAJAS_REC.filter(c => c.evIdx !== ev).concat(rd.cajas);
         if (rd.lotes) LOTES_REC = LOTES_REC.filter(l => l.evIdx !== ev).concat(rd.lotes);
       }
+
+      if (decoResults[ev]) DECO_DATA[ev] = decoResults[ev];
+      else if (!DECO_DATA[ev]) DECO_DATA[ev] = {stock:[],shopping:[],budget:{total:0,gastado:0},checklist:[]};
     });
 
     // Apply singletons
@@ -267,6 +292,8 @@ try {
     if (padm?.items)   PERSONAS_ADM= padm.items;
     if (heroEvals?.items)  HERO_EVALS        = heroEvals.items;
     if (heroParts?.items)  HERO_PARTICIPANTS  = heroParts.items;
+    // BH_CONFIG: si hay config guardada en Firestore, la usa; si no, queda el default de data.js
+    if (bhConfigDoc?.categories?.length) BH_CONFIG = bhConfigDoc;
 
     // ─── Load per-event boomhero docs (fuente primaria) ───
     // Formato nuevo: participants y liveScores son objetos keyed por userId.
@@ -370,6 +397,13 @@ try {
 
     syncTopbarEventos();
     if (typeof syncChatEventChannels === 'function') syncChatEventChannels();
+    // Efecto visual BOOM HERO (fire + confetti)
+    if(typeof checkBoomHeroFire==='function') checkBoomHeroFire();
+    if(typeof boomConfetti==='function'){
+      Object.keys(HERO_STATUS).forEach(k=>{
+        if(HERO_STATUS[k]==='finalized') boomConfetti(k);
+      });
+    }
     console.log('Firebase OK ✓');
   };
 
@@ -392,6 +426,7 @@ try {
           telefono: data.telefono || '',
           email: data.email || '',
           pages: data.pages || ['perfil'],
+          medals: data.medals || { hero:0, warrior:0, player:0 },
           active: data.active !== false,
           createdAt: data.createdAt || '',
         };
