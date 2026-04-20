@@ -40,10 +40,11 @@ let NOTAS_MOD=[];     // {id, modulo, texto, user, ts}
 let DECO_DATA=[];  // DECO_DATA[evIdx] = {stock:[],shopping:[],budget:{total:0,gastado:0},checklist:[]}
 let HERO_EVALS=[];         // {id, evIdx, userId, userName, p_ev..pen_falta, perf_base, totalScore, scores..., ts}
 let HERO_PARTICIPANTS=[];  // {id, evIdx, userId, userName}
-let HERO_STATUS={};        // { 'ev0': 'live'|'finalized', ... }
-let HERO_FINAL_SCORES={};  // { 'ev0': [{rank,userId,userName,totalScore,logs}] }
-let HERO_SCORE_LOGS={};    // { 'ev0': [{userId,userName,value,reason,ts}] }
-let HERO_HISTORY=[];       // [{eventId,eventName,date,top3,ts}]
+let HERO_STATUS={};          // { 'ev0': 'live'|'finalized', ... }
+let HERO_FINAL_SCORES={};    // { 'ev0': [{rank,userId,userName,totalScore,logs}] }
+let HERO_FINALIZED_AT={};    // { 'ev0': timestamp } — cuándo se publicó el ranking
+let HERO_SCORE_LOGS={};      // { 'ev0': [{userId,userName,value,reason,ts}] }
+let HERO_HISTORY=[];         // [{eventId,eventName,date,top3,ts}]
 
 // ── Config dinámica de puntajes BOOM HERO ──
 // Se carga desde Firestore boomHeroConfig/default — editable desde el admin

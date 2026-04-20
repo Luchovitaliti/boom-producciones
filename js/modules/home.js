@@ -234,11 +234,11 @@ function hmHtml(){
 }
 
 function hmLastHero(){
-  // Evento más reciente con status = "finalized" — ordenado por fecha desc
+  // Solo eventos con finalizedAt (timestamp de publicación del ranking)
   const finalized = EVENTOS
     .map((ev,i)=>({ ev, i, key:'ev'+i }))
-    .filter(({key})=> HERO_STATUS[key]==='finalized' && HERO_FINAL_SCORES[key]?.length)
-    .sort((a,b)=>(b.ev.fecha||'').localeCompare(a.ev.fecha||''));
+    .filter(({key})=> HERO_STATUS[key]==='finalized' && HERO_FINAL_SCORES[key]?.length && HERO_FINALIZED_AT[key])
+    .sort((a,b)=> HERO_FINALIZED_AT[b.key] - HERO_FINALIZED_AT[a.key]); // DESC
   if(!finalized.length) return null;
   const {ev,i,key} = finalized[0];
   const fs = HERO_FINAL_SCORES[key];

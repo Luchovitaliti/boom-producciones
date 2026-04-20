@@ -110,7 +110,9 @@ try {
         if(s.penalizaciones) logs.push({type:'rest', value:s.penalizaciones, reason:'Penalizaciones'});
         return { rank:i+1, userId:e.userId, userName:e.userName, totalScore:e.totalScore, logs };
       });
+      const finalizedAt      = Date.now();
       HERO_FINAL_SCORES[key] = top3;
+      HERO_FINALIZED_AT[key] = finalizedAt;
       HERO_STATUS[key]       = 'finalized';
       const partsObj  = {};
       HERO_PARTICIPANTS.filter(p=>p.evIdx===ev).forEach(p=>{ partsObj[String(p.userId)] = p; });
@@ -121,6 +123,7 @@ try {
         liveScores:   scoresObj,
         finalScores:  top3,
         status:       'finalized',
+        finalizedAt,
         updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
       }, { merge: true });
       const evData   = EVENTOS[ev]||{};
@@ -328,9 +331,10 @@ try {
             .concat(bh.liveScores.map(s=>({...s, evIdx:ev})));
         }
 
-        // ── status y finalScores ──
+        // ── status, finalScores y finalizedAt ──
         if (bh.status === 'live' || bh.status === 'finalized') HERO_STATUS[key] = bh.status;
         if (Array.isArray(bh.finalScores) && bh.finalScores.length) HERO_FINAL_SCORES[key] = bh.finalScores;
+        if (bh.finalizedAt) HERO_FINALIZED_AT[key] = bh.finalizedAt;
       }
 
       console.log('[fbLoad] boomhero/ev%d → status=%s parts=%d evals=%d finalScores=%d',
@@ -397,12 +401,10 @@ try {
 
     syncTopbarEventos();
     if (typeof syncChatEventChannels === 'function') syncChatEventChannels();
-    // Efecto visual BOOM HERO (fire + confetti)
+    // Efecto visual BOOM HERO — solo el evento más reciente
     if(typeof checkBoomHeroFire==='function') checkBoomHeroFire();
-    if(typeof boomConfetti==='function'){
-      Object.keys(HERO_STATUS).forEach(k=>{
-        if(HERO_STATUS[k]==='finalized') boomConfetti(k);
-      });
+    if(typeof boomConfetti==='function' && typeof hmLastHero==='function'){
+      const _h=hmLastHero(); if(_h) boomConfetti('ev'+_h.evIdx);
     }
     console.log('Firebase OK ✓');
   };

@@ -18,11 +18,10 @@ function initBoomHero(){
 
   el.innerHTML = bhpHtml(ev);
 
-  // Efectos visuales para el héroe actual
+  // Efectos visuales — solo para el evento más recientemente finalizado
   checkBoomHeroFire();
-  Object.keys(HERO_STATUS).forEach(k=>{
-    if(HERO_STATUS[k]==='finalized') boomConfetti(k);
-  });
+  const _latestHero=hmLastHero();
+  if(_latestHero && typeof boomConfetti==='function') boomConfetti('ev'+_latestHero.evIdx);
 }
 
 // ── Vista de evento actual ─────────────────────────────────────
@@ -80,7 +79,7 @@ function bhpHtml(ev){
           <div style="font-size:${isFirst?'46px':'32px'};margin-bottom:4px">${medals[i]}</div>
           <div style="font-size:${isFirst?'13px':'11px'};font-weight:700;color:${col};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.userName||'—'}</div>
           <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin:3px 0 6px">${titles[i]}</div>
-          <div style="background:${col}20;border:1px solid ${col}40;border-radius:10px;padding:5px 0;font-size:16px;font-weight:700;color:${col};filter:blur(5px);user-select:none">???</div>
+          <div style="background:${col}20;border:1px solid ${col}40;border-radius:10px;padding:5px 0;font-size:14px;font-weight:700;color:${col};opacity:.5;letter-spacing:.1em">???</div>
         </div>`;
       });
       h+=`</div>`;
@@ -328,31 +327,30 @@ function bhHistDetail(evIdx){
   bhPasilloDetail('ev'+evIdx);
 }
 
-// ── Efecto fuego para el BOOM HERO actual ─────────────────────
+// ── Efecto fuego — SOLO para el BOOM HERO del evento más reciente ──
 function checkBoomHeroFire(){
   const uid=CU?.uid||CU?.username; if(!uid) return;
-  let isHero=false;
-  Object.entries(HERO_STATUS).forEach(([key,st])=>{
-    if(st==='finalized' && HERO_FINAL_SCORES[key]?.[0]?.userId===uid) isHero=true;
-  });
+  const hero=hmLastHero(); // evento más reciente finalizado
+  const isHero=hero!==null && HERO_FINAL_SCORES['ev'+hero.evIdx]?.[0]?.userId===uid;
   let el=document.getElementById('bh-hero-fire');
   if(isHero && !el){
-    el=document.createElement('div');
-    el.id='bh-hero-fire';
-    document.body.appendChild(el);
+    el=document.createElement('div'); el.id='bh-hero-fire'; document.body.appendChild(el);
   } else if(!isHero && el){
     el.remove();
   }
 }
 
-// ── Confetti BOOM: solo cuando el usuario es nuevo HERO ───────
+// ── Confetti BOOM ─────────────────────────────────────────────
+// Dispara SOLO la primera vez que el usuario pasa a ser HERO.
+// Usa finalizedAt para no disparar en recargas por eventos viejos.
 function boomConfetti(eventKey){
   if(typeof confetti!=='function') return;
   const uid=CU?.uid||CU?.username; if(!uid) return;
-  const storageKey=`confetti_seen_${eventKey}_${uid}`;
-  if(localStorage.getItem(storageKey)) return;
   const scores=HERO_FINAL_SCORES[eventKey];
   if(!scores?.[0] || scores[0].userId!==uid) return;
+
+  const storageKey=`confetti_seen_${eventKey}_${uid}`;
+  if(localStorage.getItem(storageKey)) return; // ya disparado: una sola vez por usuario/evento
   localStorage.setItem(storageKey,'1');
 
   const colors=['#AFFF00','#ffffff','#0a0c09'];
