@@ -91,8 +91,8 @@ function bhpHtml(ev){
       parts.slice(top3m.length).forEach((p,i)=>{
         const u=USERS.find(u=>(u.uid||u.username)===p.userId);
         h+=`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.03)">
-          ${avatarHtml(u?.photo||u?.photoURL||'',p.userName||'?',i,30)}
-          <div style="flex:1;font-size:13px;font-weight:500">${p.userName}</div>
+          ${avatarHtml(u?.photo||u?.photoURL||'',p.userName||'?',i,30,p.userId)}
+          <div style="flex:1;font-size:13px;font-weight:500;${p.userId?'cursor:pointer':''}" ${p.userId?`onclick="viewProfile('${p.userId}')"`:''}>${p.userName}</div>
           <div style="font-size:20px">❓</div>
         </div>`;
       });
@@ -127,7 +127,7 @@ function bhpHtml(ev){
     const r=top3Data[i]; const col=cols[i]; const isFirst=i===0;
     h+=`<div style="flex:1;max-width:120px;text-align:center">
       <div style="font-size:${isFirst?'50px':'36px'};margin-bottom:4px;${isFirst?'filter:drop-shadow(0 0 14px rgba(149,193,31,.45))':''}">${medals[i]}</div>
-      <div style="font-size:${isFirst?'14px':'12px'};font-weight:700;color:${col};margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.userName||'—'}</div>
+      <div style="font-size:${isFirst?'14px':'12px'};font-weight:700;color:${col};margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${r.userId?'cursor:pointer':''}" ${r.userId?`onclick="viewProfile('${r.userId}')"`:''}>${r.userName||'—'}</div>
       <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">${titles[i]}</div>
       <div style="background:${col}22;border:1px solid ${col}44;border-radius:12px;padding:6px 0;font-size:${isFirst?'22px':'18px'};font-weight:700;color:${col};box-shadow:0 2px 14px ${col}20">${r.totalScore}</div>
     </div>`;
@@ -183,7 +183,7 @@ function bhShowAllRanking(ev){
       const sc=r.totalScore>=50?'var(--accent)':r.totalScore>=0?'var(--text)':'var(--red)';
       h+=`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)">
         <div style="width:26px;text-align:center;font-size:${i<3?'20px':'13px'}">${i<3?medals[i]:(i+1)+'.'}</div>
-        ${avatarHtml('',r.userName||'?',i,30)}
+        ${avatarHtml('',r.userName||'?',i,30,r.userId)}
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:500">${r.userName||'—'}</div>
           ${i<3?`<div style="font-size:10px;color:${col};text-transform:uppercase;letter-spacing:.04em">${['BOOM HERO','BOOM WARRIOR','BOOM PLAYER'][i]}</div>`:''}

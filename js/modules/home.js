@@ -180,7 +180,7 @@ function hmHtml(){
       <div style="display:flex;align-items:center;gap:14px">
         <div style="font-size:48px;line-height:1;filter:drop-shadow(0 0 16px rgba(149,193,31,.55))">🥇</div>
         <div>
-          <div style="font-size:17px;font-weight:700;color:var(--accent);letter-spacing:-.01em">${hero.userName}</div>
+          <div style="font-size:17px;font-weight:700;color:var(--accent);letter-spacing:-.01em;${hero.userId?'cursor:pointer':''}" ${hero.userId?`onclick="viewProfile('${hero.userId}')"`:''}>${hero.userName}</div>
           <div style="font-size:11px;color:var(--text2);margin-top:3px">📅 ${hero.eventName}</div>
           <div style="font-size:11px;color:var(--text3);margin-top:2px">⚡ ${hero.totalScore} pts</div>
         </div>
@@ -244,6 +244,7 @@ function hmLastHero(){
   const fs = HERO_FINAL_SCORES[key];
   return {
     userName:  fs[0].userName,
+    userId:    fs[0].userId,
     eventName: ev.nombre||`Evento #${i+1}`,
     totalScore:fs[0].totalScore,
     evIdx: i,

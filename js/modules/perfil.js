@@ -1,7 +1,38 @@
 // ═══════════════════════════════════════════════════════════
 // PERFIL DE USUARIO
 // ═══════════════════════════════════════════════════════════
+
+let _peekUid = null;
+let _prevPage = null;
+
+function viewProfile(uid) {
+  const myUid = CU?.uid || CU?.username;
+  if (!uid || uid === myUid) { navigate('perfil', true); return; }
+  _prevPage = curPage;
+  _peekUid = uid;
+  navigate('perfil', true);
+}
+
 function pgPerfil() {
+  return `<div id="prof-wrap"></div>`;
+}
+
+function initPerfil() {
+  const el = document.getElementById('prof-wrap'); if (!el) return;
+  if (_peekUid) {
+    const uid = _peekUid;
+    _peekUid = null;
+    const u = USERS.find(u => (u.uid || u.username) === uid);
+    if (!u) { el.innerHTML = `<div class="card"><div class="empty">Usuario no encontrado.</div></div>`; return; }
+    el.innerHTML = _viewProfileHtml(u);
+  } else {
+    el.innerHTML = _ownProfileHtml();
+    _initOwnProfile(CU);
+  }
+}
+
+// ── Own profile ────────────────────────────────────────────
+function _ownProfileHtml() {
   return `<div class="ptitle">👤 Mi perfil</div><div class="psub">Tus datos personales y configuración</div>
   <div class="card"><div class="profile-header">
     <div class="upload-av" onclick="document.getElementById('prof-file').click()">
@@ -52,8 +83,7 @@ function pgPerfil() {
   </div>`;
 }
 
-function initPerfil() {
-  const u = CU;
+function _initOwnProfile(u) {
   const col = AVC[USERS.indexOf(u) % 8];
   const el = document.getElementById('prof-av-preview');
   const photoSrc = u.photoURL || u.photo;
@@ -75,7 +105,6 @@ function initPerfil() {
   document.getElementById('prof-tel').value = u.telefono || '';
   document.getElementById('prof-email').value = u.email || '';
   document.getElementById('prof-bio').value = u.bio || '';
-  // Medallas
   const medals = u.medals || { hero:0, warrior:0, player:0 };
   const medalDefs = [
     { icon:'🥇', count:medals.hero||0,    label:'BOOM HERO',    col:'var(--accent)' },
@@ -88,10 +117,50 @@ function initPerfil() {
       <div style="font-size:24px;font-weight:700;color:${m.count>0?m.col:'var(--text3)'};line-height:1">${m.count}</div>
       <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:4px">${m.label}</div>
     </div>`).join('');
-
   document.getElementById('prof-mods').innerHTML = u.pages.filter(p => p !== 'perfil').map(p =>
     `<span class="mod-tag">${PAGE_ICONS[p]} ${PAGE_LABELS[p] || p}</span>`
   ).join('');
+}
+
+// ── Read-only profile (otro usuario) ──────────────────────
+function _viewProfileHtml(u) {
+  const uIdx = USERS.indexOf(u);
+  const col = AVC[uIdx % 8];
+  const medals = u.medals || { hero:0, warrior:0, player:0 };
+  const medalDefs = [
+    { icon:'🥇', count:medals.hero||0,    label:'BOOM HERO',    col:'var(--accent)' },
+    { icon:'🥈', count:medals.warrior||0, label:'BOOM WARRIOR', col:'#a8b8a0' },
+    { icon:'🥉', count:medals.player||0,  label:'BOOM PLAYER',  col:'#c07840' },
+  ];
+  const photoSrc = u.photoURL || u.photo;
+  const avHtml = photoSrc
+    ? `<div style="width:72px;height:72px;border-radius:50%;overflow:hidden;border:2px solid var(--accent);flex-shrink:0"><img src="${photoSrc}" style="width:100%;height:100%;object-fit:cover"></div>`
+    : `<div style="width:72px;height:72px;border-radius:50%;background:${col}22;border:2px solid ${col};display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:${col};flex-shrink:0">${ini(u.chatName||u.username||'?')}</div>`;
+  const back = _prevPage || 'home';
+  return `
+  <button class="btn btnsm" style="margin-bottom:1.25rem" onclick="navigate('${back}',true)">← Volver</button>
+  <div class="card" style="background:linear-gradient(135deg,rgba(149,193,31,.08) 0%,transparent 70%)">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:${u.bio?'12px':'4px'}">
+      ${avHtml}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:18px;font-weight:700;letter-spacing:-.01em;line-height:1.2">${u.chatName||u.username||'—'}</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:3px">${u.role||'—'}</div>
+        ${u.instagram?`<div style="font-size:12px;color:var(--accent);margin-top:3px">@${u.instagram.replace(/^@/,'')}</div>`:''}
+      </div>
+    </div>
+    ${u.bio?`<div style="font-size:12px;color:var(--text2);line-height:1.55;padding:10px 12px;background:rgba(255,255,255,.04);border-radius:10px;font-style:italic">"${u.bio}"</div>`:''}
+  </div>
+  <div class="card">
+    <div class="ctitle">🏅 Medallas</div>
+    <div style="display:flex;gap:0;padding:4px 0">
+      ${medalDefs.map(m=>`
+        <div style="flex:1;text-align:center;padding:8px 4px">
+          <div style="font-size:38px;margin-bottom:6px;${m.count>0?'filter:drop-shadow(0 0 10px '+m.col+'55)':'filter:grayscale(.7);opacity:.5'}">${m.icon}</div>
+          <div style="font-size:24px;font-weight:700;color:${m.count>0?m.col:'var(--text3)'};line-height:1">${m.count}</div>
+          <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:4px">${m.label}</div>
+        </div>`).join('')}
+    </div>
+  </div>`;
 }
 
 // Compress image to dataURL, max 150x150, JPEG quality 0.7, <200KB

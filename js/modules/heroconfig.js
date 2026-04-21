@@ -78,7 +78,7 @@ function hcHtmlMain(ev){
       const safeU= p.userId.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
       const safeN= p.userName.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
       h+=`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)">
-        ${avatarHtml(u?.photo||u?.photoURL||'', p.userName||'?', ui, 34)}
+        ${avatarHtml(u?.photo||u?.photoURL||'', p.userName||'?', ui, 34, p.userId)}
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.userName}</div>
           <div style="font-size:10px;color:${tlbl?'var(--accent)':'var(--text3)'}">${medal}${tlbl||'Sin evaluar'}</div>
