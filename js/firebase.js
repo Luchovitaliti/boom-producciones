@@ -137,19 +137,23 @@ try {
       await fbSet('boomHeroHistory', key, histEntry);
 
       // ── Actualizar medallas de los ganadores ──
+      // Usa dot-notation + increment para no sobrescribir el objeto medals completo.
       const medalTypes=['hero','warrior','player'];
+      const inc=firebase.firestore.FieldValue.increment(1);
       await Promise.all(top3.map(async(entry,i)=>{
         const u=USERS.find(u=>(u.uid||u.username)===entry.userId);
         if(!u||!u.uid) return;
-        if(!u.medals) u.medals={hero:0,warrior:0,player:0};
         const mk=medalTypes[i];
-        u.medals[mk]=(u.medals[mk]||0)+1;
-        if(CU&&(CU.uid||CU.username)===entry.userId){
-          if(!CU.medals) CU.medals={hero:0,warrior:0,player:0};
-          CU.medals[mk]=u.medals[mk];
-        }
-        try{ await _db.collection('users').doc(u.uid).update({medals:u.medals}); }
-        catch(e){ console.warn('[medals] Error actualizando medalla:',e.message); }
+        try{
+          await _db.collection('users').doc(u.uid).update({ [`medals.${mk}`]: inc });
+          // Reflejo en memoria
+          if(!u.medals) u.medals={hero:0,warrior:0,player:0};
+          u.medals[mk]=(u.medals[mk]||0)+1;
+          if(CU&&(CU.uid||CU.username)===entry.userId){
+            if(!CU.medals) CU.medals={hero:0,warrior:0,player:0};
+            CU.medals[mk]=u.medals[mk];
+          }
+        }catch(e){ console.warn('[medals] Error actualizando medalla:',e.message); }
       }));
     },
     trafic:         ev => fbSet('trafic',       'ev'+ev, {
