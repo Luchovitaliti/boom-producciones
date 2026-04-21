@@ -131,6 +131,7 @@ function renderPage(p){
     else if(p==='kpi'){mc.innerHTML=pgKPI();initKPI();}
     else if(p==='dev')mc.innerHTML=pgDev();
     else if(p==='usuarios')mc.innerHTML=pgUsuarios();
+    else if(p==='boomers'){mc.innerHTML=pgBoomers();initBoomers();}
     else if(p==='perfil'){mc.innerHTML=pgPerfil();initPerfil();}
     if(!['home','perfil','usuarios','dev','chat'].includes(p)){
       const wrap = document.getElementById('mc');
