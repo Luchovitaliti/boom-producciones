@@ -22,11 +22,17 @@ service cloud.firestore {
       allow create: if request.auth != null
                     && request.auth.uid == uid;
 
+      // Usuario edita su propio perfil (campos de perfil solamente)
       allow update: if request.auth != null
                     && request.auth.uid == uid
                     && request.resource.data.diff(resource.data).affectedKeys()
                        .hasOnly(['chatName', 'displayName', 'bio', 'instagram',
                                  'telefono', 'photoURL', 'updatedAt']);
+
+      // Admin actualiza medallas de cualquier usuario (dot-notation → afecta clave 'medals')
+      allow update: if isAdmin()
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['medals']);
 
       allow delete: if false;
     }

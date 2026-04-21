@@ -6,7 +6,7 @@ const avs=i=>`background:${AVC[i%8]}22;color:${AVC[i%8]}`;
 function avatarHtml(photo, fallback, colorIdx, size, uid) {
   const sz = size || 32;
   const s = `width:${sz}px;height:${sz}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:${Math.round(sz*0.38)}px;font-weight:600;overflow:hidden;flex-shrink:0;${uid?'cursor:pointer;':''}`;
-  const click = uid ? ` onclick="viewProfile('${uid}')"` : '';
+  const click = uid ? ` onclick="event.stopPropagation();viewProfile('${uid}')"` : '';
   if (photo) return `<div class="av" style="${s}"${click}><img src="${photo}" style="width:100%;height:100%;object-fit:cover"></div>`;
   const col = AVC[(colorIdx||0)%8];
   return `<div class="av" style="${s}background:${col}22;color:${col}"${click}>${ini(fallback||'?')}</div>`;

@@ -1,10 +1,10 @@
 // ═══ DATA ═══
 // USERS se carga desde Firestore collection 'users'. Este array es fallback vacío.
 let USERS=[];
-const ALL_PAGES=['home','dashboard','boomhero','heroconfig','barra','deco','adminfin','recaudacion','liderpub','publicas','trafic','cm','boom','chat','proveedores','kpi','dev','usuarios','perfil'];
-const PAGE_LABELS={home:'Inicio',dashboard:'Dashboard',boomhero:'BOOM HERO',heroconfig:'Puntajes BOOM HERO',barra:'Barra',deco:'Decoración',adminfin:'Administración',recaudacion:'Recaudación',liderpub:'Líder Públicas',publicas:'Públicas',trafic:'Trafic',cm:'CM',boom:'BOOM General',chat:'Chat interno',proveedores:'Proveedores',kpi:'Reportes y KPIs',dev:'🛠 Dev',usuarios:'Usuarios',perfil:'Mi perfil'};
-const PAGE_ICONS={home:'🏠',dashboard:'📊',boomhero:'⚡',heroconfig:'🏆',barra:'🍺',deco:'🌸',adminfin:'📋',recaudacion:'💵',liderpub:'⭐',publicas:'📸',trafic:'🚐',cm:'📅',boom:'💡',chat:'💬',proveedores:'🤝',kpi:'📈',dev:'🛠',usuarios:'👥',perfil:'👤'};
-const PAGE_SECTIONS={home:'Mi cuenta',dashboard:'Admin',boomhero:'Comunicación',heroconfig:'Admin',barra:'Módulos',deco:'Módulos',adminfin:'Módulos',recaudacion:'Módulos',liderpub:'Módulos',publicas:'Módulos',trafic:'Módulos',cm:'Comunicación',boom:'Comunicación',chat:'Comunicación',proveedores:'Admin',kpi:'Admin',dev:'Admin',usuarios:'Admin',perfil:'Mi cuenta'};
+const ALL_PAGES=['home','dashboard','boomhero','heroconfig','barra','deco','adminfin','recaudacion','liderpub','publicas','trafic','cm','boom','chat','proveedores','kpi','dev','usuarios','boomers','perfil'];
+const PAGE_LABELS={home:'Inicio',dashboard:'Dashboard',boomhero:'BOOM HERO',heroconfig:'Puntajes BOOM HERO',barra:'Barra',deco:'Decoración',adminfin:'Administración',recaudacion:'Recaudación',liderpub:'Líder Públicas',publicas:'Públicas',trafic:'Trafic',cm:'CM',boom:'BOOM General',chat:'Chat interno',proveedores:'Proveedores',kpi:'Reportes y KPIs',dev:'🛠 Dev',usuarios:'Usuarios',boomers:'Boomers',perfil:'Mi perfil'};
+const PAGE_ICONS={home:'🏠',dashboard:'📊',boomhero:'⚡',heroconfig:'🏆',barra:'🍺',deco:'🌸',adminfin:'📋',recaudacion:'💵',liderpub:'⭐',publicas:'📸',trafic:'🚐',cm:'📅',boom:'💡',chat:'💬',proveedores:'🤝',kpi:'📈',dev:'🛠',usuarios:'👥',boomers:'🧑‍🤝‍🧑',perfil:'👤'};
+const PAGE_SECTIONS={home:'Mi cuenta',dashboard:'Admin',boomhero:'Comunicación',heroconfig:'Admin',barra:'Módulos',deco:'Módulos',adminfin:'Módulos',recaudacion:'Módulos',liderpub:'Módulos',publicas:'Módulos',trafic:'Módulos',cm:'Comunicación',boom:'Comunicación',chat:'Comunicación',proveedores:'Admin',kpi:'Admin',dev:'Admin',usuarios:'Admin',boomers:'Comunicación',perfil:'Mi cuenta'};
 
 let EVENTOS=[]; // Se carga desde Firebase o queda vacío
 const EV_DATES=['2025-03-15','2025-03-22','2025-04-05'];

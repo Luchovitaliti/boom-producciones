@@ -3,15 +3,14 @@
 // ═══════════════════════════════════════════════════════════
 
 let _peekUid = null;
-let _prevPage = null;
 
 function viewProfile(uid) {
   const myUid = CU?.uid || CU?.username;
-  if (!uid || uid === myUid) { navigate('perfil', true); return; }
-  _prevPage = curPage;
+  if (!uid || uid === myUid) { navigate('perfil', false); return; }
   _peekUid = uid;
-  navigate('perfil', true);
+  navigate('perfil', false); // push to history so navigateBack() works
 }
+window.viewProfile = viewProfile;
 
 function pgPerfil() {
   return `<div id="prof-wrap"></div>`;
@@ -136,9 +135,8 @@ function _viewProfileHtml(u) {
   const avHtml = photoSrc
     ? `<div style="width:72px;height:72px;border-radius:50%;overflow:hidden;border:2px solid var(--accent);flex-shrink:0"><img src="${photoSrc}" style="width:100%;height:100%;object-fit:cover"></div>`
     : `<div style="width:72px;height:72px;border-radius:50%;background:${col}22;border:2px solid ${col};display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:${col};flex-shrink:0">${ini(u.chatName||u.username||'?')}</div>`;
-  const back = _prevPage || 'home';
   return `
-  <button class="btn btnsm" style="margin-bottom:1.25rem" onclick="navigate('${back}',true)">← Volver</button>
+  <button class="btn btnsm" style="margin-bottom:1.25rem" onclick="navigateBack()">← Volver</button>
   <div class="card" style="background:linear-gradient(135deg,rgba(149,193,31,.08) 0%,transparent 70%)">
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:${u.bio?'12px':'4px'}">
       ${avHtml}
